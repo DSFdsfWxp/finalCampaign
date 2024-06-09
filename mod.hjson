@@ -1,0 +1,23 @@
+#the mod name as displayed in-game
+displayName: "finalCampaign"
+
+#the internal name of your mod
+name: "final-campaign"
+
+#your name
+author: "Wxp"
+
+#the fully qualified main class of the mod
+main: "finalCampaign.finalCampaign"
+
+#the mod description as seen in the mod dialog
+description: "A interesting mod."
+
+#the mod version
+version: 0.0.1
+
+#the minimum game build required to run this mod
+minGameVersion: 145
+
+#this is a java mod
+java: true

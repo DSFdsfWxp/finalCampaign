@@ -1,0 +1,10 @@
+# project
+/.gradle
+/.vscode
+
+# build
+/bin
+/build
+
+#git
+/.git
