@@ -4,16 +4,16 @@ import arc.*;
 import arc.util.*;
 import arc.util.Log.*;
 import mindustry.*;
-import mindustry.content.*;
 import mindustry.game.EventType.*;
-import mindustry.gen.*;
 import mindustry.mod.*;
-import mindustry.ui.dialogs.*;
+import mindustry.mod.Mods.*;
 import finalCampaign.patch.*;
 
 import static mindustry.Vars.*;
 
 public class finalCampaign extends Mod{
+
+    public static LoadedMod thisMod;
 
     public finalCampaign(){
         Log.info(" # finalCampaign [prototypePhase]");
@@ -21,9 +21,15 @@ public class finalCampaign extends Mod{
 
         Log.level = LogLevel.debug;
 
+        thisMod = mods.getMod(finalCampaign.class);
+
         //listen for game load event
-        Events.on(ClientLoadEvent.class, e -> {
-            content = new fcContentLoader(content.getContentMap());
+        Events.on(ClientLoadEvent.class, event -> {
+            try {
+                pool.init();
+            } catch(Exception e) {
+                Vars.ui.showException(e);
+            }
         });
     }
 
