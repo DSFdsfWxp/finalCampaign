@@ -36,6 +36,25 @@ public class proxyRuntime {
         targetObjectSetMethodNameMap.put(patchClass, name);
     }
 
+    public static <T> Object getTargetObject(Class<T> patchClass, Object proxy) throws IllegalAccessException, InvocationTargetException {
+        return getTargetObject(patchClass.getName(), proxy);
+    }
+
+    protected static Object getTargetObject(String patchClassName, Object proxy) throws IllegalAccessException, InvocationTargetException {
+        if (!targetObjectSetMethodNameMap.containsKey(patchClassName)) throw new RuntimeException("Can not found cached target object name for: " + patchClassName);
+
+        Method m;
+
+        try {
+            m = proxy.getClass().getDeclaredMethod(targetObjectSetMethodNameMap.get(patchClassName) + "_get");
+            
+        }catch(NoSuchMethodException e) {
+            throw new RuntimeException("Not a proxy object: " + proxy.toString());
+        }
+
+        return m.invoke(m);
+    }
+
     /** reverse: true: target -> proxy , false: proxy -> target */
     public static <T> void syncProxyField(Class<T> patchClass, Object proxy, boolean reverse) throws IllegalAccessException, InvocationTargetException {
         syncProxyField(patchClass.getName(), proxy, reverse);
@@ -46,6 +65,10 @@ public class proxyRuntime {
         if (!targetObjectSetMethodNameMap.containsKey(patchClassName)) throw new RuntimeException("Can not found cached target object name for: " + patchClassName);
 
         Method fm;
+        Object target;
+
+        target = getTargetObject(patchClassName, proxy);
+        if (target == null) throw new RuntimeException("The target object of the proxy object is not set.");
 
         try {
             fm = proxy.getClass().getDeclaredMethod(targetObjectSetMethodNameMap.get(patchClassName) + "_syncField", Field.class, Boolean.class);
@@ -56,6 +79,14 @@ public class proxyRuntime {
         Field[] fields = proxy.getClass().getDeclaredFields();
         for (Field field : fields) {
             if (Modifier.isFinal(field.getModifiers()) || Modifier.isPrivate(field.getModifiers()) || Modifier.isStatic(field.getModifiers())) continue;
+            
+            try {
+                Field targetField = target.getClass().getDeclaredField(field.getName());
+                if (targetField.getType() != field.getType()) continue;
+            } catch(NoSuchFieldException e) {
+                continue;
+            }
+
             fm.invoke(proxy, field, reverse ? Boolean.TRUE : Boolean.FALSE);
         }
     }
@@ -80,8 +111,6 @@ public class proxyRuntime {
 
         syncProxyField(patchClassName, proxy, true);
     }
-
-    // TODO: add a method to get target object.
 
     public static <T> void loadAllPatchedClass(Class<T> patchClass, CtClass allPatchedClass) throws IOException, CannotCompileException {
         if (loadedAllPatchedClassMap.containsKey(patchClass.getName())) return;

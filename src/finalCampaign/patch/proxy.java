@@ -65,8 +65,69 @@ public class proxy {
             }
         }
 
-        // TODO: complete constructors, methods and nest classes part.
+        CtConstructor[] pConstructors = patchCtClass.getDeclaredConstructors();
+        for (CtConstructor pConstructor : pConstructors) {
+            switch (util.getPatchOperation(pConstructor)) {
+                case Add:
+                    if (util.hasBehavior(targetClass, pConstructor.getName(), pConstructor.getParameterTypes())) throw new RuntimeException("There is already a constructor called \"" + pConstructor.getName() + "\".");
+                case Replace: {
+                    CtConstructor newConstructor = new CtConstructor(pConstructor, patchedClass, null);
+                    newConstructor.setModifiers(pConstructor.getModifiers());
+                    patchedClass.addConstructor(newConstructor);
+                    break;
+                }
+                case Access:
+                    throw new RuntimeException("Operation access in proxy patch is not allowed.");
+                case None:
+                    continue;
+            }
+        }
 
+        CtMethod[] pMethods = patchCtClass.getDeclaredMethods();
+        for (CtMethod pMethod : pMethods) {
+            switch (util.getPatchOperation(pMethod)) {
+                case Add:
+                    if (util.hasBehavior(targetClass, pMethod.getName(), pMethod.getParameterTypes())) throw new RuntimeException("There is already a method called \"" + pMethod.getName() + "\".");
+                case Replace: {
+                    CtMethod newMethod = new CtMethod(pMethod, patchedClass, null);
+                    newMethod.setModifiers(pMethod.getModifiers());
+                    patchedClass.addMethod(newMethod);
+                    break;
+                }
+                case Access:
+                    throw new RuntimeException("Operation access in proxy patch is not allowed.");
+                case None:
+                    continue;
+            }
+        }
+
+        CtClass[] pClasses = patchCtClass.getDeclaredClasses();
+        for (CtClass pClass : pClasses) {
+            CtClass currentClass = pClass;
+            Seq<Object> annotations = util.getPatchAnnotations(new Seq<>(pClass.getAnnotations()));
+            boolean modified = false;
+
+            for (Object annotation : annotations) {
+                if (annotation instanceof PatchModify) {
+                    if (modified) throw new RuntimeException("Repatch a sub class is not allowed.");
+                    currentClass = modify.patch(pClass, false);
+                    modified = true;
+                }
+
+                if (annotation instanceof PatchProxy) throw new RuntimeException("Can not make a proxy patch to a sub class.");
+                if (annotation instanceof PatchAccess) throw new RuntimeException("Operation is not allowed to a sub class.");
+
+                if (annotation instanceof PatchAdd) {
+                    if (util.hasNestClass(patchedClass, currentClass.getSimpleName())) throw new RuntimeException("There is already a nest class called \"" + util.getRealClassName(currentClass.getSimpleName()) + "\"");
+                    
+                    util.copyClass(currentClass, patchedClass.makeNestedClass(util.getRealClassName(currentClass.getSimpleName()), Modifier.isStatic(currentClass.getModifiers())));
+                } else {
+                    CtClass originNestClass = util.getNestClass(patchedClass, util.getRealClassName(currentClass.getSimpleName()));
+                    util.clearClass(originNestClass);
+                    util.copyClass(currentClass, originNestClass);
+                }
+            }
+        }
 
         pool.classPool.clearImportedPackages();
 
@@ -106,7 +167,10 @@ public class proxy {
         selfFieldSyncMethod.setBody("{ if ($2.booleanValue()) { $1.set($0,$1.get($0." + targetObjectName + ")); } else { $1.set($0." + targetObjectName + ",$1.get($0)); } }");
         patchedClass.addMethod(selfFieldSyncMethod);
 
-        // TODO: add a method to get target object.
+        CtMethod targetObjectGetMethod = new CtMethod(pool.classPool.get("java.lang.Object"), targetObjectName + "_get", new CtClass[]{}, patchedClass);
+        targetObjectGetMethod.setModifiers(Modifier.PUBLIC);
+        targetObjectGetMethod.setBody("{ return $0." + targetObjectName + "; }");
+        patchedClass.addMethod(targetObjectGetMethod);
 
         CtConstructor[] targetConstructors = targetClass.getDeclaredConstructors();
         for (CtConstructor targetConstructor : targetConstructors) {

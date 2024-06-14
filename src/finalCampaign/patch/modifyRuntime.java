@@ -25,9 +25,13 @@ public class modifyRuntime {
         proxyRuntime.setProxyTarget(patchClassTargetClassNameMap.get(patchClass.getName()), proxy, target);
     }
 
+    /** reverse: true: target -> proxy , false: proxy -> target */
     public static <T> void syncProxyField(Class<T> patchClass, Object proxy, boolean reverse) throws IllegalAccessException, InvocationTargetException {
         proxyRuntime.syncProxyField(patchClassTargetClassNameMap.get(patchClass.getName()), proxy, reverse);
     }
 
+    public static <T> Object getProxyTarget(Class<T> patchClass, Object proxy) throws IllegalAccessException, InvocationTargetException {
+        return proxyRuntime.getTargetObject(patchClassTargetClassNameMap.get(patchClass.getName()), proxy);
+    }
 
 }

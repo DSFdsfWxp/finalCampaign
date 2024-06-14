@@ -6,8 +6,6 @@ import arc.files.*;
 import finalCampaign.*;
 import javassist.*;
 
-import static mindustry.Vars.*;
-
 public class pool {
     protected static ClassPool classPool = ClassPool.getDefault();
     protected static Loader.Simple classLoader = new Loader.Simple();
@@ -19,10 +17,7 @@ public class pool {
     public static void init() throws NotFoundException {
         if (inited) return;
 
-        Fi dataDir = dataDirectory.child("finalCampaign");
-        if (!dataDir.exists()) dataDir.mkdirs();
-
-        Fi classFile = dataDir.child("mindustry.class.jar");
+        Fi classFile = finalCampaign.dataDir.child("mindustry.class.jar");
         if (!classFile.exists()) {
             ZipFi thisModFi = new ZipFi(finalCampaign.thisMod.file);
             thisModFi.child("mindustry.class.jar").copyTo(classFile);
@@ -44,6 +39,8 @@ public class pool {
     }
 
     public static <T> void patchAndCache(Class<T> patchClass) throws NotFoundException, ClassNotFoundException, CannotCompileException, IOException {
+        // since we'll load the patched target class before we make a proxy for it
+        // so we cache it there
         modify.patch(patchClass);
     }
 

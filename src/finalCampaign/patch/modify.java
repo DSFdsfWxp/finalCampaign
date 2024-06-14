@@ -188,11 +188,11 @@ public class modify {
                     if (util.hasNestClass(originClass, currentClass.getSimpleName())) throw new RuntimeException("There is already a nest class called \"" + util.getRealClassName(currentClass.getSimpleName()) + "\"");
                     
                     util.copyClass(currentClass, originClass.makeNestedClass(util.getRealClassName(currentClass.getSimpleName()), Modifier.isStatic(currentClass.getModifiers())));
+                } else {
+                    CtClass originNestClass = util.getNestClass(originClass, util.getRealClassName(currentClass.getSimpleName()));
+                    util.clearClass(originNestClass);
+                    util.copyClass(currentClass, originNestClass);
                 }
-
-                CtClass originNestClass = util.getNestClass(currentClass, util.getRealClassName(currentClass.getSimpleName()));
-                util.clearClass(originNestClass);
-                util.copyClass(currentClass, originNestClass);
             }
         }
 
@@ -201,7 +201,7 @@ public class modify {
         if (makeProxy) {
             Object loadedOriginClass = pool.classLoader.invokeDefineClass(originClass);
             CtClass proxyPatchClass = proxy.patchAll(originClass, targetClass, random);
-            originClass.setName("finalCampaign.patch.modified.proxied." + random + "." + targetClass.getName());
+            proxyPatchClass.setName("finalCampaign.patch.modified.proxied." + random + "." + targetClass.getName());
 
             modifyRuntime.cacheProxyPatchClass(patchClass.getName(), "finalCampaign.patch.modified.target." + random + "." + targetClass.getName(), proxyPatchClass);
             pool.cache(patchClass, loadedOriginClass, originClass.toBytecode());
