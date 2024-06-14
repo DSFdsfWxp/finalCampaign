@@ -47,8 +47,9 @@ public class modify {
 
     protected static CtClass patch(CtClass patchClass, boolean makeProxy) throws NotFoundException, ClassNotFoundException, CannotCompileException, IOException {
         CtClass originClass = getTargetCtClass(patchClass);
-        CtClass targetClass = getTargetCtClass(patchClass);
         String random = util.randomName();
+        originClass.setName("finalCampaign.patch.modified.target." + random + "." + originClass.getName());
+        CtClass targetClass = getTargetCtClass(patchClass);
         String[] importPackages = util.getPatchImport(patchClass);
 
         pool.classPool.clearImportedPackages();
@@ -196,15 +197,15 @@ public class modify {
             }
         }
 
-        originClass.setName("finalCampaign.patch.modified.target." + random + "." + originClass.getName());
-
         if (makeProxy) {
             Object loadedOriginClass = pool.classLoader.invokeDefineClass(originClass);
             CtClass proxyPatchClass = proxy.patchAll(originClass, targetClass, random);
+            
             proxyPatchClass.setName("finalCampaign.patch.modified.proxied." + random + "." + targetClass.getName());
+            Object loadedProxyPatchClass = pool.classLoader.invokeDefineClass(proxyPatchClass);
 
-            modifyRuntime.cacheProxyPatchClass(patchClass.getName(), "finalCampaign.patch.modified.target." + random + "." + targetClass.getName(), proxyPatchClass);
-            pool.cache(patchClass, loadedOriginClass, originClass.toBytecode());
+            modifyRuntime.cacheProxyPatchClass(patchClass.getName(), "finalCampaign.patch.modified.target." + random + "." + targetClass.getName(), loadedProxyPatchClass, proxyPatchClass);
+            pool.cache(patchClass.getName(), loadedOriginClass, originClass.toBytecode());
 
             pool.classPool.clearImportedPackages();
 

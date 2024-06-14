@@ -135,7 +135,6 @@ public class proxy {
     }
 
     protected static CtClass patchAll(CtClass patchClass, CtClass targetClass, String random) throws NotFoundException, CannotCompileException {
-        targetClass = pool.classPool.get(targetClass.getName());
         CtClass patchedClass = pool.classPool.makeClass("finalCampaign.patch.proxied.all." + random + '.' + targetClass.getName());
         String targetObjectName = "fcPatchTargetObject_" + util.randomName();
 
@@ -159,17 +158,17 @@ public class proxy {
 
         CtMethod targetObjectSetMethod = new CtMethod(CtClass.voidType, targetObjectName + "_set", new CtClass[]{pool.classPool.get("java.lang.Object")}, patchedClass);
         targetObjectSetMethod.setModifiers(Modifier.PUBLIC);
-        targetObjectSetMethod.setBody("{ if($0." + targetObjectName + "!=null) $0." + targetObjectName + "=$1; }");
+        targetObjectSetMethod.setBody("{ if(" + targetObjectName + "==null) " + targetObjectName + "=$1; }");
         patchedClass.addMethod(targetObjectSetMethod);
         
         CtMethod selfFieldSyncMethod = new CtMethod(CtClass.voidType, targetObjectName + "_syncField", new CtClass[]{pool.classPool.get("java.lang.reflect.Field"), pool.classPool.get("java.lang.Boolean")}, patchedClass);
         selfFieldSyncMethod.setModifiers(Modifier.PUBLIC);
-        selfFieldSyncMethod.setBody("{ if ($2.booleanValue()) { $1.set($0,$1.get($0." + targetObjectName + ")); } else { $1.set($0." + targetObjectName + ",$1.get($0)); } }");
+        selfFieldSyncMethod.setBody("{ if ($2.booleanValue()) { $1.set($0,$1.get(" + targetObjectName + ")); } else { $1.set(" + targetObjectName + ",$1.get($0)); } }");
         patchedClass.addMethod(selfFieldSyncMethod);
 
         CtMethod targetObjectGetMethod = new CtMethod(pool.classPool.get("java.lang.Object"), targetObjectName + "_get", new CtClass[]{}, patchedClass);
         targetObjectGetMethod.setModifiers(Modifier.PUBLIC);
-        targetObjectGetMethod.setBody("{ return $0." + targetObjectName + "; }");
+        targetObjectGetMethod.setBody("{ return " + targetObjectName + "; }");
         patchedClass.addMethod(targetObjectGetMethod);
 
         CtConstructor[] targetConstructors = targetClass.getDeclaredConstructors();
@@ -178,7 +177,7 @@ public class proxy {
 
             CtConstructor newConstructor = new CtConstructor(targetConstructor.getParameterTypes(), patchedClass);
             newConstructor.setModifiers(targetConstructor.getModifiers());
-            newConstructor.setBody("{ $0." + targetObjectName + "=null; $proceed($$); }");
+            newConstructor.setBody("{ super($$); " + targetObjectName + "=null; }");
             newConstructor.addCatch("{ throw new RuntimeException($e); }", pool.classPool.get("java.lang.Exception"));
 
             patchedClass.addConstructor(newConstructor);
@@ -196,8 +195,9 @@ public class proxy {
             for (CtClass parameter : parameters) parameterLst.add(parameter.getName());
             
             Seq<String> src = new Seq<>();
-            src.add("Method m=proxyRuntime.getMethod($0." + targetObjectName + ",\"" + targetMethod.getName() + "\",\"" + String.join(",", parameterLst) + "\",\"" + targetMethod.getReturnType().getName() + "\");");
-            src.add(((targetMethod.getReturnType() == CtClass.voidType) ? "" : "return ") + "m.invoke($0,$$);");
+            src.add("Method m=proxyRuntime.getMethod(" + targetObjectName + ",\"" + targetMethod.getName() + "\",\"" + String.join(",", parameterLst) + "\",\"" + targetMethod.getReturnType().getName() + "\");");
+            src.add("Object o=m.invoke(" + targetObjectName + ",$args);");
+            if (targetMethod.getReturnType() != CtClass.voidType) src.add("return (" + targetMethod.getReturnType().getName() + ")o;");
 
             newMethod.setBody("{ " + String.join(" ", src) + " }");
             newMethod.addCatch("{ throw new RuntimeException($e); }", pool.classPool.get("java.lang.Exception"));

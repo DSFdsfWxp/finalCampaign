@@ -21,7 +21,7 @@ public class proxyRuntime {
 
             Seq<String> methodParameterTypeLst = new Seq<>();
             Class[] methodParameterTypes = method.getParameterTypes();
-            for (Class methodParameterType : methodParameterTypes) methodParameterTypeLst.add(methodParameterType.getName());
+            for (Class methodParameterType : methodParameterTypes) methodParameterTypeLst.add(util.getTypeExpression(methodParameterType.getName()));
 
             if (!parameterTypeLst.equals(String.join(",", methodParameterTypeLst))) continue;
 
@@ -52,7 +52,7 @@ public class proxyRuntime {
             throw new RuntimeException("Not a proxy object: " + proxy.toString());
         }
 
-        return m.invoke(m);
+        return m.invoke(proxy);
     }
 
     /** reverse: true: target -> proxy , false: proxy -> target */

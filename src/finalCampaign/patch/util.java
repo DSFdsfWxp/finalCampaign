@@ -29,6 +29,12 @@ public class util {
         return out;
     }
 
+    public static String repeatString(String txt, int count) {
+        String out = "";
+        for (int i=0; i<count; i++) out += txt;
+        return out;
+    }
+
     public static String randomName() {
         return randomName(8);
     }
@@ -77,6 +83,52 @@ public class util {
     public static String getRealClassName(String simpleName) {
         Seq<String> t = new Seq<>(simpleName.split(","));
         return t.pop();
+    }
+
+    public static String getTypeExpression(String rawTypeName) {
+        if (!rawTypeName.startsWith("[")) return rawTypeName;
+
+        int arrayNum = 0;
+        String[] splited = rawTypeName.split("");
+        for (String t : splited) {
+            if (!t.equals("[")) break;
+            arrayNum ++;
+        }
+
+        String typeName = rawTypeName.substring(arrayNum + 1);
+        switch (rawTypeName.substring(arrayNum - 1, arrayNum + 1)) {
+            case "[I":
+                typeName = "int";
+                break;
+            case "[Z":
+                typeName = "boolean";
+                break;
+            case "[B":
+                typeName = "byte";
+                break;
+            case "[S":
+                typeName = "short";
+                break;
+            case "[J":
+                typeName = "long";
+                break;
+            case "[F":
+                typeName = "float";
+                break;
+            case "[D":
+                typeName = "double";
+                break;
+            case "[C":
+                typeName = "char";
+                break;
+            case "[L":
+                typeName = typeName.substring(0, typeName.length() - 1);
+                break;
+            default:
+                throw new RuntimeException("Should not reach here.");
+        }
+
+        return typeName + repeatString("[]", arrayNum);
     }
 
     public static CtClass getNestClass(CtClass tClass, String name) throws NotFoundException {

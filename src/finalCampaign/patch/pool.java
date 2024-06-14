@@ -6,12 +6,13 @@ import arc.files.*;
 import finalCampaign.*;
 import javassist.*;
 
+@SuppressWarnings("rawtypes")
 public class pool {
     protected static ClassPool classPool = ClassPool.getDefault();
-    protected static Loader.Simple classLoader = new Loader.Simple();
+    protected static Loader.Simple classLoader = new Loader.Simple(classPool.getClass().getClassLoader());
 
-    private static ObjectMap<Object, Object> patchedClassMap = new ObjectMap<>();
-    private static ObjectMap<Object, byte[]> patchedByteCodeMap = new ObjectMap<>();
+    private static ObjectMap<String, Object> patchedClassMap = new ObjectMap<>();
+    private static ObjectMap<String, byte[]> patchedByteCodeMap = new ObjectMap<>();
     private static boolean inited = false;
 
     public static void init() throws NotFoundException {
@@ -29,13 +30,17 @@ public class pool {
         inited = true;
     }
 
-    public static void cache(Object patchClass, Object patchedClass, byte[] byteCode) {
-        patchedClassMap.put(patchClass, patchedClass);
-        patchedByteCodeMap.put(patchClass, byteCode);
+    public static void cache(Class patchClass, Object patchedClass, byte[] byteCode) {
+        cache(patchClass.getName(), patchedClass, byteCode);
     }
 
-    public static boolean has(Object patchClass) {
-        return patchedClassMap.containsKey(patchClass) && patchedByteCodeMap.containsKey(patchClass);
+    protected static void cache(String patchClassName, Object patchedClass, byte[] byteCode) {
+        patchedClassMap.put(patchClassName, patchedClass);
+        patchedByteCodeMap.put(patchClassName, byteCode);
+    }
+
+    public static boolean has(Class patchClass) {
+        return patchedClassMap.containsKey(patchClass.getName()) && patchedByteCodeMap.containsKey(patchClass.getName());
     }
 
     public static <T> void patchAndCache(Class<T> patchClass) throws NotFoundException, ClassNotFoundException, CannotCompileException, IOException {
@@ -44,15 +49,14 @@ public class pool {
         modify.patch(patchClass);
     }
 
-    @SuppressWarnings("rawtypes")
-    public static Class resolve(Object patchClass) {
+    public static Class resolve(Class patchClass) {
         if (!has(patchClass)) return null;
-        return (Class) patchedClassMap.get(patchClass);
+        return (Class) patchedClassMap.get(patchClass.getName());
     }
 
-    public static CtClass resolveCtClass(Object patchClass) throws IOException, CannotCompileException {
+    public static CtClass resolveCtClass(Class patchClass) throws IOException, CannotCompileException {
         if (!has(patchClass)) return null;
-        InputStream stream = new ByteArrayInputStream(patchedByteCodeMap.get(patchClass));
+        InputStream stream = new ByteArrayInputStream(patchedByteCodeMap.get(patchClass.getName()));
         return classPool.makeClass(stream);
     }
 

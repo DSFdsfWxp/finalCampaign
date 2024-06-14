@@ -26,13 +26,13 @@ public class finalCampaign extends Mod{
 
         Log.level = LogLevel.debug;
 
-        thisMod = mods.getMod(finalCampaign.class);
-
-        dataDir = dataDirectory.child("finalCampaign");
-        if (!dataDir.exists()) dataDir.mkdirs();
-
         //listen for game load event
         Events.on(ClientLoadEvent.class, event -> {
+            thisMod = mods.getMod(finalCampaign.class);
+
+            dataDir = dataDirectory.child("finalCampaign");
+            if (!dataDir.exists()) dataDir.mkdirs();
+
             try {
                 pool.init();
                 Log.info("inited pool.");
@@ -44,14 +44,14 @@ public class finalCampaign extends Mod{
                 Object patchedObject = patchedClass.getDeclaredConstructor(Object.class).newInstance((Object)content.getContentMap());
                 Log.info("resolved and instantiated target.");
 
-                Class<ContentLoader> proxyClass = modifyRuntime.resolveProxyClass(fcContentLoader.class, ContentLoader.class);
-                ContentLoader proxyObject = proxyClass.getDeclaredConstructor().newInstance();
+                Class proxyClass = modifyRuntime.resolveProxyClass(fcContentLoader.class);
+                Object proxyObject = proxyClass.getDeclaredConstructor().newInstance();
                 Log.info("resolved and instantiated proxy.");
 
                 modifyRuntime.setProxyTarget(fcContentLoader.class, proxyObject, patchedObject);
                 Log.info("set proxy target.");
 
-                content = proxyObject;
+                content = (ContentLoader) proxyObject;
                 Log.info("replaced contentLoader.");
             } catch(Exception e) {
                 Vars.ui.showException(e);
