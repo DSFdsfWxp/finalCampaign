@@ -3,7 +3,6 @@ package finalCampaign.patch;
 import java.io.IOException;
 import java.lang.reflect.*;
 import arc.struct.*;
-import finalCampaign.finalCampaign;
 import javassist.*;
 
 public class modifyRuntime {
@@ -16,7 +15,6 @@ public class modifyRuntime {
         patchClassTargetClassNameMap.put(patchClassName, targetClassName);
         proxyPatchClassMap.put(targetClassName, proxyPatchClass);
         proxyPatchCtClassMap.put(targetClassName, proxyPatchCtClass);
-        proxyPatchCtClass.writeFile(finalCampaign.dataDir.absolutePath() + "\\");
     }
 
     @SuppressWarnings("rawtypes")
