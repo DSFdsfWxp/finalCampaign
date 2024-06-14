@@ -3,6 +3,7 @@ package finalCampaign.patch;
 import java.io.*;
 import java.lang.reflect.*;
 import arc.struct.*;
+import arc.util.Log;
 import javassist.*;
 import javassist.Modifier;
 
@@ -15,18 +16,27 @@ public class proxyRuntime {
     public static Method getMethod(Object target, String name, String parameterTypeLst, String returnType) {
         Method[] methods = target.getClass().getDeclaredMethods();
 
+        //String tmp = "";
+
         for (Method method : methods) {
             if (!method.getName().equals(name)) continue;
-            if (!method.getReturnType().getName().equals(returnType)) continue;
+            if (!util.getTypeExpression(method.getReturnType().getName()).equals(returnType)) continue;
 
             Seq<String> methodParameterTypeLst = new Seq<>();
             Class[] methodParameterTypes = method.getParameterTypes();
             for (Class methodParameterType : methodParameterTypes) methodParameterTypeLst.add(util.getTypeExpression(methodParameterType.getName()));
 
+            //tmp += util.getTypeExpression(method.getReturnType().getName()) + " " + method.getName() + "(" + String.join(",", methodParameterTypeLst) + ")" + "\n";
+
+            //if (!method.getName().equals(name)) continue;
+            //if (!util.getTypeExpression(method.getReturnType().getName()).equals(returnType)) continue;
+
             if (!parameterTypeLst.equals(String.join(",", methodParameterTypeLst))) continue;
 
             return method;
         }
+
+        //Log.info(tmp);
 
         throw new RuntimeException("Method not found: " + returnType + " " + target.getClass().getName() + "." + name + "(" + parameterTypeLst + ")");
     }
