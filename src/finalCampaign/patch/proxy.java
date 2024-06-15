@@ -1,6 +1,8 @@
 package finalCampaign.patch;
 
 import java.io.*;
+import java.security.*;
+
 import arc.struct.*;
 import javassist.*;
 import finalCampaign.patch.annotation.*;
@@ -14,7 +16,8 @@ public class proxy {
         for (Object annotation : annotations) {
             if (annotation instanceof PatchProxy) {
                 Class targetClass = patchClass.getSuperclass();
-                if (targetClass.equals(Object.class)) throw new RuntimeException("Missing target class in a proxy patch class.");
+                if (targetClass.equals(Object.class))
+                    throw new RuntimeException("Missing target class in a proxy patch class.");
 
                 return targetClass;
             }
@@ -24,34 +27,54 @@ public class proxy {
     }
 
     protected static CtClass getTargetCtClass(Class patchClass) throws ClassNotFoundException, NotFoundException {
-        return pool.classPool.get(getTargetClass(patchClass).getName());
+        return pool.resolveCtClass(getTargetClass(patchClass).getName());
     }
 
     protected static CtClass getTargetCtClass(CtClass patchClass) throws NotFoundException {
         return patchClass.getSuperclass();
     }
 
-    public static <T> CtClass patch(Class<T> patchClass) throws NotFoundException, CannotCompileException, ClassNotFoundException, IOException {
-        CtClass patchCtClass = pool.classPool.get(patchClass.getName());
-        CtClass targetClass = getTargetCtClass(patchCtClass);
-        String random = util.randomName();
-        CtClass allPatchedClass = patchAll(patchCtClass, targetClass, random);
+    public static Class<?> patch(Class<?> patchClass) throws Exception {
+        Class<?> targetClass = getTargetClass(patchClass);
+        return dynamicPatch(patchClass, targetClass);
+    }
 
-        proxyRuntime.loadAllPatchedClass(patchClass, allPatchedClass);
+    public static Class<?> dynamicPatch(Class<?> patchClass, Class<?> targetClass) throws Exception {
+        CtClass patchedClass = patch(pool.resolveCtClass(patchClass.getName()), getTargetCtClass(patchClass));
 
-        CtClass patchedClass = pool.classPool.makeClass("finalCampaign.patch.proxied.patched." + random + "." + targetClass.getName());
+        String patchClassHashName = util.shortHashName(patchClass.getName());
+        if (cache.has("proxied.target", patchClassHashName, targetClass.getName()))
+            return cache.resolve("proxied.target", patchClassHashName, targetClass.getName());
+
+        return pool.loadCtClass(patchedClass);
+    }
+
+    protected static <T> CtClass patch(CtClass patchClass, CtClass targetClass) throws Exception {
+        String patchClassHashName = util.shortHashName(patchClass.getName());
+
+        CtClass allPatchedClass = patchAll(targetClass);
+        if (cache.has("proxied.all", null, targetClass.getName())) {
+            cache.resolve("proxied.all", null, targetClass.getName());
+        } else {
+            pool.loadCtClass(allPatchedClass);
+        }
+
+        if (cache.has("proxied.target", patchClassHashName, targetClass.getName())) {
+            return cache.resolveCtClass("proxied.target", patchClassHashName, targetClass.getName());
+        }
+
+        CtClass patchedClass = pool.makeCtClass("finalCampaign.patch.proxied.target." + patchClassHashName + "." + targetClass.getName());
         patchedClass.setSuperclass(allPatchedClass);
-        patchedClass.setInterfaces(patchCtClass.getInterfaces());
+        patchedClass.setInterfaces(patchClass.getInterfaces());
 
-        Seq<String> importPackages = new Seq<>(util.getPatchImport(patchCtClass));
-        pool.classPool.clearImportedPackages();
-        for (String importPackage : importPackages) pool.classPool.importPackage(importPackage);
+        pool.importPackages(util.getPatchImport(patchClass));
 
-        CtField[] pFields = patchCtClass.getDeclaredFields();
+        CtField[] pFields = patchClass.getDeclaredFields();
         for (CtField pField : pFields) {
             switch (util.getPatchOperation(pField)) {
                 case Add: 
-                    if (util.hasField(targetClass, pField.getName())) throw new RuntimeException("There is already a field called \"" + pField.getName() + "\".");
+                    if (util.hasField(targetClass, pField.getName()))
+                        throw new RuntimeException("There is already a field called \"" + pField.getName() + "\".");
                 case Replace: {
                     CtField newField = new CtField(pField, patchedClass);
                     newField.setModifiers(pField.getModifiers());
@@ -65,11 +88,12 @@ public class proxy {
             }
         }
 
-        CtConstructor[] pConstructors = patchCtClass.getDeclaredConstructors();
+        CtConstructor[] pConstructors = patchClass.getDeclaredConstructors();
         for (CtConstructor pConstructor : pConstructors) {
             switch (util.getPatchOperation(pConstructor)) {
                 case Add:
-                    if (util.hasBehavior(targetClass, pConstructor.getName(), pConstructor.getParameterTypes())) throw new RuntimeException("There is already a constructor called \"" + pConstructor.getName() + "\".");
+                    if (util.hasBehavior(targetClass, pConstructor.getName(), pConstructor.getParameterTypes()))
+                        throw new RuntimeException("There is already a constructor called \"" + pConstructor.getName() + "\".");
                 case Replace: {
                     CtConstructor newConstructor = new CtConstructor(pConstructor, patchedClass, null);
                     newConstructor.setModifiers(pConstructor.getModifiers());
@@ -83,11 +107,12 @@ public class proxy {
             }
         }
 
-        CtMethod[] pMethods = patchCtClass.getDeclaredMethods();
+        CtMethod[] pMethods = patchClass.getDeclaredMethods();
         for (CtMethod pMethod : pMethods) {
             switch (util.getPatchOperation(pMethod)) {
                 case Add:
-                    if (util.hasBehavior(targetClass, pMethod.getName(), pMethod.getParameterTypes())) throw new RuntimeException("There is already a method called \"" + pMethod.getName() + "\".");
+                    if (util.hasBehavior(targetClass, pMethod.getName(), pMethod.getParameterTypes()))
+                        throw new RuntimeException("There is already a method called \"" + pMethod.getName() + "\".");
                 case Replace: {
                     CtMethod newMethod = new CtMethod(pMethod, patchedClass, null);
                     newMethod.setModifiers(pMethod.getModifiers());
@@ -101,7 +126,7 @@ public class proxy {
             }
         }
 
-        CtClass[] pClasses = patchCtClass.getDeclaredClasses();
+        CtClass[] pClasses = patchClass.getDeclaredClasses();
         for (CtClass pClass : pClasses) {
             CtClass currentClass = pClass;
             Seq<Object> annotations = util.getPatchAnnotations(new Seq<>(pClass.getAnnotations()));
@@ -110,7 +135,7 @@ public class proxy {
             for (Object annotation : annotations) {
                 if (annotation instanceof PatchModify) {
                     if (modified) throw new RuntimeException("Repatch a sub class is not allowed.");
-                    currentClass = modify.patch(pClass, false);
+                    currentClass = modify.patch(pClass, modify.getTargetCtClass(pClass), false);
                     modified = true;
                 }
 
@@ -118,7 +143,8 @@ public class proxy {
                 if (annotation instanceof PatchAccess) throw new RuntimeException("Operation is not allowed to a sub class.");
 
                 if (annotation instanceof PatchAdd) {
-                    if (util.hasNestClass(patchedClass, currentClass.getSimpleName())) throw new RuntimeException("There is already a nest class called \"" + util.getRealClassName(currentClass.getSimpleName()) + "\"");
+                    if (util.hasNestClass(patchedClass, currentClass.getSimpleName()))
+                        throw new RuntimeException("There is already a nest class called \"" + util.getRealClassName(currentClass.getSimpleName()) + "\"");
                     
                     util.copyClass(currentClass, patchedClass.makeNestedClass(util.getRealClassName(currentClass.getSimpleName()), Modifier.isStatic(currentClass.getModifiers())));
                 } else {
@@ -129,44 +155,49 @@ public class proxy {
             }
         }
 
-        pool.classPool.clearImportedPackages();
+        pool.clearImportedPackages();
 
         return patchedClass;
     }
 
-    protected static CtClass patchAll(CtClass patchClass, CtClass targetClass, String random) throws NotFoundException, CannotCompileException {
-        CtClass patchedClass = pool.classPool.makeClass("finalCampaign.patch.proxied.all." + random + '.' + targetClass.getName());
-        String targetObjectName = "fcPatchTargetObject_" + util.randomName();
+    protected static CtClass patchAll(CtClass targetClass) throws NotFoundException, CannotCompileException, IOException, NoSuchAlgorithmException {
+        if (cache.has("proxied.all", null, targetClass.getName()))
+            return cache.resolveCtClass("proxied.all", null, targetClass.getName());
+
+        CtClass patchedClass = pool.makeCtClass("finalCampaign.patch.proxied.all." + targetClass.getName());
+        String targetObjectName = "fcPatchTargetObject_83f7f0";
 
         final String[] importPackages = {"java.lang.reflect", "finalCampaign.patch"};
-        pool.classPool.clearImportedPackages();
-        for (String importPackage : importPackages) pool.classPool.importPackage(importPackage);
+        pool.clearImportedPackages();
+        pool.importPackages(importPackages);
 
         patchedClass.setSuperclass(targetClass);
 
         CtField[] targetFields = targetClass.getDeclaredFields();
         for (CtField targetField : targetFields) {
-            if (Modifier.isPrivate(targetField.getModifiers()) || Modifier.isFinal(targetField.getModifiers()) || Modifier.isStatic(targetField.getModifiers())) continue;
+            if (Modifier.isPrivate(targetField.getModifiers()) ||
+                Modifier.isFinal(targetField.getModifiers()) ||
+                Modifier.isStatic(targetField.getModifiers())) continue;
 
             CtField newField = new CtField(targetField, patchedClass);
             patchedClass.addField(newField);
         }
 
-        CtField targetObjectField = new CtField(pool.classPool.get("java.lang.Object"), targetObjectName, patchedClass);
+        CtField targetObjectField = new CtField(pool.resolveCtClass("java.lang.Object"), targetObjectName, patchedClass);
         targetObjectField.setModifiers(Modifier.PRIVATE);
         patchedClass.addField(targetObjectField);
 
-        CtMethod targetObjectSetMethod = new CtMethod(CtClass.voidType, targetObjectName + "_set", new CtClass[]{pool.classPool.get("java.lang.Object")}, patchedClass);
+        CtMethod targetObjectSetMethod = new CtMethod(CtClass.voidType, targetObjectName + "_set", new CtClass[]{pool.resolveCtClass("java.lang.Object")}, patchedClass);
         targetObjectSetMethod.setModifiers(Modifier.PUBLIC);
         targetObjectSetMethod.setBody("{ if(" + targetObjectName + "==null) " + targetObjectName + "=$1; }");
         patchedClass.addMethod(targetObjectSetMethod);
         
-        CtMethod selfFieldSyncMethod = new CtMethod(CtClass.voidType, targetObjectName + "_syncField", new CtClass[]{pool.classPool.get("java.lang.reflect.Field"), pool.classPool.get("java.lang.Boolean")}, patchedClass);
+        CtMethod selfFieldSyncMethod = new CtMethod(CtClass.voidType, targetObjectName + "_syncField", new CtClass[]{pool.resolveCtClass("java.lang.reflect.Field"), pool.resolveCtClass("java.lang.Boolean")}, patchedClass);
         selfFieldSyncMethod.setModifiers(Modifier.PUBLIC);
         selfFieldSyncMethod.setBody("{ if ($2.booleanValue()) { $1.set($0,$1.get(" + targetObjectName + ")); } else { $1.set(" + targetObjectName + ",$1.get($0)); } }");
         patchedClass.addMethod(selfFieldSyncMethod);
 
-        CtMethod targetObjectGetMethod = new CtMethod(pool.classPool.get("java.lang.Object"), targetObjectName + "_get", new CtClass[]{}, patchedClass);
+        CtMethod targetObjectGetMethod = new CtMethod(pool.resolveCtClass("java.lang.Object"), targetObjectName + "_get", new CtClass[]{}, patchedClass);
         targetObjectGetMethod.setModifiers(Modifier.PUBLIC);
         targetObjectGetMethod.setBody("{ return " + targetObjectName + "; }");
         patchedClass.addMethod(targetObjectGetMethod);
@@ -178,7 +209,7 @@ public class proxy {
             CtConstructor newConstructor = new CtConstructor(targetConstructor.getParameterTypes(), patchedClass);
             newConstructor.setModifiers(targetConstructor.getModifiers());
             newConstructor.setBody("{ super($$); " + targetObjectName + "=null; }");
-            newConstructor.addCatch("{ throw new RuntimeException($e); }", pool.classPool.get("java.lang.Exception"));
+            newConstructor.addCatch("{ throw new RuntimeException($e); }", pool.resolveCtClass("java.lang.Exception"));
 
             patchedClass.addConstructor(newConstructor);
         }
@@ -200,14 +231,12 @@ public class proxy {
             if (targetMethod.getReturnType() != CtClass.voidType) src.add("return (" + targetMethod.getReturnType().getName() + ")o;");
 
             newMethod.setBody("{ " + String.join(" ", src) + " }");
-            newMethod.addCatch("{ throw new RuntimeException($e); }", pool.classPool.get("java.lang.Exception"));
+            newMethod.addCatch("{ throw new RuntimeException($e); }", pool.resolveCtClass("java.lang.Exception"));
 
             patchedClass.addMethod(newMethod);
         }
 
-        proxyRuntime.cacheTargetObjectName(patchClass.getName(), targetObjectName);
-
-        pool.classPool.clearImportedPackages();
+        pool.clearImportedPackages();
 
         return patchedClass;
     }

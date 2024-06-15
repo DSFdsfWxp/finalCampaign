@@ -4,17 +4,12 @@ import arc.*;
 import arc.util.*;
 import arc.files.*;
 import arc.util.Log.*;
-import mindustry.*;
-import mindustry.core.ContentLoader;
 import mindustry.game.EventType.*;
 import mindustry.mod.*;
 import mindustry.mod.Mods.*;
-import finalCampaign.patch.*;
-import finalCampaign.patch.patchClass.*;
 
 import static mindustry.Vars.*;
 
-@SuppressWarnings({"rawtypes", "unchecked"})
 public class finalCampaign extends Mod{
 
     public static LoadedMod thisMod;
@@ -33,29 +28,10 @@ public class finalCampaign extends Mod{
             dataDir = dataDirectory.child("finalCampaign");
             if (!dataDir.exists()) dataDir.mkdirs();
 
-            try {
-                pool.init();
-                Log.info("inited pool.");
+            if (!patchEngine.init()) return;
 
-                pool.patchAndCache(fcContentLoader.class);
-                Log.info("patched target.");
-
-                Class patchedClass = pool.resolve(fcContentLoader.class);
-                Object patchedObject = patchedClass.getDeclaredConstructor(Object.class).newInstance((Object)content.getContentMap());
-                Log.info("resolved and instantiated target.");
-
-                Class proxyClass = modifyRuntime.resolveProxyClass(fcContentLoader.class);
-                Object proxyObject = proxyClass.getDeclaredConstructor().newInstance();
-                Log.info("resolved and instantiated proxy.");
-
-                modifyRuntime.setProxyTarget(fcContentLoader.class, proxyObject, patchedObject);
-                Log.info("set proxy target.");
-
-                content = (ContentLoader) proxyObject;
-                Log.info("replaced contentLoader.");
-            } catch(Exception e) {
-                Vars.ui.showException(e);
-            }
+            patchEngine.patch();
+            patchEngine.load();
         });
     }
 

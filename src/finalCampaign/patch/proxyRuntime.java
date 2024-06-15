@@ -1,17 +1,12 @@
 package finalCampaign.patch;
 
-import java.io.*;
 import java.lang.reflect.*;
 import arc.struct.*;
-import arc.util.Log;
-import javassist.*;
+//import arc.util.Log;
 import javassist.Modifier;
 
 @SuppressWarnings("rawtypes")
 public class proxyRuntime {
-
-    private static ObjectMap<String, String> targetObjectSetMethodNameMap = new ObjectMap<>();
-    private static ObjectMap<String, Object> loadedAllPatchedClassMap = new ObjectMap<>();
 
     public static Method getMethod(Object target, String name, String parameterTypeLst, String returnType) {
         Method[] methods = target.getClass().getDeclaredMethods();
@@ -41,22 +36,12 @@ public class proxyRuntime {
         throw new RuntimeException("Method not found: " + returnType + " " + target.getClass().getName() + "." + name + "(" + parameterTypeLst + ")");
     }
 
-    protected static void cacheTargetObjectName(String patchClass, String name) {
-        if (targetObjectSetMethodNameMap.containsKey(patchClass)) throw new RuntimeException("Making a proxy patch to the same class again is not allowed.");
-        targetObjectSetMethodNameMap.put(patchClass, name);
-    }
-
-    public static <T> Object getTargetObject(Class<T> patchClass, Object proxy) throws IllegalAccessException, InvocationTargetException {
-        return getTargetObject(patchClass.getName(), proxy);
-    }
-
-    protected static Object getTargetObject(String patchClassName, Object proxy) throws IllegalAccessException, InvocationTargetException {
-        if (!targetObjectSetMethodNameMap.containsKey(patchClassName)) throw new RuntimeException("Can not found cached target object name for: " + patchClassName);
+    public static Object getTargetObject(Object proxy) throws IllegalAccessException, InvocationTargetException {
 
         Method m;
 
         try {
-            m = proxy.getClass().getDeclaredMethod(targetObjectSetMethodNameMap.get(patchClassName) + "_get");
+            m = proxy.getClass().getDeclaredMethod("fcPatchTargetObject_83f7f0_get");
             
         }catch(NoSuchMethodException e) {
             throw new RuntimeException("Not a proxy object: " + proxy.toString());
@@ -66,22 +51,16 @@ public class proxyRuntime {
     }
 
     /** reverse: true: target -> proxy , false: proxy -> target */
-    public static <T> void syncProxyField(Class<T> patchClass, Object proxy, boolean reverse) throws IllegalAccessException, InvocationTargetException {
-        syncProxyField(patchClass.getName(), proxy, reverse);
-    }
-
-    /** reverse: true: target -> proxy , false: proxy -> target */
-    protected static void syncProxyField(String patchClassName, Object proxy, boolean reverse) throws IllegalAccessException, InvocationTargetException {
-        if (!targetObjectSetMethodNameMap.containsKey(patchClassName)) throw new RuntimeException("Can not found cached target object name for: " + patchClassName);
+    public static void syncProxyField(Object proxy, boolean reverse) throws IllegalAccessException, InvocationTargetException {
 
         Method fm;
         Object target;
 
-        target = getTargetObject(patchClassName, proxy);
+        target = getTargetObject(proxy);
         if (target == null) throw new RuntimeException("The target object of the proxy object is not set.");
 
         try {
-            fm = proxy.getClass().getDeclaredMethod(targetObjectSetMethodNameMap.get(patchClassName) + "_syncField", Field.class, Boolean.class);
+            fm = proxy.getClass().getDeclaredMethod("fcPatchTargetObject_83f7f0_syncField", Field.class, Boolean.class);
         }catch(NoSuchMethodException e) {
             throw new RuntimeException("Not a proxy object: " + proxy.toString());
         }
@@ -101,17 +80,12 @@ public class proxyRuntime {
         }
     }
 
-    public static <T> void setProxyTarget(Class<T> patchClass, Object proxy, Object target) throws IllegalAccessException, InvocationTargetException {
-        setProxyTarget(patchClass.getName(), proxy, target);
-    }
-
-    protected static void setProxyTarget(String patchClassName, Object proxy, Object target) throws IllegalAccessException, InvocationTargetException {
-        if (!targetObjectSetMethodNameMap.containsKey(patchClassName)) throw new RuntimeException("Can not found cached target object name for: " + patchClassName);
+    public static void setProxyTarget(Object proxy, Object target) throws IllegalAccessException, InvocationTargetException {
 
         Method m;
         
         try {
-            m = proxy.getClass().getDeclaredMethod(targetObjectSetMethodNameMap.get(patchClassName) + "_set", Object.class);
+            m = proxy.getClass().getDeclaredMethod("fcPatchTargetObject_83f7f0_set", Object.class);
             
         }catch(NoSuchMethodException e) {
             throw new RuntimeException("Not a proxy object: " + proxy.toString());
@@ -119,12 +93,6 @@ public class proxyRuntime {
 
         m.invoke(proxy, target);
 
-        syncProxyField(patchClassName, proxy, true);
-    }
-
-    public static <T> void loadAllPatchedClass(Class<T> patchClass, CtClass allPatchedClass) throws IOException, CannotCompileException {
-        if (loadedAllPatchedClassMap.containsKey(patchClass.getName())) return;
-
-        loadedAllPatchedClassMap.put(patchClass.getName(), pool.classLoader.invokeDefineClass(allPatchedClass));
+        syncProxyField(proxy, true);
     }
 }

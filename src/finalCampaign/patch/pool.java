@@ -5,59 +5,119 @@ import arc.struct.*;
 import arc.files.*;
 import finalCampaign.*;
 import javassist.*;
+import mindustry.Vars;
 
-@SuppressWarnings("rawtypes")
 public class pool {
-    protected static ClassPool classPool = ClassPool.getDefault();
-    protected static Loader.Simple classLoader = new Loader.Simple(classPool.getClass().getClassLoader());
-
-    private static ObjectMap<String, Object> patchedClassMap = new ObjectMap<>();
-    private static ObjectMap<String, byte[]> patchedByteCodeMap = new ObjectMap<>();
+    private static ClassPool classPool = ClassPool.getDefault();
+    private static patchClassLoader classLoader = new patchClassLoader(classPool.getClass().getClassLoader());
     private static boolean inited = false;
+    private static ObjectMap<String, Class<?>> classMap = new ObjectMap<>();
 
     public static void init() throws NotFoundException {
         if (inited) return;
 
-        Fi classFile = finalCampaign.dataDir.child("mindustry.class.jar");
-        if (!classFile.exists()) {
-            ZipFi thisModFi = new ZipFi(finalCampaign.thisMod.file);
-            thisModFi.child("mindustry.class.jar").copyTo(classFile);
-        }
+        Fi classDir = finalCampaign.dataDir.child("class");
+        ZipFi thisModFi = new ZipFi(finalCampaign.thisMod.file);
+        
+        Fi mindustryClassFile = classDir.child("mindustry.jar");
+        Fi javaClassFile = classDir.child("java.jar");
+
+        if (!mindustryClassFile.exists() && Vars.android)
+            thisModFi.child("class").child("mindustry.jar").copyTo(mindustryClassFile);
+        if (!javaClassFile.exists() && Vars.android)
+            thisModFi.child("class").child("java.jar").copyTo(javaClassFile);
 
         classPool.appendClassPath(finalCampaign.thisMod.file.absolutePath());
-        classPool.appendClassPath(classFile.absolutePath());
+        if (Vars.android) classPool.appendClassPath(mindustryClassFile.absolutePath());
+        if (Vars.android) classPool.appendClassPath(javaClassFile.absolutePath());
 
         inited = true;
     }
 
-    public static void cache(Class patchClass, Object patchedClass, byte[] byteCode) {
-        cache(patchClass.getName(), patchedClass, byteCode);
+    // Class load
+
+    protected static Class<?> loadCtClass(CtClass ctClass) throws Exception {
+        String className = ctClass.getName();
+        if (classMap.containsKey(className)) return classMap.get(className);
+
+        Class<?> loadedCtClass = classLoader.loadCtClass(ctClass);
+        classMap.put(className, loadedCtClass);
+        return loadedCtClass;
     }
 
-    protected static void cache(String patchClassName, Object patchedClass, byte[] byteCode) {
-        patchedClassMap.put(patchClassName, patchedClass);
-        patchedByteCodeMap.put(patchClassName, byteCode);
+    protected static Class<?> loadClassBinary(String name, byte[] bin) {
+        if (classMap.containsKey(name)) return classMap.get(name);
+
+        Class<?> loadedClass = classLoader.loadClassBinary(name, bin);
+        classMap.put(name, loadedClass);
+        return loadedClass;
     }
 
-    public static boolean has(Class patchClass) {
-        return patchedClassMap.containsKey(patchClass.getName()) && patchedByteCodeMap.containsKey(patchClass.getName());
+    protected static Class<?> loadDexFile(String name, Fi file) throws Exception {
+        if (classMap.containsKey(name)) return classMap.get(name);
+
+        Class<?> loadedClass = classLoader.loadDexFile(name, file);
+        classMap.put(name, loadedClass);
+        return loadedClass;
     }
 
-    public static <T> void patchAndCache(Class<T> patchClass) throws NotFoundException, ClassNotFoundException, CannotCompileException, IOException {
-        // since we'll load the patched target class before we make a proxy for it
-        // so we cache it there
-        modify.patch(patchClass);
+    // CtClass
+
+    protected static boolean hasCtClass(String name) {
+        try {
+            classPool.get(name);
+        } catch(NotFoundException e) {
+            return false;
+        }
+
+        return true;
     }
 
-    public static Class resolve(Class patchClass) {
-        if (!has(patchClass)) return null;
-        return (Class) patchedClassMap.get(patchClass.getName());
+    protected static CtClass resolveCtClass(String type, String patchClassName, String targetClassName) throws NotFoundException {
+        String patchClassShortHashName = util.shortHashName(patchClassName);
+        return classPool.get("finalCampaign.patch." + type + "." + patchClassShortHashName + "." + targetClassName);
     }
 
-    public static CtClass resolveCtClass(Class patchClass) throws IOException, CannotCompileException {
-        if (!has(patchClass)) return null;
-        InputStream stream = new ByteArrayInputStream(patchedByteCodeMap.get(patchClass.getName()));
+    protected static CtClass resolveCtClass(String name) throws NotFoundException {
+        return classPool.get(name);
+    }
+
+    protected static CtClass makeCtClass(InputStream stream) throws IOException {
         return classPool.makeClass(stream);
     }
 
+    protected static CtClass makeCtClass(String name) {
+        return classPool.makeClass(name);
+    }
+
+    // Compile
+
+    protected static void clearImportedPackages() {
+        classPool.clearImportedPackages();
+    }
+
+    protected static void importPackages(String[] lst) {
+        for (String packageName : lst) classPool.importPackage(packageName);
+    }
+
+    // Class resolve
+
+    private static Class<?> resolveClass(String type, String patchClassName, String targetClassName) {
+        String name = "finalCampaign.patch." + type + "." + (patchClassName == null ? "" : util.shortHashName(patchClassName) + ".") + targetClassName;
+        
+        if (!classMap.containsKey(name)) throw new RuntimeException("Class not found: " + name);
+        return classMap.get(name);
+    }
+
+    public static Class<?> resolveModifiedTargetClass(Class<?> patchClass, Class<?> targetClass) {
+        return resolveClass("modified.target", patchClass.getName(), targetClass.getName());
+    }
+
+    public static Class<?> resolveAllProxiedClass(Class<?> targetClass) {
+        return resolveClass("proxied.all", null, targetClass.getName());
+    }
+
+    public static Class<?> resolveProxiedTargetClass(Class<?> patchClass, Class<?> targetClass) {
+        return resolveClass("proxied.target", patchClass.getName(), targetClass.getName());
+    }
 }

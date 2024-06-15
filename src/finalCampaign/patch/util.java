@@ -1,5 +1,7 @@
 package finalCampaign.patch;
 
+import java.nio.charset.*;
+import java.security.*;
 import arc.struct.*;
 import finalCampaign.patch.annotation.*;
 import javassist.*;
@@ -27,6 +29,55 @@ public class util {
         }
 
         return out;
+    }
+
+    public static String bytesToHex(byte[] hash) {
+        StringBuilder hexString = new StringBuilder(2 * hash.length);
+        for (int i = 0; i < hash.length; i++) {
+            String hex = Integer.toHexString(0xff & hash[i]);
+            if(hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
+    }
+
+    public static <T> Seq<T> subSeq(Seq<T> seq, int start) {
+        Seq<T> out = new Seq<>();
+        for (T e : seq) {
+            if (start == 0) {
+                out.add(e);
+            } else {
+                start --;
+            }
+        }
+
+        return out;
+    }
+
+    public static <T> T shiftSeq(Seq<T> seq) {
+        T out = seq.first();
+        
+        seq.remove(0);
+        return out;
+    }
+
+    public static String shortHashName(String name) {
+        // since we put all patch classes in "finalCampaign.patch.patchClass"
+        // we'll remove it here
+        if (!name.startsWith("finalCampaign.patch.patchClass.")) throw new RuntimeException("Short hash name is not for that.");
+        name = name.substring(31);
+
+        int hash = name.hashCode();
+        String hashStr = Integer.toString(hash);
+        return hash > 0 ? "p" + hashStr : "n" + hashStr;
+    }
+
+    public static String sha256Hash(String txt) throws NoSuchAlgorithmException {
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = messageDigest.digest(txt.getBytes(StandardCharsets.UTF_8));
+        return bytesToHex(hash);
     }
 
     public static String repeatString(String txt, int count) {
@@ -226,7 +277,7 @@ public class util {
     public static CtClass clearClass(CtClass target) throws CannotCompileException, NotFoundException {
         target.setInterfaces(new CtClass[]{});
         target.setModifiers(Modifier.PUBLIC);
-        target.setSuperclass(pool.classPool.get("java.lang.Object"));
+        target.setSuperclass(pool.resolveCtClass("java.lang.Object"));
 
         CtField[] tFields = target.getDeclaredFields();
         for (CtField tField : tFields) {

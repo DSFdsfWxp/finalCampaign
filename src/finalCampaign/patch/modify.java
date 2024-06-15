@@ -1,6 +1,5 @@
 package finalCampaign.patch;
 
-import java.io.*;
 import arc.struct.*;
 import finalCampaign.patch.annotation.*;
 import javassist.*;
@@ -33,56 +32,79 @@ public class modify {
     }
 
     protected static CtClass getTargetCtClass(Class patchClass) throws NotFoundException, ClassNotFoundException {
-        return pool.classPool.get(getTargetClass(patchClass).getName());
+        return pool.resolveCtClass(getTargetClass(patchClass).getName());
     }
 
     protected static CtClass getTargetCtClass(CtClass patchClass) throws NotFoundException, ClassNotFoundException {
-        return pool.classPool.get(getTargetClass(patchClass).getName());
+        return pool.resolveCtClass(getTargetClass(patchClass).getName());
     }
 
-    public static <T> CtClass patch(Class<T> patchClass) throws NotFoundException, ClassNotFoundException, CannotCompileException, IOException {
-        CtClass patchCtClass = pool.classPool.get(patchClass.getName());
-        return patch(patchCtClass, true);
+    public static Class<?> patch(Class<?> patchClass) throws Exception {
+        return dynamicPatch(patchClass, getTargetClass(patchClass));
     }
 
-    protected static CtClass patch(CtClass patchClass, boolean makeProxy) throws NotFoundException, ClassNotFoundException, CannotCompileException, IOException {
-        CtClass originClass = getTargetCtClass(patchClass);
-        String random = util.randomName();
-        originClass.setName("finalCampaign.patch.modified.target." + random + "." + originClass.getName());
-        CtClass targetClass = getTargetCtClass(patchClass);
+    public static Class<?> dynamicPatch(Class<?> patchClass, Class<?> targetClass)throws Exception {
+        CtClass patchedClass = patch(pool.resolveCtClass(patchClass.getName()), pool.resolveCtClass(targetClass.getName()), true);
+
+        String patchClassHashName = util.shortHashName(patchClass.getName());
+        if (cache.has("modified.target", patchClassHashName, targetClass.getName()))
+            return cache.resolve("modified.target", patchClassHashName, targetClass.getName());
+            
+        return pool.loadCtClass(patchedClass);
+    }
+
+    protected static CtClass patch(CtClass patchClass, CtClass targetClass, boolean makeProxy) throws Exception {
+        String patchClassHashName = util.shortHashName(patchClass.getName());
+        
+        if (cache.has("modified.target", patchClassHashName, targetClass.getName())) {
+            CtClass result = cache.resolveCtClass("modified.target", patchClassHashName, targetClass.getName());
+
+            if (makeProxy) {
+                cache.resolveCtClass("proxied.all", null, targetClass.getName());
+                cache.resolve("proxied.all", null, targetClass.getName());
+            }
+
+            return result;
+        }
+
+        targetClass.setName("finalCampaign.patch.modified.target." + patchClassHashName + "." + targetClass.getName());
         String[] importPackages = util.getPatchImport(patchClass);
 
-        pool.classPool.clearImportedPackages();
-        for (String importPackage : importPackages) pool.classPool.importPackage(importPackage);
+        pool.clearImportedPackages();
+        pool.importPackages(importPackages);
 
         CtField[] pFields = patchClass.getDeclaredFields();
         for (CtField pField : pFields) {
             switch (util.getPatchOperation(pField)){
                 case Add: {
-                    if (util.hasField(originClass, pField.getName())) throw new RuntimeException("There is already a field called \""+pField.getName()+"\".");
+                    if (util.hasField(targetClass, pField.getName()))
+                        throw new RuntimeException("There is already a field called \""+pField.getName()+"\".");
 
-                    CtField newField = new CtField(pField.getType(), pField.getName(), originClass);
+                    CtField newField = new CtField(pField.getType(), pField.getName(), targetClass);
                     newField.setModifiers(pField.getModifiers());
-                    originClass.addField(newField);
+                    targetClass.addField(newField);
                     break;
                 }
                 case Access: {
-                    if (!util.hasField(originClass, pField.getName())) throw new RuntimeException("There is not a field called \""+pField.getName()+"\".");
+                    if (!util.hasField(targetClass, pField.getName()))
+                        throw new RuntimeException("There is not a field called \""+pField.getName()+"\".");
 
-                    CtField originField = originClass.getDeclaredField(pField.getName());
+                    CtField targetField = targetClass.getDeclaredField(pField.getName());
 
-                    if (pField.getType() != originField.getType()) throw new RuntimeException("Type conflict.");
-                    if (!Modifier.isPrivate(originField.getModifiers())) throw new RuntimeException("Access patch for a non-private member is not allowed.");
+                    if (pField.getType() != targetField.getType()) throw new RuntimeException("Type conflict.");
+                    if (!Modifier.isPrivate(targetField.getModifiers()))
+                        throw new RuntimeException("Access patch for a non-private member is not allowed.");
 
-                    originField.setModifiers(Modifier.setPublic(originField.getModifiers()));
+                    targetField.setModifiers(Modifier.setPublic(targetField.getModifiers()));
                     break;
                 }
                 case Replace: {
-                    if (!util.hasField(originClass, pField.getName())) throw new RuntimeException("There is not a field called \""+pField.getName()+"\".");
+                    if (!util.hasField(targetClass, pField.getName()))
+                        throw new RuntimeException("There is not a field called \""+pField.getName()+"\".");
 
-                    CtField originField = originClass.getField(pField.getName());
+                    CtField targetField = targetClass.getField(pField.getName());
 
-                    originField.setModifiers(pField.getModifiers());
+                    targetField.setModifiers(pField.getModifiers());
                     break;
                 }
                 case None: {
@@ -95,31 +117,35 @@ public class modify {
         for (CtConstructor pConstructor : pConstructors) {
             switch (util.getPatchOperation(pConstructor)){
                 case Add: {
-                    if (util.hasBehavior(originClass, originClass.getSimpleName(), pConstructor.getParameterTypes())) throw new RuntimeException("There is already a constructor called \""+pConstructor.getName()+"\".");
+                    if (util.hasBehavior(targetClass, targetClass.getSimpleName(), pConstructor.getParameterTypes()))
+                        throw new RuntimeException("There is already a constructor called \""+pConstructor.getName()+"\".");
 
-                    CtConstructor newConstructor = new CtConstructor(pConstructor.getParameterTypes(), originClass);
+                    CtConstructor newConstructor = new CtConstructor(pConstructor.getParameterTypes(), targetClass);
                     newConstructor.setModifiers(pConstructor.getModifiers());
                     newConstructor.setBody(pConstructor, null);
-                    originClass.addConstructor(newConstructor);
+                    targetClass.addConstructor(newConstructor);
                     break;
                 }
                 case Access: {
-                    if (!util.hasBehavior(originClass, originClass.getSimpleName(), pConstructor.getParameterTypes())) throw new RuntimeException("There is not a constructor called \""+pConstructor.getName()+"\".");
+                    if (!util.hasBehavior(targetClass, targetClass.getSimpleName(), pConstructor.getParameterTypes()))
+                        throw new RuntimeException("There is not a constructor called \""+pConstructor.getName()+"\".");
 
-                    CtConstructor originConstructor = originClass.getDeclaredConstructor(pConstructor.getParameterTypes());
+                    CtConstructor targetConstructor = targetClass.getDeclaredConstructor(pConstructor.getParameterTypes());
 
-                    if (!Modifier.isPrivate(originConstructor.getModifiers())) throw new RuntimeException("Access patch for a not private member is not allowed.");
+                    if (!Modifier.isPrivate(targetConstructor.getModifiers()))
+                        throw new RuntimeException("Access patch for a not private member is not allowed.");
 
-                    originConstructor.setModifiers(Modifier.setPublic(originConstructor.getModifiers()));
+                    targetConstructor.setModifiers(Modifier.setPublic(targetConstructor.getModifiers()));
                     break;
                 }
                 case Replace: {
-                    if (!util.hasBehavior(originClass, originClass.getSimpleName(), pConstructor.getParameterTypes())) throw new RuntimeException("There is not a constructor called \""+pConstructor.getName()+"\".");
+                    if (!util.hasBehavior(targetClass, targetClass.getSimpleName(), pConstructor.getParameterTypes()))
+                        throw new RuntimeException("There is not a constructor called \""+pConstructor.getName()+"\".");
 
-                    CtConstructor originConstructor = originClass.getDeclaredConstructor(pConstructor.getParameterTypes());
+                    CtConstructor targetConstructor = targetClass.getDeclaredConstructor(pConstructor.getParameterTypes());
 
-                    originConstructor.setModifiers(pConstructor.getModifiers());
-                    originConstructor.setBody(pConstructor, null);
+                    targetConstructor.setModifiers(pConstructor.getModifiers());
+                    targetConstructor.setBody(pConstructor, null);
                     break;
                 }
                 case None: {
@@ -132,35 +158,39 @@ public class modify {
         for (CtMethod pMethod : pMethods) {
             switch (util.getPatchOperation(pMethod)){
                 case Add: {
-                    if (util.hasBehavior(originClass, pMethod.getName(), pMethod.getParameterTypes())) throw new RuntimeException("There is already a method called \""+pMethod.getName()+"\".");
+                    if (util.hasBehavior(targetClass, pMethod.getName(), pMethod.getParameterTypes()))
+                        throw new RuntimeException("There is already a method called \""+pMethod.getName()+"\".");
 
-                    CtMethod newMethod = new CtMethod(pMethod.getReturnType(), pMethod.getName(), pMethod.getParameterTypes(), originClass);
+                    CtMethod newMethod = new CtMethod(pMethod.getReturnType(), pMethod.getName(), pMethod.getParameterTypes(), targetClass);
                     newMethod.setModifiers(pMethod.getModifiers());
                     newMethod.setBody(pMethod, null);
-                    originClass.addMethod(newMethod);
+                    targetClass.addMethod(newMethod);
                     break;
                 }
                 case Access: {
-                    if (!util.hasBehavior(originClass, pMethod.getName(), pMethod.getParameterTypes())) throw new RuntimeException("There is not a method called \""+pMethod.getName()+"\".");
+                    if (!util.hasBehavior(targetClass, pMethod.getName(), pMethod.getParameterTypes()))
+                        throw new RuntimeException("There is not a method called \""+pMethod.getName()+"\".");
 
-                    CtMethod originMethod = originClass.getDeclaredMethod(pMethod.getName(), pMethod.getParameterTypes());
+                    CtMethod targetMethod = targetClass.getDeclaredMethod(pMethod.getName(), pMethod.getParameterTypes());
 
-                    if (!Modifier.isPrivate(originMethod.getModifiers())) throw new RuntimeException("Access patch for a not private member is not allowed.");
-                    if (originMethod.getReturnType() != pMethod.getReturnType()) throw new RuntimeException("Return type conflict.");
+                    if (!Modifier.isPrivate(targetMethod.getModifiers())) 
+                        throw new RuntimeException("Access patch for a not private member is not allowed.");
+                    if (targetMethod.getReturnType() != pMethod.getReturnType()) throw new RuntimeException("Return type conflict.");
 
-                    originMethod.setModifiers(Modifier.setPublic(originMethod.getModifiers()));
+                    targetMethod.setModifiers(Modifier.setPublic(targetMethod.getModifiers()));
                     break;
                 }
                 case Replace: {
-                    if (!util.hasBehavior(originClass, pMethod.getName(), pMethod.getParameterTypes())) throw new RuntimeException("There is not a method called \""+pMethod.getName()+"\".");
+                    if (!util.hasBehavior(targetClass, pMethod.getName(), pMethod.getParameterTypes()))
+                        throw new RuntimeException("There is not a method called \""+pMethod.getName()+"\".");
 
-                    CtMethod originMethod = originClass.getDeclaredMethod(pMethod.getName(), pMethod.getParameterTypes());
+                    CtMethod targetMethod = targetClass.getDeclaredMethod(pMethod.getName(), pMethod.getParameterTypes());
 
-                    if (originMethod.getReturnType() != pMethod.getReturnType()) throw new RuntimeException("Return type conflict.");
-                    if (originMethod.getModifiers() != pMethod.getModifiers()) throw new RuntimeException("Modifiers conflict.");
+                    if (targetMethod.getReturnType() != pMethod.getReturnType()) throw new RuntimeException("Return type conflict.");
+                    if (targetMethod.getModifiers() != pMethod.getModifiers()) throw new RuntimeException("Modifiers conflict.");
 
-                    originMethod.setModifiers(pMethod.getModifiers());
-                    originMethod.setBody(pMethod, null);
+                    targetMethod.setModifiers(pMethod.getModifiers());
+                    targetMethod.setBody(pMethod, null);
                     break;
                 }
                 case None: {
@@ -178,7 +208,7 @@ public class modify {
             for (Object annotation : annotations) {
                 if (annotation instanceof PatchModify) {
                     if (modified) throw new RuntimeException("Repatch a sub class is not allowed.");
-                    currentClass = patch(pClass, false);
+                    currentClass = patch(pClass, getTargetCtClass(pClass), false);
                     modified = true;
                 }
 
@@ -186,34 +216,25 @@ public class modify {
                 if (annotation instanceof PatchAccess) throw new RuntimeException("Operation is not allowed to a sub class.");
 
                 if (annotation instanceof PatchAdd) {
-                    if (util.hasNestClass(originClass, currentClass.getSimpleName())) throw new RuntimeException("There is already a nest class called \"" + util.getRealClassName(currentClass.getSimpleName()) + "\"");
+                    if (util.hasNestClass(targetClass, currentClass.getSimpleName()))
+                        throw new RuntimeException("There is already a nest class called \"" + util.getRealClassName(currentClass.getSimpleName()) + "\"");
                     
-                    util.copyClass(currentClass, originClass.makeNestedClass(util.getRealClassName(currentClass.getSimpleName()), Modifier.isStatic(currentClass.getModifiers())));
+                    util.copyClass(currentClass, targetClass.makeNestedClass(util.getRealClassName(currentClass.getSimpleName()), Modifier.isStatic(currentClass.getModifiers())));
                 } else {
-                    CtClass originNestClass = util.getNestClass(originClass, util.getRealClassName(currentClass.getSimpleName()));
-                    util.clearClass(originNestClass);
-                    util.copyClass(currentClass, originNestClass);
+                    CtClass targetNestClass = util.getNestClass(targetClass, util.getRealClassName(currentClass.getSimpleName()));
+                    util.clearClass(targetNestClass);
+                    util.copyClass(currentClass, targetNestClass);
                 }
             }
         }
 
         if (makeProxy) {
-            Object loadedOriginClass = pool.classLoader.invokeDefineClass(originClass);
-            CtClass proxyPatchClass = proxy.patchAll(originClass, targetClass, random);
-            
-            proxyPatchClass.setName("finalCampaign.patch.modified.proxied." + random + "." + targetClass.getName());
-            Object loadedProxyPatchClass = pool.classLoader.invokeDefineClass(proxyPatchClass);
-
-            modifyRuntime.cacheProxyPatchClass(patchClass.getName(), "finalCampaign.patch.modified.target." + random + "." + targetClass.getName(), loadedProxyPatchClass, proxyPatchClass);
-            pool.cache(patchClass.getName(), loadedOriginClass, originClass.toBytecode());
-
-            pool.classPool.clearImportedPackages();
-
-            return originClass;
+            CtClass proxyPatchClass = proxy.patchAll(getTargetCtClass(patchClass));
+            pool.loadCtClass(proxyPatchClass);
         }
 
-        pool.classPool.clearImportedPackages();
+        pool.clearImportedPackages();
 
-        return originClass;
+        return targetClass;
     }
 }
