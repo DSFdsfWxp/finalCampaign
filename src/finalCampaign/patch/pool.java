@@ -17,7 +17,7 @@ public class pool {
         if (inited) return;
 
         Fi classDir = finalCampaign.dataDir.child("class");
-        ZipFi thisModFi = new ZipFi(finalCampaign.thisMod.file);
+        ZipFi thisModFi = finalCampaign.thisModFi;
         
         Fi mindustryClassFile = classDir.child("mindustry.jar");
         Fi javaClassFile = classDir.child("java.jar");
@@ -74,8 +74,8 @@ public class pool {
     }
 
     protected static CtClass resolveCtClass(String type, String patchClassName, String targetClassName) throws NotFoundException {
-        String patchClassShortHashName = util.shortHashName(patchClassName);
-        return classPool.get("finalCampaign.patch." + type + "." + patchClassShortHashName + "." + targetClassName);
+        String name = util.nameBuilder(type, util.shortHashName(patchClassName), targetClassName);
+        return classPool.get(name);
     }
 
     protected static CtClass resolveCtClass(String name) throws NotFoundException {
@@ -103,7 +103,7 @@ public class pool {
     // Class resolve
 
     private static Class<?> resolveClass(String type, String patchClassName, String targetClassName) {
-        String name = "finalCampaign.patch." + type + "." + (patchClassName == null ? "" : util.shortHashName(patchClassName) + ".") + targetClassName;
+        String name = util.nameBuilder(type, util.shortHashName(patchClassName), targetClassName);
         
         if (!classMap.containsKey(name)) throw new RuntimeException("Class not found: " + name);
         return classMap.get(name);

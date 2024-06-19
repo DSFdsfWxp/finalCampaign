@@ -81,6 +81,8 @@ public class proxy {
                     patchedClass.addField(newField);
                     break;
                 }
+                case SuperCall:
+                    throw new RuntimeException("SuperCall is not for a field.");
                 case Access: 
                     throw new RuntimeException("Operation access in proxy patch is not allowed.");
                 case None:
@@ -102,6 +104,8 @@ public class proxy {
                 }
                 case Access:
                     throw new RuntimeException("Operation access in proxy patch is not allowed.");
+                case SuperCall:
+                    throw new RuntimeException("SuperCall is not for a field.");
                 case None:
                     continue;
             }
@@ -116,6 +120,16 @@ public class proxy {
                 case Replace: {
                     CtMethod newMethod = new CtMethod(pMethod, patchedClass, null);
                     newMethod.setModifiers(pMethod.getModifiers());
+                    patchedClass.addMethod(newMethod);
+                    break;
+                }
+                case SuperCall: {
+                    CtMethod newMethod = new CtMethod(pMethod.getReturnType(), pMethod.getName(), pMethod.getParameterTypes(), patchedClass);
+                    newMethod.setModifiers(pMethod.getModifiers());
+
+                    String prefix = pMethod.getReturnType() == CtClass.voidType ? "" : "return ";
+                    newMethod.setBody("{ " + prefix + "super." + newMethod.getName() + "($$); }");
+
                     patchedClass.addMethod(newMethod);
                     break;
                 }
@@ -164,7 +178,7 @@ public class proxy {
         if (cache.has("proxied.all", null, targetClass.getName()))
             return cache.resolveCtClass("proxied.all", null, targetClass.getName());
 
-        CtClass patchedClass = pool.makeCtClass("finalCampaign.patch.proxied.all." + targetClass.getName());
+        CtClass patchedClass = pool.makeCtClass(util.nameBuilder("proxied.all", null, targetClass.getName()));
         String targetObjectName = "fcPatchTargetObject_83f7f0";
 
         final String[] importPackages = {"java.lang.reflect", "finalCampaign.patch"};
@@ -173,7 +187,7 @@ public class proxy {
 
         patchedClass.setSuperclass(targetClass);
 
-        CtField[] targetFields = targetClass.getDeclaredFields();
+        CtField[] targetFields = util.getAllDeclaredFields(targetClass);
         for (CtField targetField : targetFields) {
             if (Modifier.isPrivate(targetField.getModifiers()) ||
                 Modifier.isFinal(targetField.getModifiers()) ||
@@ -214,7 +228,7 @@ public class proxy {
             patchedClass.addConstructor(newConstructor);
         }
 
-        CtMethod[] targetMethods = targetClass.getDeclaredMethods();
+        CtMethod[] targetMethods = util.getAllDeclaredMethods(targetClass);
         for (CtMethod targetMethod : targetMethods) {
             if (Modifier.isPrivate(targetMethod.getModifiers()) || Modifier.isStatic(targetMethod.getModifiers())) continue;
 

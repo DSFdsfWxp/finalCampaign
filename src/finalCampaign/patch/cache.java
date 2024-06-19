@@ -40,6 +40,11 @@ public class cache {
         }
     }
 
+    public static void clear() {
+        cacheDir.deleteDirectory();
+        cacheDir.mkdirs();
+    }
+
     public static boolean has(String type, String patchClassShortHashName, String targetClassName) throws NoSuchAlgorithmException {
         Fi path = cacheDir.child(type);
         if (patchClassShortHashName != null) path = path.child(patchClassShortHashName);

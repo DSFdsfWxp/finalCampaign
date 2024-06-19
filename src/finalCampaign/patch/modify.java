@@ -39,12 +39,12 @@ public class modify {
         return pool.resolveCtClass(getTargetClass(patchClass).getName());
     }
 
-    public static Class<?> patch(Class<?> patchClass) throws Exception {
-        return dynamicPatch(patchClass, getTargetClass(patchClass));
+    public static Class<?> patch(Class<?> patchClass, boolean proxy) throws Exception {
+        return dynamicPatch(patchClass, getTargetClass(patchClass), proxy);
     }
 
-    public static Class<?> dynamicPatch(Class<?> patchClass, Class<?> targetClass)throws Exception {
-        CtClass patchedClass = patch(pool.resolveCtClass(patchClass.getName()), pool.resolveCtClass(targetClass.getName()), true);
+    public static Class<?> dynamicPatch(Class<?> patchClass, Class<?> targetClass, boolean proxy) throws Exception {
+        CtClass patchedClass = patch(pool.resolveCtClass(patchClass.getName()), pool.resolveCtClass(targetClass.getName()), proxy);
 
         String patchClassHashName = util.shortHashName(patchClass.getName());
         if (cache.has("modified.target", patchClassHashName, targetClass.getName()))
@@ -67,11 +67,14 @@ public class modify {
             return result;
         }
 
-        targetClass.setName("finalCampaign.patch.modified.target." + patchClassHashName + "." + targetClass.getName());
+        targetClass.setName(util.nameBuilder("modified.target", patchClassHashName, targetClass.getName()));
         String[] importPackages = util.getPatchImport(patchClass);
 
         pool.clearImportedPackages();
         pool.importPackages(importPackages);
+
+        if (!patchClass.getSuperclass().getName().equals(targetClass.getSuperclass().getName()))
+            targetClass.setSuperclass(patchClass.getSuperclass());
 
         CtField[] pFields = patchClass.getDeclaredFields();
         for (CtField pField : pFields) {
@@ -106,6 +109,9 @@ public class modify {
 
                     targetField.setModifiers(pField.getModifiers());
                     break;
+                }
+                case SuperCall: {
+                    throw new RuntimeException("SuperCall is not for a field.");
                 }
                 case None: {
                     continue;
@@ -148,6 +154,9 @@ public class modify {
                     targetConstructor.setBody(pConstructor, null);
                     break;
                 }
+                case SuperCall: {
+                    throw new RuntimeException("SuperCall is not for a constructor.");
+                }
                 case None: {
                     continue;
                 }
@@ -157,13 +166,23 @@ public class modify {
         CtMethod[] pMethods = patchClass.getDeclaredMethods();
         for (CtMethod pMethod : pMethods) {
             switch (util.getPatchOperation(pMethod)){
+                case Replace: {
+                    if (!util.hasBehavior(targetClass, pMethod.getName(), pMethod.getParameterTypes()))
+                        throw new RuntimeException("There is not a method called \""+pMethod.getName()+"\".");
+
+                    CtMethod targetMethod = targetClass.getDeclaredMethod(pMethod.getName(), pMethod.getParameterTypes());
+
+                    if (targetMethod.getReturnType() != pMethod.getReturnType()) throw new RuntimeException("Return type conflict.");
+                    if (targetMethod.getModifiers() != pMethod.getModifiers()) throw new RuntimeException("Modifiers conflict.");
+
+                    targetClass.removeMethod(targetMethod);
+                }
                 case Add: {
                     if (util.hasBehavior(targetClass, pMethod.getName(), pMethod.getParameterTypes()))
                         throw new RuntimeException("There is already a method called \""+pMethod.getName()+"\".");
 
-                    CtMethod newMethod = new CtMethod(pMethod.getReturnType(), pMethod.getName(), pMethod.getParameterTypes(), targetClass);
+                    CtMethod newMethod = new CtMethod(pMethod, targetClass, null);
                     newMethod.setModifiers(pMethod.getModifiers());
-                    newMethod.setBody(pMethod, null);
                     targetClass.addMethod(newMethod);
                     break;
                 }
@@ -180,17 +199,14 @@ public class modify {
                     targetMethod.setModifiers(Modifier.setPublic(targetMethod.getModifiers()));
                     break;
                 }
-                case Replace: {
-                    if (!util.hasBehavior(targetClass, pMethod.getName(), pMethod.getParameterTypes()))
-                        throw new RuntimeException("There is not a method called \""+pMethod.getName()+"\".");
+                case SuperCall: {
+                    CtMethod newMethod = new CtMethod(pMethod.getReturnType(), pMethod.getName(), pMethod.getParameterTypes(), targetClass);
+                    newMethod.setModifiers(pMethod.getModifiers());
 
-                    CtMethod targetMethod = targetClass.getDeclaredMethod(pMethod.getName(), pMethod.getParameterTypes());
+                    String prefix = pMethod.getReturnType() == CtClass.voidType ? "" : "return ";
+                    newMethod.setBody("{ " + prefix + "super." + newMethod.getName() + "($$); }");
 
-                    if (targetMethod.getReturnType() != pMethod.getReturnType()) throw new RuntimeException("Return type conflict.");
-                    if (targetMethod.getModifiers() != pMethod.getModifiers()) throw new RuntimeException("Modifiers conflict.");
-
-                    targetMethod.setModifiers(pMethod.getModifiers());
-                    targetMethod.setBody(pMethod, null);
+                    targetClass.addMethod(newMethod);
                     break;
                 }
                 case None: {

@@ -8,7 +8,6 @@ import mindustry.mod.Mods.*;
 import mindustry.core.*;
 import finalCampaign.patch.annotation.*;
 
-@PatchImport({"arc.files", "arc.struct", "arc.util", "mindustry.ctype", "mindustry.mod.Mods", "mindustry.core", "finalCampaign.patch.annotation"})
 @PatchModify(ContentLoader.class)
 @SuppressWarnings("unchecked")
 public class fcContentLoader{

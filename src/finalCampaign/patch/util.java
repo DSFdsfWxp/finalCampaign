@@ -12,23 +12,8 @@ public class util {
         Access,
         Add,
         Replace,
+        SuperCall,
         None
-    }
-
-    public static String randomName(int length) {
-        final String[] map = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
-        final String number = "1234567890";
-        String out = "";
-
-        while (out.length() < length) {
-            int pos = (int) Math.floor(Math.random() * map.length);
-            String txt = map[pos];
-            
-            if (out.length() == 0 && number.contains(txt)) continue;
-            out += txt;
-        }
-
-        return out;
     }
 
     public static String bytesToHex(byte[] hash) {
@@ -64,6 +49,7 @@ public class util {
     }
 
     public static String shortHashName(String name) {
+        if (name == null) return null;
         // since we put all patch classes in "finalCampaign.patch.patchClass"
         // we'll remove it here
         if (!name.startsWith("finalCampaign.patch.patchClass.")) throw new RuntimeException("Short hash name is not for that.");
@@ -72,6 +58,26 @@ public class util {
         int hash = name.hashCode();
         String hashStr = Integer.toString(hash);
         return hash > 0 ? "p" + hashStr : "n" + hashStr;
+    }
+
+    public static String nameBuilder(String type, String patchClassHashName, String targetClassName) {
+        final String spliter = "$";
+        String shortName = spliter + "finalCampaign" + spliter + "patch" + spliter + type.replace(".", spliter);
+        if (patchClassHashName != null) shortName += spliter + patchClassHashName;
+        return targetClassName + shortName;
+    }
+
+    public static String[] nameDisassembler(String name) {
+        final String spliter = "$";
+        final String escapedSpliter = "\\$";
+        Seq<String> splited = new Seq<>(name.split(escapedSpliter + "finalCampaign" + escapedSpliter + "patch" + escapedSpliter));
+        String tmp = splited.pop();
+        String targetClassName = String.join(spliter + "finalCampaign" + spliter + "patch" + spliter, splited);
+        splited = new Seq<>(tmp.split(escapedSpliter));
+        String patchClassShortHashName = null;
+        if (splited.size > 2) patchClassShortHashName = splited.pop();
+        String type = String.join(".", splited);
+        return new String[]{type, patchClassShortHashName, targetClassName};
     }
 
     public static String sha256Hash(String txt) throws NoSuchAlgorithmException {
@@ -84,10 +90,6 @@ public class util {
         String out = "";
         for (int i=0; i<count; i++) out += txt;
         return out;
-    }
-
-    public static String randomName() {
-        return randomName(8);
     }
 
     public static Seq<Object> getPatchAnnotations(Seq<Object> annotations) {
@@ -117,6 +119,7 @@ public class util {
         if (annotation instanceof PatchAdd) return patchOperation.Add;
         if (annotation instanceof PatchAccess) return patchOperation.Access;
         if (annotation instanceof PatchReplace) return patchOperation.Replace;
+        if (annotation instanceof PatchSuperCall) return patchOperation.SuperCall;
         
         throw new RuntimeException("Should not reach here.");
     }
@@ -195,7 +198,7 @@ public class util {
         CtField[] lst = tClass.getDeclaredFields();
 
         for (CtField field : lst) {
-            if (!field.getName().equals(name)) return true;
+            if (field.getName().equals(name)) return true;
         }
 
         return false;
@@ -235,6 +238,28 @@ public class util {
         }
 
         return false;
+    }
+
+    public static CtField[] getAllDeclaredFields(CtClass tClass) throws NotFoundException {
+        Seq<CtField> out = new Seq<>();
+        CtClass current = tClass;
+        while (!current.getName().equals("java.lang.Object")) {
+            out.add(current.getDeclaredFields());
+            current = current.getSuperclass();
+        }
+
+        return out.toArray(CtField.class);
+    }
+
+    public static CtMethod[] getAllDeclaredMethods(CtClass tClass) throws NotFoundException {
+        Seq<CtMethod> out = new Seq<>();
+        CtClass current = tClass;
+        while (!current.getName().equals("java.lang.Object")) {
+            out.add(current.getDeclaredMethods());
+            current = current.getSuperclass();
+        }
+
+        return out.toArray(CtMethod.class);
     }
 
     public static void copyClass(CtClass source, CtClass dest) throws CannotCompileException, NotFoundException {

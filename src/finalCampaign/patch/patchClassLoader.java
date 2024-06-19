@@ -5,7 +5,6 @@ import java.nio.charset.*;
 import java.security.*;
 import java.util.zip.*;
 import arc.files.*;
-import arc.struct.*;
 import javassist.*;
 
 import static mindustry.Vars.*;
@@ -19,11 +18,11 @@ public class patchClassLoader extends ClassLoader {
         byte[] code = cclass.toBytecode();
         String type, patchClassShortHashName = null, targetClassName;
 
-        Seq<String> splited = util.subSeq(new Seq<>(cclass.getName().split("\\.")), 2);
+        String[] args = util.nameDisassembler(cclass.getName());
         
-        type = util.shiftSeq(splited) + "." + util.shiftSeq(splited);
-        if (!type.equals("proxied.all")) patchClassShortHashName = util.shiftSeq(splited);
-        targetClassName = String.join(".", splited);
+        type = args[0];
+        if (!type.equals("proxied.all")) patchClassShortHashName = args[1];
+        targetClassName = args[2];
 
         if (!android) {
             cache.write(type, patchClassShortHashName, targetClassName, code, null);
