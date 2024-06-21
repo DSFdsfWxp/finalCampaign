@@ -19,7 +19,7 @@ public class patchEngine {
         cache.init();
     }
 
-    public static boolean load() {
+    public static void load() {
         BaseDialog dialog = null;
         Fi mindustryClassFile = classDir.child("mindustry.jar");
 
@@ -41,14 +41,15 @@ public class patchEngine {
                 Log.err(e);
                 Vars.ui.showException(e);
 
-                return false;
+                asyncTask.interrupt();
+                return;
             }
 
-            return true;
+            return;
         }
 
         dialog.show();
-        return false;
+        asyncTask.interrupt();
     }
 
     

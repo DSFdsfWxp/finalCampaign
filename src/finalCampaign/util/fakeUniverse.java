@@ -11,7 +11,7 @@ public class fakeUniverse extends Universe {
 
     @Override
     public int seconds() {
-        return (int) Math.floor(delta);
+        return Float.valueOf(delta).intValue();
     }
 
     @Override
@@ -36,14 +36,19 @@ public class fakeUniverse extends Universe {
     }
 
     @Override
-    public void updateGlobal() {
+    public synchronized void updateGlobal() {
         for(Planet planet : planets){
-            if(planet.parent == null) updatePlanet(planet);
+            if(planet.parent == null) {
+                // avoid thread problem.
+                try {
+                    updatePlanet(planet);
+                } catch(Exception e) {}
+            }
         }
     }
 
     @Override
-    public void update() {
+    public synchronized void update() {
         if (delta < 0) delta = 0;
         second += delta;
         updateGlobal();

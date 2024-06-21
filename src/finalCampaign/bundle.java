@@ -33,25 +33,35 @@ public class bundle {
             String[] bundleContent = rawBundleFile.readString().split("\n");
             Seq<String> processedBundleContent = new Seq<>();
 
-            for (String txt : bundleContent) {
-                String out = txt.trim();
-                if (!out.isEmpty()) out = "finalCampaign." + out;
-                processedBundleContent.add(out);
-            }
+            asyncTask.subTask(new Thread(() -> {
+                for (String txt : bundleContent) {
+                    String out = txt.trim();
+                    if (out.startsWith("[raw].")) {
+                        out = out.substring(6);
+                    } else {
+                        if (!out.isEmpty()) out = "finalCampaign." + out;
+                    }
+                    processedBundleContent.add(out);
+                }
+            }));
 
-            bundleFile.writeString(String.join("\n", processedBundleContent));
+            asyncTask.subTask(() -> {
+                bundleFile.writeString(String.join("\n", processedBundleContent));
+            });
         }
 
-        I18NBundle bundle = Core.bundle;
-        while (bundle != null) {
-            try {
-                PropertiesUtils.load(bundle.getProperties(), bundleFile.reader());
-            } catch(Exception e) {
-                Log.err("bundle: failed to load bundle: " + fileName, e);
+        asyncTask.subTask(() -> {
+            I18NBundle bundle = Core.bundle;
+            while (bundle != null) {
+                try {
+                    PropertiesUtils.load(bundle.getProperties(), bundleFile.reader());
+                } catch(Exception e) {
+                    Log.err("bundle: failed to load bundle: " + fileName, e);
+                }
+    
+                bundle = bundle.getParent();
             }
-
-            bundle = bundle.getParent();
-        }
+        });
     }
 
     public static String get(String name) {

@@ -1,10 +1,12 @@
 package finalCampaign.util;
 
 import arc.Core;
+import arc.Events;
 import arc.graphics.Gl;
 import arc.graphics.g2d.Draw;
 import arc.math.geom.Vec3;
 import arc.util.Tmp;
+import mindustry.game.EventType.Trigger;
 import mindustry.graphics.g3d.*;
 import mindustry.type.Planet;
 
@@ -26,7 +28,6 @@ public class customPlanetRenderer extends PlanetRenderer {
 
         bloom.blending = !params.drawSkybox;
 
-
         cam.up.set(Vec3.Y);
 
         cam.resize(w, h);
@@ -46,6 +47,8 @@ public class customPlanetRenderer extends PlanetRenderer {
 
         projector.proj(cam.combined);
         batch.proj(cam.combined);
+
+        Events.fire(Trigger.universeDrawBegin);
 
         bloom.resize(w, h);
         bloom.capture();
@@ -67,11 +70,15 @@ public class customPlanetRenderer extends PlanetRenderer {
         }
 
 
+        Events.fire(Trigger.universeDraw);
+
         Planet solarSystem = params.planet.solarSystem;
         renderPlanet(solarSystem, params);
         renderTransparent(solarSystem, params);
 
         bloom.render();
+
+        Events.fire(Trigger.universeDrawEnd);
 
         Gl.enable(Gl.blend);
 

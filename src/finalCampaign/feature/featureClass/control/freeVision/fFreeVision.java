@@ -2,8 +2,8 @@ package finalCampaign.feature.featureClass.control.freeVision;
 
 import arc.*;
 import finalCampaign.feature.featureClass.binding.*;
+import finalCampaign.feature.featureClass.fcDesktopInput.*;
 import mindustry.*;
-import mindustry.input.*;
 
 public class fFreeVision {
     
@@ -19,8 +19,11 @@ public class fFreeVision {
     public static void load() throws Exception {
         if (Vars.mobile) return;
 
-        InputHandler handler = (InputHandler) new fcDesktopInput();
-        Vars.control.setInput(handler);
+        fFcDesktopInput.addBindingHandle(new bindingHandle() {
+            public void run() {
+                checkOnOff();
+            }
+        });
 
         inited = true;
     }

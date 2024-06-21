@@ -33,7 +33,9 @@ public class versionCheckFail extends BaseDialog{
 
         super.cont.pane((Table t) -> {
             t.add(bundle.get("dialog.versionCheckFail.title")).left();
+            t.row();
             t.add(bundle.get("dialog.versionCheckFail.detail")).padTop(10f).left().width(400f).wrap().grow();
+            t.row();
             t.add(bundle.get("dialog.versionCheckFail.solution")).left().width(400f).wrap().grow();
         }).scrollX(false);
     }

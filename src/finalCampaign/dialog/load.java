@@ -7,9 +7,6 @@ import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
-import arc.graphics.*;
-import arc.graphics.g2d.*;
-import arc.graphics.gl.*;
 import arc.input.*;
 import arc.math.*;
 import arc.math.geom.*;
@@ -27,14 +24,14 @@ import mindustry.type.*;
 
 public class load extends BaseDialog implements PlanetInterfaceRenderer {
 
-    public final PlanetRenderer planets = new customPlanetRenderer();
-    public final FrameBuffer buffer = new FrameBuffer(2, 2, true);
+    public PlanetRenderer planets = new customPlanetRenderer();
     public customPlanetParams state = new customPlanetParams();
     
-    private volatile boolean shouldStopFakeUpdate;
+    private boolean shouldStopFakeUpdate;
     private Label zoomLabel;
     private Label posLabel;
     private fakeUniverse fake;
+    private Universe origin;
     private float stepProgress;
     private int totalStep;
     private int step;
@@ -51,6 +48,7 @@ public class load extends BaseDialog implements PlanetInterfaceRenderer {
     public load() {
         super("", Styles.fullDialog);
         titleTable.clear();
+        shouldPause = true;
 
         step = 0;
         totalStep = 0;
@@ -117,7 +115,7 @@ public class load extends BaseDialog implements PlanetInterfaceRenderer {
         Table testData = new Table(t -> {
             t.parent = this;
             t.fillParent = false;
-            t.setWidth(Core.scene.getWidth());
+            t.setWidth(layout.getSceneWidth());
 
             zoomLabel = t.add("zoom: " + Float.toString(state.zoom)).left().padLeft(15f).growX().get();
             t.row();
@@ -125,14 +123,14 @@ public class load extends BaseDialog implements PlanetInterfaceRenderer {
                 "\nserpulo pos: \nx:" + Float.toString(Planets.serpulo.position.x) + "\ny:" + Float.toString(Planets.serpulo.position.y) + "\nz:" + Float.toString(Planets.serpulo.position.z)).left().padLeft(15f).growX().get();
 
             t.setHeight(zoomLabel.getHeight() * 9);
-            t.setPosition(this.x, Core.scene.getHeight() - zoomLabel.getHeight() * 9);
+            t.setPosition(load.this.x, layout.getSceneHeight() - zoomLabel.getHeight() * 9);
         });
 
         progressTable = new Table(t -> {
             t.parent = this;
             t.fillParent = false;
-            t.setSize(Core.scene.getWidth(), 100f);
-            t.setPosition(this.x, this.y);
+            t.setSize(layout.getSceneWidth(), 100f);
+            t.setPosition(load.this.x, load.this.y);
 
             progressLabel = t.add(this.stepName).center().get();
             t.row();
@@ -140,10 +138,10 @@ public class load extends BaseDialog implements PlanetInterfaceRenderer {
                 String p = Float.toString((this.stepProgress + this.step) / this.totalStep * 100);
                 return p.substring(0, Math.min(5, p.length())) + "%";
             }, () -> {
-                return Pal.accent;
+                return Pal.accent.cpy();
             }, () -> {
                 return (this.stepProgress + this.step) / this.totalStep;
-            })).size(500f, 20f).center().padTop(8f).padBottom(10f).get().blink(Pal.accent).snap();
+            })).size(500f, 20f).center().padTop(8f).padBottom(10f).get().blink(Pal.accent.cpy()).snap();
         });
 
         stack(new Element() {
@@ -221,18 +219,21 @@ public class load extends BaseDialog implements PlanetInterfaceRenderer {
             fake.planets = Vars.content.planets().toArray(Planet.class);
 
             Thread updateFake = new Thread(() -> {
-                while (!shouldStopFakeUpdate && finalCampaign.gameThread.isAlive()) {
+                while (!shouldStopFakeUpdate) {
                     fake.update();
                     try {
                         Thread.sleep(16);
                     } catch(Exception e) {}
                 }
+                Log.debug("fake universe: update thread stopped.");
             });
+            updateFake.setDaemon(false);
             shouldStopFakeUpdate = false;
             finish = false;
             finalZoom = false;
             updateFake.start();
 
+            origin = Vars.universe;
             Vars.universe = fake;
             this.fake = fake;
 
@@ -245,8 +246,8 @@ public class load extends BaseDialog implements PlanetInterfaceRenderer {
         });
 
         hidden(() -> {
-            Time.run(150f, () -> {
-                Vars.universe = new Universe();
+            Time.run(40f, () -> {
+                Vars.universe = origin;
                 shouldStopFakeUpdate = true;
             });
         });
@@ -255,22 +256,10 @@ public class load extends BaseDialog implements PlanetInterfaceRenderer {
 
     @Override
     public void draw() {
-        boolean doBuffer = color.a < 0.99f;
-
-        if (doBuffer) {
-            buffer.resize(Core.graphics.getWidth(), Core.graphics.getHeight());
-            buffer.begin(Color.clear);
-        }
-
-        super.draw();
-
-        if (doBuffer) {
-            buffer.end();
-
-            Draw.color(color);
-            Draw.rect(Draw.wrap(buffer.getTexture()), width / 2f, height / 2f, width, -height);
-            Draw.color();
-        }
+        // avoid thread null pointer problem
+        try {
+            super.draw();
+        } catch (Exception e) {}
     }
 
     public void renderSectors(Planet planet) {
@@ -282,6 +271,7 @@ public class load extends BaseDialog implements PlanetInterfaceRenderer {
     }
 
     public void setStepName(String name) {
+        Log.debug("load: step name update: " + name);
         stepName = name;
         progressLabel.setText(stepName);
     }
@@ -291,7 +281,7 @@ public class load extends BaseDialog implements PlanetInterfaceRenderer {
     }
 
     public void nextStep(String name) {
-        stepProgress = 0;
+        stepProgress = 0f;
         step = Mathf.clamp(step + 1, 0, totalStep);
         setStepName(name);
 

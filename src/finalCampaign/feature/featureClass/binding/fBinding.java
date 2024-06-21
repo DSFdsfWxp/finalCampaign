@@ -19,8 +19,9 @@ public class fBinding {
     }
 
     public static void load() {
-        Core.keybinds = new KeyBinds();
-        Core.keybinds.setDefaults(allKeyBinds);
+        KeyBinds newKeyBinds = new KeyBinds();
+        newKeyBinds.setDefaults(allKeyBinds);
+        Core.keybinds = newKeyBinds;
         Core.settings.manualSave();
         Core.settings.load();
 

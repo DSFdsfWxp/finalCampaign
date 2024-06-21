@@ -6,5 +6,8 @@
 /bin
 /build
 
-#git
+# git
 /.git
+
+# sprites
+/spriteProjects

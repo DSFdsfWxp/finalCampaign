@@ -6,8 +6,8 @@ import arc.input.KeyCode;
 
 public enum binding implements KeyBind {
 
-    freeVision(KeyCode.f4, "finalCampaign")
-
+    freeVision(KeyCode.f4, "finalCampaign"),
+    roulette(KeyCode.tab)
     ;
     
     private final KeybindValue defaultValue;

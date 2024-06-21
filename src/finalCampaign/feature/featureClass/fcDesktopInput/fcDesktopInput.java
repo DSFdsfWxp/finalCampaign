@@ -1,4 +1,4 @@
-package finalCampaign.feature.featureClass.control.freeVision;
+package finalCampaign.feature.featureClass.fcDesktopInput;
 
 import arc.*;
 import arc.Graphics.*;
@@ -11,9 +11,11 @@ import arc.math.geom.*;
 import arc.scene.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
+import finalCampaign.feature.featureClass.binding.*;
+import finalCampaign.feature.featureClass.control.freeVision.*;
 import mindustry.*;
 import mindustry.core.*;
-import mindustry.entities.EntityCollisions;
+import mindustry.entities.*;
 import mindustry.entities.Predict;
 import mindustry.entities.Units;
 import mindustry.entities.units.*;
@@ -22,10 +24,10 @@ import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
-import mindustry.type.UnitType;
+import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
-import mindustry.world.blocks.ControlBlock;
+import mindustry.world.blocks.*;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
@@ -368,7 +370,7 @@ public class fcDesktopInput extends fcaInputHandler{
         }
 
         pollInput();
-        fFreeVision.checkOnOff();
+        for (bindingHandle handle : fFcDesktopInput.handleLst) handle.run();
 
         //deselect if not placing
         if(!isPlacing() && mode == placing){

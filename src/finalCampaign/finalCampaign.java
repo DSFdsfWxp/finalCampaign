@@ -16,14 +16,11 @@ public class finalCampaign extends Mod{
     public static LoadedMod thisMod;
     public static ZipFi thisModFi;
     public static Fi dataDir;
-    public static volatile Thread gameThread;
-    public volatile load loadDialog;
+    private static load loadDialog;
 
     public finalCampaign(){
         Log.info(" # finalCampaign [prototypePhase]");
         Log.info(" # " + version.toVersionString());
-
-        gameThread = Thread.currentThread();
 
         //listen for game load event
         Events.on(ClientLoadEvent.class, event -> {
@@ -39,43 +36,42 @@ public class finalCampaign extends Mod{
             dataDir = dataDirectory.child("finalCampaign");
             if (!dataDir.exists()) dataDir.mkdirs();
 
-            Thread loadThread = new Thread(() -> {
-                int targetfps = Core.settings.getInt("fpscap", 120);   
+            asyncTask loadTask = new asyncTask(() -> {
+                int targetfps = Core.settings.getInt("fpscap", 120);
                 targetfps = Math.min(targetfps, 25);
 
-                while (Core.graphics.getFramesPerSecond() - targetfps <= -5 && gameThread.isAlive()) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch(Exception e) {}
+                if (Core.graphics.getFramesPerSecond() - targetfps <= -5 || Core.settings.getDataDirectory().child("launchid.dat").exists()) {
+                    
+                    asyncTask.reschedule(60f);
+                    return;
                 }
 
-                if (!gameThread.isAlive()) return;
+                asyncTask.subTask(() -> loadDialog.nextStep("Initializing"));
+                asyncTask.defaultDelay(5f);
+                asyncTask.subTask(patchEngine::init);
+                asyncTask.subTask(bundle::init);
+                asyncTask.subTask(featureLoader::init);
+                asyncTask.subTask(version::init);
 
-                loadDialog.nextStep("Initializing");
-                patchEngine.init();
-                bundle.init();
-                featureLoader.init();
-                version.init();
-    
-                loadDialog.nextStep("Loading bundle");
-                bundle.load();
-                loadDialog.nextStep(bundle.get("load.checkingVersion"));
-                if (!patchEngine.load()) return;
-    
-                loadDialog.nextStep(bundle.get("load.loadingFeature"));
-                features.add();
-                featureLoader.setProgressCons((p) -> {
-                    loadDialog.setStepProgress(p);
+                asyncTask.defaultDelay(10f);
+                asyncTask.subTask(0f, () -> loadDialog.nextStep("Loading bundle"));
+                asyncTask.subTask(bundle::load);
+                asyncTask.subTask(0f, () -> loadDialog.nextStep(bundle.get("load.checkingVersion")));
+                asyncTask.subTask(patchEngine::load);
+
+                asyncTask.subTask(0f, () -> loadDialog.nextStep(bundle.get("load.loadingFeature")));
+                asyncTask.subTask(0f, () -> {
+                    features.add();
+                    featureLoader.setProgressCons((p) -> {
+                        loadDialog.setStepProgress(p);
+                    });
                 });
-                featureLoader.load();
+                asyncTask.subTask(featureLoader::load);
 
-                loadDialog.nextStep(bundle.get("load.finish"));
-                //loadDialog.hide();
+                asyncTask.subTask(0f, () -> loadDialog.nextStep(bundle.get("load.finish")));
             });
-            
-            Time.run(180f, () -> {
-                loadThread.start();
-            });
+
+            loadTask.schedule();
 
         });
     }

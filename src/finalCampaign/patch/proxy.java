@@ -63,7 +63,7 @@ public class proxy {
             return cache.resolveCtClass("proxied.target", patchClassHashName, targetClass.getName());
         }
 
-        CtClass patchedClass = pool.makeCtClass("finalCampaign.patch.proxied.target." + patchClassHashName + "." + targetClass.getName());
+        CtClass patchedClass = pool.makeCtClass(util.nameBuilder("proxied.target", patchClassHashName, targetClass.getName()));
         patchedClass.setSuperclass(allPatchedClass);
         patchedClass.setInterfaces(patchClass.getInterfaces());
 
@@ -238,10 +238,17 @@ public class proxy {
             CtClass[] parameters = targetMethod.getParameterTypes();
             Seq<String> parameterLst = new Seq<>();
             for (CtClass parameter : parameters) parameterLst.add(parameter.getName());
+            String parameterLstStr = String.join(",", parameterLst);
+
+            String cacheHash = util.hash(parameterLstStr + ";" + targetMethod.getReturnType());
+            String cacheName = "fcPatchMethodCache_83f7f0_" + targetMethod.getName() + "_" + cacheHash;
+            CtField cacheField = new CtField(pool.resolveCtClass("java.lang.reflect.Method"), cacheName, patchedClass);
+            cacheField.setModifiers(Modifier.PRIVATE);
+            patchedClass.addField(cacheField);
             
             Seq<String> src = new Seq<>();
-            src.add("Method m=proxyRuntime.getMethod(" + targetObjectName + ",\"" + targetMethod.getName() + "\",\"" + String.join(",", parameterLst) + "\",\"" + targetMethod.getReturnType().getName() + "\");");
-            src.add("Object o=m.invoke(" + targetObjectName + ",$args);");
+            src.add("if (" + cacheName + "==null) { " + cacheName + "=proxyRuntime.getMethod(" + targetObjectName + ",\"" + targetMethod.getName() + "\",\"" + parameterLstStr + "\",\"" + targetMethod.getReturnType().getName() + "\"); }");
+            src.add("Object o=" + cacheName + ".invoke(" + targetObjectName + ",$args);");
             if (targetMethod.getReturnType() != CtClass.voidType) src.add("return (" + targetMethod.getReturnType().getName() + ")o;");
 
             newMethod.setBody("{ " + String.join(" ", src) + " }");

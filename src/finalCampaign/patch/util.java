@@ -48,6 +48,12 @@ public class util {
         return out;
     }
 
+    public static String hash(String str) {
+        int hashCode = str.hashCode();
+        String hashStr = Integer.toString(Math.abs(hashCode));
+        return hashCode > 0 ? "p" + hashStr : "n" + hashStr;
+    }
+
     public static String shortHashName(String name) {
         if (name == null) return null;
         // since we put all patch classes in "finalCampaign.patch.patchClass"
@@ -55,9 +61,7 @@ public class util {
         if (!name.startsWith("finalCampaign.patch.patchClass.")) throw new RuntimeException("Short hash name is not for that.");
         name = name.substring(31);
 
-        int hash = name.hashCode();
-        String hashStr = Integer.toString(hash);
-        return hash > 0 ? "p" + hashStr : "n" + hashStr;
+        return hash(name);
     }
 
     public static String nameBuilder(String type, String patchClassHashName, String targetClassName) {

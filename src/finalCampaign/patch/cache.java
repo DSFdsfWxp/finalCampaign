@@ -61,7 +61,7 @@ public class cache {
         Fi file = path.child(android ? fileBaseName : fileBaseName + "-raw");
 
         if (!file.exists()) throw new RuntimeException("Not cache file for: " + type + " :: " + patchClassShortHashName + " -> " + targetClassName);
-        String name = "finalCampaign.patch." + type + "." + (patchClassShortHashName == null ? "" : patchClassShortHashName + ".") + targetClassName;
+        String name = util.nameBuilder(type, patchClassShortHashName, targetClassName);
 
         if (!android) return pool.loadClassBinary(name, file.readBytes());
         return pool.loadDexFile(name, file);

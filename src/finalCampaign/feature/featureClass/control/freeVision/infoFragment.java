@@ -1,19 +1,16 @@
 package finalCampaign.feature.featureClass.control.freeVision;
 
-import arc.Core;
-import arc.scene.actions.*;
-import arc.scene.ui.Label;
-import arc.scene.ui.layout.*;
+import arc.*;
+import arc.scene.ui.*;
 import arc.util.*;
 import finalCampaign.*;
+import finalCampaign.ui.layout.*;
 import mindustry.ui.*;
 
-public class infoFragment extends Table {
+public class infoFragment extends fragment {
     private float labelHeight;
-    private boolean removed = false;
 
     public infoFragment() {
-        setFillParent(false);
         table((t) -> {
             t.setFillParent(false);
             t.defaults().left();
@@ -23,33 +20,17 @@ public class infoFragment extends Table {
             labelHeight = l.getHeight();
             t.setBackground(Styles.black6);
         }).margin(10f).center().bottom();
-        color.a = 0f;
     }
 
+    @Override
     public void added() {
         setWidth(Core.scene.getWidth());
         setPosition(parent.x, parent.y + 20f);
         setHeight(labelHeight + 20f);
-        actions(Actions.fadeIn(20f));
-        Time.run(200f, () -> {
-            actions(Actions.fadeOut(20f));
-            Time.run(40f, () -> {
-                if (removed) return;
-                remove();
-                removed = true;
+        added(20f, () -> {
+            Time.run(120f, () -> {
+                remove(20f);
             });
         });
-    }
-
-    @Override
-    public boolean remove(){
-        if (removed) return false;
-        return super.remove();
-    }
-
-    @Override
-    public void draw() {
-        act(Time.delta);
-        super.draw();
     }
 }

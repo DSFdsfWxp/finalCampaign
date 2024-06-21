@@ -1,4 +1,4 @@
-package finalCampaign.feature.featureClass.control.freeVision;
+package finalCampaign.feature.featureClass.fcDesktopInput;
 
 import arc.*;
 import arc.math.geom.*;
@@ -15,7 +15,7 @@ import static mindustry.Vars.*;
 
 public class fcaInputHandler extends InputHandler {
 
-    protected float playerSelectRange = mobile ? 17f : 11f;
+    protected final float playerSelectRange = mobile ? 17f : 11f;
 
     protected boolean checkConfigTap(){
         return config.isShown() && config.getSelected().onConfigureTapped(input.mouseWorldX(), input.mouseWorldY());
