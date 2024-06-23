@@ -1,4 +1,4 @@
-package finalCampaign.util;
+package finalCampaign.graphics;
 
 import arc.math.geom.*;
 import arc.util.*;

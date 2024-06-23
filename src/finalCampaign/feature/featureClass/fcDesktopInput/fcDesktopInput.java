@@ -262,7 +262,8 @@ public class fcDesktopInput extends fcaInputHandler{
                 if (!fFreeVision.isOn()) {
                     Core.camera.position.lerpDelta(coreTarget != null ? coreTarget : player, Core.settings.getBool("smoothcamera") ? 0.08f : 1f);
                 } else {
-                    if (!ui.consolefrag.shown()) Core.camera.position.add(Tmp.v1.setZero().add(Core.input.axis(Binding.move_x), Core.input.axis(Binding.move_y)).nor().scl(camSpeed));
+                    if (!ui.consolefrag.shown() && !ui.chatfrag.shown() && !scene.hasField() && !scene.hasDialog())
+                        Core.camera.position.add(Tmp.v1.setZero().add(Core.input.axis(Binding.move_x), Core.input.axis(Binding.move_y)).nor().scl(camSpeed));
                 }
             }
 

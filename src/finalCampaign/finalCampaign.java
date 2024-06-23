@@ -5,6 +5,8 @@ import arc.util.*;
 import arc.files.*;
 import finalCampaign.dialog.*;
 import finalCampaign.feature.*;
+import finalCampaign.graphics.*;
+import finalCampaign.util.*;
 import mindustry.mod.*;
 import mindustry.mod.Mods.*;
 import mindustry.game.EventType.*;
@@ -27,7 +29,7 @@ public class finalCampaign extends Mod{
             loadDialog = new load();
             loadDialog.show();
 
-            loadDialog.setTotalStep(5);
+            loadDialog.setTotalStep(6);
             loadDialog.setStepName("Waiting for other mods to be loaded");
 
             thisMod = mods.getMod(finalCampaign.class);
@@ -67,6 +69,9 @@ public class finalCampaign extends Mod{
                     });
                 });
                 asyncTask.subTask(featureLoader::load);
+
+                asyncTask.subTask(0f, () -> loadDialog.nextStep(bundle.get("load.compilingShader")));
+                asyncTask.subTask(shaders::load);
 
                 asyncTask.subTask(0f, () -> loadDialog.nextStep(bundle.get("load.finish")));
             });

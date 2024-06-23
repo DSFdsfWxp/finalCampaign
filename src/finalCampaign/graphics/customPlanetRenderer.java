@@ -1,14 +1,13 @@
-package finalCampaign.util;
+package finalCampaign.graphics;
 
-import arc.Core;
-import arc.Events;
-import arc.graphics.Gl;
-import arc.graphics.g2d.Draw;
-import arc.math.geom.Vec3;
-import arc.util.Tmp;
-import mindustry.game.EventType.Trigger;
+import arc.*;
+import arc.graphics.*;
+import arc.graphics.g2d.*;
+import arc.math.geom.*;
+import arc.util.*;
+import mindustry.game.EventType.*;
 import mindustry.graphics.g3d.*;
-import mindustry.type.Planet;
+import mindustry.type.*;
 
 public class customPlanetRenderer extends PlanetRenderer {
     @Override

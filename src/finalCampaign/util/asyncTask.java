@@ -1,4 +1,4 @@
-package finalCampaign;
+package finalCampaign.util;
 
 import arc.struct.*;
 import arc.util.*;
