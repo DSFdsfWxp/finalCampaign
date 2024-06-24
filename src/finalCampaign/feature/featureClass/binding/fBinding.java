@@ -1,5 +1,6 @@
 package finalCampaign.feature.featureClass.binding;
 
+import java.lang.reflect.*;
 import arc.*;
 import arc.struct.*;
 import arc.KeyBinds.*;
@@ -13,17 +14,18 @@ public class fBinding {
     
     public static void init() {
         Seq<KeyBind> tmp = new Seq<>(Binding.values());
-        Seq<KeyBind> tmp2 = new Seq<>(tmp.toArray(KeyBind.class));
-        for (Object o : binding.values()) tmp2.add((KeyBind) o);
-        allKeyBinds = tmp2.toArray(KeyBind.class);
+        tmp = new Seq<>(tmp.toArray(KeyBind.class));
+        for (Object o : binding.values()) tmp.add((KeyBind) o);
+        allKeyBinds = tmp.toArray(KeyBind.class);
     }
 
-    public static void load() {
+    public static void load() throws Exception {
         KeyBinds newKeyBinds = new KeyBinds();
         newKeyBinds.setDefaults(allKeyBinds);
         Core.keybinds = newKeyBinds;
-        Core.settings.manualSave();
-        Core.settings.load();
+        Method load = KeyBinds.class.getDeclaredMethod("load");
+        load.setAccessible(true);
+        load.invoke(newKeyBinds);
 
         Vars.ui.controls = new KeybindDialog();
     }

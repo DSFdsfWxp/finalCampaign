@@ -1,5 +1,7 @@
 package finalCampaign.feature.featureClass.crosshair;
 
+import arc.graphics.*;
+import finalCampaign.feature.featureClass.fcDesktopInput.*;
 import finalCampaign.feature.featureClass.tuner.*;
 import mindustry.*;
 
@@ -17,9 +19,12 @@ public class fCrosshair {
             custom.sliderSetting("staticOpacity", 0.4f, 1f, 0f, 0.001f);
             custom.sliderSetting("scaleX", 1f, 4f, 0f, 0.1f);
             custom.sliderSetting("scaleY", 1f, 4f, 0f, 0.1f);
+            custom.checkSetting("invertColor", true);
+            custom.colorSetting("color", Color.white);
         });
         Vars.ui.hudGroup.addChild(fragment);
         fragment.added();
+        fFcDesktopInput.addBindingHandle(fragment::checkMoving);
     }
 
     public static boolean isOn() {
@@ -44,5 +49,13 @@ public class fCrosshair {
 
     public static boolean usingPoint() {
         return fTuner.getCustomValue("centerCrosshair", "point", Boolean.class);
+    }
+
+    public static boolean isInvertColor() {
+        return fTuner.getCustomValue("centerCrosshair", "invertColor", Boolean.class);
+    }
+
+    public static Color color() {
+        return Color.valueOf(fTuner.getCustomValue("centerCrosshair", "color", String.class));
     }
 }

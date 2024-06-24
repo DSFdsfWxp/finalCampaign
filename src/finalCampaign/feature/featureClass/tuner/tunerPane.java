@@ -3,7 +3,8 @@ package finalCampaign.feature.featureClass.tuner;
 import arc.struct.*;
 import arc.util.*;
 import arc.func.*;
-import arc.scene.event.Touchable;
+import arc.graphics.*;
+import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import finalCampaign.*;
@@ -14,7 +15,7 @@ public class tunerPane extends Table {
     private ObjectMap<String, TextButton> map;
 
     public tunerPane(Table parent) {
-        parent.pane(this).width(600f).scrollX(false);
+        parent.pane(this).width(600f).scrollX(false).margin(20f);
         map = new ObjectMap<>();
     }
 
@@ -45,6 +46,7 @@ public class tunerPane extends Table {
         public void checkSetting(String name, boolean def);
         public void sliderSetting(String name, float def, float max, float min, float step);
         public void textSetting(String name, String def, String hint, int maxLength, @Nullable Func<String, String> processor);
+        public void colorSetting(String name, Color def);
     }
     
     public class customPane extends BaseDialog implements customBuilder {
@@ -58,7 +60,7 @@ public class tunerPane extends Table {
             superName = name;
             addCloseListener();
             addCloseButton();
-            cont.pane((t) -> content = t).width(600f).scrollX(false);
+            cont.pane((t) -> content = t).width(600f).scrollX(false).margin(20f);
             content.setWidth(600f);
         }
         
@@ -111,12 +113,34 @@ public class tunerPane extends Table {
                 String title = bundle.get("tuner." + superName + "." + name + ".name");
                 t.add(title).left().wrap().growY().width(500f);
                 t.button(bundle.get("set"), () -> {
-                    Vars.ui.showTextInput(title, hint, maxLength, def, str -> {
+                    Vars.ui.showTextInput(title, hint, maxLength, (String) map.get(name), str -> {
                         if (processor != null) str = processor.get(str);
                         fTuner.setCustomValue(superName, name, str);
                     });
                 }).right().width(75f);
                 fTuner.loadCustom(superName, name, def);
+            }).width(600f).padTop(8f);
+            content.row();
+        }
+
+        public void colorSetting(String name, Color def) {
+            content.table(t -> {
+                ColorPicker picker = new ColorPicker();
+                t.add(bundle.get("tuner." + superName + "." + name + ".name")).left().wrap().growY().width(350f);
+                Label colorLabel = t.add("null").left().padLeft(8f).wrap().growY().width(142f).get();
+                Runnable updateColorLabel = () -> {
+                    String hex = (String) map.get(name);
+                    colorLabel.setText(hex);
+                    colorLabel.setColor(Color.valueOf(hex));
+                };
+                t.button(bundle.get("set"), () -> {
+                    picker.show(Color.valueOf((String) map.get(name)), c -> {
+                        fTuner.setCustomValue(superName, name, c.toString());
+                        updateColorLabel.run();
+                    });
+                }).right().width(75f);
+                fTuner.loadCustom(superName, name, def.toString());
+                updateColorLabel.run();
             }).width(600f).padTop(8f);
             content.row();
         }
