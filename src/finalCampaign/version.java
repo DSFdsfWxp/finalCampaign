@@ -2,7 +2,6 @@ package finalCampaign;
 
 import arc.util.Log;
 import arc.util.Log.*;
-import finalCampaign.patch.*;
 
 public class version {
     
@@ -17,9 +16,6 @@ public class version {
         if (debug) {
             Log.level = LogLevel.debug;
 
-            cache.clear();
-            Log.info("debug mode: cleared patch cache.");
-
             bundle.clearCache();
             Log.info("debug mode: cleared bundle cache.");
         }
@@ -27,7 +23,7 @@ public class version {
     }
 
     public static String toVersionString() {
-        return "v" + Integer.toString(major) + "." + Integer.toString(minor) + " " + type + (debug ? "[debug]" : "");
+        return String.format("v%d.%d %s", major, minor, type) + (debug ? " [debug]" : "");
     }
     
 }

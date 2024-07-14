@@ -228,10 +228,10 @@ public class load extends BaseDialog implements PlanetInterfaceRenderer {
                 }
                 Log.debug("fake universe: update thread stopped.");
             });
-            updateFake.setDaemon(false);
             shouldStopFakeUpdate = false;
             finish = false;
             finalZoom = false;
+            fake.updateGlobal();
             updateFake.start();
 
             origin = Vars.universe;
@@ -253,6 +253,10 @@ public class load extends BaseDialog implements PlanetInterfaceRenderer {
             });
         });
 
+    }
+
+    public void forceStop() {
+        shouldStopFakeUpdate = true;
     }
 
     @Override

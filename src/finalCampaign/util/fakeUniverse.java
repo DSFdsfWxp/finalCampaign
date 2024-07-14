@@ -51,6 +51,5 @@ public class fakeUniverse extends Universe {
     public synchronized void update() {
         if (delta < 0) delta = 0;
         second += delta;
-        updateGlobal();
     }
 }

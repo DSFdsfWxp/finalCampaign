@@ -2,7 +2,6 @@ package finalCampaign;
 
 import arc.files.*;
 import arc.util.Log;
-import finalCampaign.patch.*;
 import finalCampaign.util.*;
 import finalCampaign.dialog.*;
 import mindustry.Vars;
@@ -17,7 +16,7 @@ public class patchEngine {
         classDir = finalCampaign.dataDir.child("class");
         if (!classDir.exists()) classDir.mkdirs();
 
-        cache.init();
+        //cache.init();
     }
 
     public static void load() {
@@ -37,7 +36,7 @@ public class patchEngine {
 
         if (dialog == null) {
             try {
-                pool.init();
+                //pool.init();
             } catch(Exception e) {
                 Log.err(e);
                 Vars.ui.showException(e);

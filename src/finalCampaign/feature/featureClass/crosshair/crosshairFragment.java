@@ -11,6 +11,7 @@ import finalCampaign.graphics.*;
 import finalCampaign.ui.layout.*;
 import finalCampaign.util.*;
 import mindustry.*;
+import mindustry.gen.*;
 import mindustry.input.*;
 import mindustry.core.GameState.*;
 import mindustry.game.EventType.*;
@@ -42,7 +43,8 @@ public class crosshairFragment extends fragment {
     }
 
     public void checkMoving() {
-        moving = Core.input.axis(Binding.move_x) != 0 || Core.input.axis(Binding.move_y) != 0 || Core.input.keyDown(Binding.mouse_move);
+        Unit unit = Vars.player.unit();
+        moving = Vars.mobile ? unit.moving() : Core.input.axis(Binding.move_x) != 0 || Core.input.axis(Binding.move_y) != 0 || Core.input.keyDown(Binding.mouse_move);
     }
     
     @Override

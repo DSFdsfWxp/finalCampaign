@@ -8,6 +8,11 @@ repositories{
     mavenCentral()
     maven{ url "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
     maven{ url 'https://www.jitpack.io' }
+    maven {
+        name = 'Sponge / Mixin'
+        url = 'https://repo.spongepowered.org/repository/maven-public/'
+    }
+    maven{ url "https://oss.sonatype.org/content/repositories/releases/" }
 }
 
 java{
@@ -16,28 +21,56 @@ java{
 }
 
 ext{
+    asmVersion = "9.5"
     //the build number that this mod is made for
     mindustryVersion = 'v146'
     jabelVersion = "93fde537c7"
     //windows sucks
     isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
     sdkRoot = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
+
+    androidPlatformRoot = new File("$sdkRoot/platforms/").listFiles().sort().reverse().find{ f -> new File(f, "android.jar").exists()}
+    java8Root = System.getenv("JAVA_8_HOME")
 }
 
 //java 8 backwards compatibility flag
 allprojects{
     tasks.withType(JavaCompile){
         options.compilerArgs.addAll(['--release', '8'])
+        options.compilerArgs.addAll(['-Xlint:deprecation'])
     }
 }
 
 dependencies{
     compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
+    compileOnly "com.github.Anuken.Arc:backend-sdl:$mindustryVersion"
+    compileOnly "com.github.Anuken.Arc:backend-android:$mindustryVersion"
     compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
+
+    compileOnly(files((new File(androidPlatformRoot, "android.jar").path)))
+    compileOnly "com.github.Anuken:rhino:73a812444a"
+
+    compileOnly "com.jakewharton.android.repackaged:dalvik-dx:9.0.0_r3"
     
-    implementation "org.javassist:javassist:3.28.0-GA"
+    implementation "com.github.google.guava:guava:v21.0"
+    implementation "com.google.code.gson:gson:2.2.4"
+    
+    if (Float.parseFloat(asmVersion) < 6) {
+        implementation "org.ow2.asm:asm-debug-all:$asmVersion"
+    }
+    implementation "org.ow2.asm:asm-tree:$asmVersion"
+    implementation "org.ow2.asm:asm-commons:$asmVersion"
+    implementation "org.ow2.asm:asm-util:$asmVersion"
+
+    implementation "org.spongepowered:mixin:0.8.5"
 
     annotationProcessor "com.github.Anuken:jabel:$jabelVersion"
+
+    implementation 'com.github.DSFdsfWxp:dx:v9.0.0'
+
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    annotationProcessor "org.ow2.asm:asm-tree:$asmVersion"
+    annotationProcessor "com.github.google.guava:guava:v21.0"
 }
 
 //force arc version
@@ -49,33 +82,237 @@ configurations.all{
     }
 }
 
-task jarAndroid{
+task finalJar(type: Jar) {
+    dependsOn "preMainMixinBootstrapJar"
     dependsOn "jar"
+
+    archiveFileName = "${base.archivesBaseName}Desktop.jar"
+
+    from { zipTree("$buildDir/libs/${project.archivesBaseName}.desktop.raw.jar") }
+
+    exclude("META-INF/services/**")
+    exclude("org/**")
+    exclude("com/**")
+    exclude("shims/**")
+
+    exclude("finalCampaign/launch/desktop*")
+    exclude("finalCampaign/launch/android*")
+    exclude("finalCampaign/launch/share*")
+
+    exclude("finalCampaign/com/**")
+
+    exclude("fcLaunch/**")
+    exclude("fcMixin/**")
+
+    exclude("LICENSE.txt")
+
+    from("$buildDir/libs/") {
+        include("class/**")
+    }
+}
+
+task finalJarAndroid(type: Jar) {
+    dependsOn "dexJarAndroid"
+
+    archiveFileName = "${base.archivesBaseName}Android.jar"
+
+    from { [zipTree("$buildDir/libs/${project.archivesBaseName}.android.dex.jar")] }
+
+    from("$buildDir/libs/") {
+        include("class/preMain.android.jar")
+    }
+}
+
+task dexJarAndroid {
+    dependsOn "jarAndroid"
 
     doLast{
         if(!sdkRoot || !new File(sdkRoot).exists()) throw new GradleException("No valid Android SDK found. Ensure that ANDROID_HOME is set to your Android SDK directory.");
 
-        def platformRoot = new File("$sdkRoot/platforms/").listFiles().sort().reverse().find{ f -> new File(f, "android.jar").exists()}
+        if(!androidPlatformRoot) throw new GradleException("No android.jar found. Ensure that you have an Android platform installed.")
 
-        if(!platformRoot) throw new GradleException("No android.jar found. Ensure that you have an Android platform installed.")
+        if (!java8Root) throw new GradleException("No JAVA_8_HOME found. Ensure that you have an jave 8 installed and set JAVA_8_HOME correctly.")
+        def java8Rt = new File(java8Root, "../lib/rt.jar")
+        if (!java8Rt.exists()) throw new GradleException("No rt.jar found in JAVA_8_HOME/../lib/. Ensure that you have set JAVA_8_HOME correctly.")
 
         //collect dependencies needed for desugaring
-        def dependencies = (configurations.compileClasspath.asList() + configurations.runtimeClasspath.asList() + [new File(platformRoot, "android.jar")]).collect{ "--classpath $it.path" }.join(" ")
+        def dependencies = (configurations.compileClasspath.asList() + configurations.runtimeClasspath.asList() + [new File(androidPlatformRoot, "android.jar"), java8Rt]).collect{ "--classpath $it.path" }.join(" ")
 
         def d8 = isWindows ? "d8.bat" : "d8"
 
         //dex and desugar files - this requires d8 in your PATH
-        "$d8 $dependencies --min-api 14 --output ${project.archivesBaseName}Android.jar ${project.archivesBaseName}Desktop.jar"
+        "$d8 $dependencies --min-api 14 --output ${base.archivesBaseName}.android.dex.jar ${base.archivesBaseName}.android.raw.jar"
             .execute(null, new File("$buildDir/libs")).waitForProcessOutput(System.out, System.err)
     }
 }
 
-jar{
-    archiveFileName = "${base.archivesBaseName}Desktop.jar"
+task jarAndroid(type: Jar) {
+    dependsOn "preMainMixinBootstrapMixJarAndroid"
 
-    from{
-        configurations.runtimeClasspath.collect{ it.isDirectory() ? it : zipTree(it) }
+    archiveFileName = "${base.archivesBaseName}.android.raw.jar"
+
+    from { zipTree("$buildDir/libs/${project.archivesBaseName}.desktop.raw.jar") }
+
+    exclude("META-INF/**")
+    exclude("org/**")
+    exclude("com/**")
+    exclude("shims/**")
+
+    exclude("finalCampaign/launch/desktop*")
+    exclude("finalCampaign/launch/android*")
+    exclude("finalCampaign/launch/share*")
+
+    exclude("fcLaunch/**")
+    exclude("fcMixin/**")
+    exclude("class/**")
+    exclude("cert/**")
+
+    exclude("LICENSE.txt")
+}
+
+task preMainMixinBootstrapMixJarAndroid(type: Jar) {
+    dependsOn "preMainMixinBootstrapDexJarAndroid"
+
+    archiveFileName = "preMain.android.jar"
+    destinationDirectory = new File("$buildDir/libs/class/")
+
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+
+    from { ["override/", zipTree("$buildDir/libs/${project.archivesBaseName}.desktop.raw.jar"), zipTree("$buildDir/libs/class/preMain.android.dex.jar")] }
+
+    include("META-INF/services/**")
+    include("LICENSE.txt")
+    include("classes.dex")
+
+    from(".") {
+        include "assets/fcLaunch/**"
+        include "assets/fcMixin/**"
     }
+
+    doLast {
+        delete {
+            delete "$buildDir/libs/class/preMain.android.dex.jar"
+            delete "$buildDir/libs/class/preMain.android.raw.jar"
+        }
+    }
+
+}
+
+task preMainMixinBootstrapDexJarAndroid {
+    dependsOn "preMainMixinBootstrapJarAndroid"
+
+
+    doLast{
+        if(!sdkRoot || !new File(sdkRoot).exists()) throw new GradleException("No valid Android SDK found. Ensure that ANDROID_HOME is set to your Android SDK directory.");
+
+        if(!androidPlatformRoot) throw new GradleException("No android.jar found. Ensure that you have an Android platform installed.")
+
+        if (!java8Root) throw new GradleException("No JAVA_8_HOME found. Ensure that you have an jave 8 installed and set JAVA_8_HOME correctly.")
+        def java8Rt = new File(java8Root, "../lib/rt.jar")
+        if (!java8Rt.exists()) throw new GradleException("No rt.jar found in JAVA_8_HOME/../lib/. Ensure that you have set JAVA_8_HOME correctly.")
+
+        //collect dependencies needed for desugaring
+        def dependencies = (configurations.compileClasspath.asList() + configurations.runtimeClasspath.asList() + [new File(androidPlatformRoot, "android.jar"), java8Rt]).collect{ "--classpath $it.path" }.join(" ")
+
+        def d8 = isWindows ? "d8.bat" : "d8"
+
+        //dex and desugar files - this requires d8 in your PATH
+        "$d8 $dependencies --min-api 14 --output ./class/preMain.android.dex.jar ./class/preMain.android.raw.jar"
+            .execute(null, new File("$buildDir/libs")).waitForProcessOutput(System.out, System.err)
+    }
+}
+
+task preMainMixinBootstrapJarAndroid(type: Jar) {
+    dependsOn "finalJar"
+
+    archiveFileName = "preMain.android.raw.jar"
+    destinationDirectory = new File("$buildDir/libs/class/")
+
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+
+    if (!java8Root) throw new GradleException("No JAVA_8_HOME found. Ensure that you have an jave 8 installed and set JAVA_8_HOME correctly.")
+    def java8Rt = new File(java8Root, "../lib/rt.jar")
+    if (!java8Rt.exists()) throw new GradleException("No rt.jar found in JAVA_8_HOME/../lib/. Ensure that you have set JAVA_8_HOME correctly.")
+
+    from { [ "override/", zipTree("$buildDir/libs/${project.archivesBaseName}.desktop.raw.jar"), zipTree(java8Rt)] }
+
+    include("META-INF/services/**")
+    include("org/spongepowered/**")
+    include("org/objectweb/**")
+    include("com/google/**")
+
+    include("finalCampaign/launch/android*")
+    include("finalCampaign/launch/share*")
+    include("finalCampaign/launch/both*")
+    exclude("finalCampaign/launch/side*")
+
+    include("finalCampaign/com/**")
+
+    include("javax/lang/**")
+    include("javax/tools/Diagnostic*")
+    include("javax/annotation/processing/Messager*")
+}
+
+
+
+task preMainMixinBootstrapJar(type: Jar) {
+    dependsOn "jar"
+
+    archiveFileName = "preMain.desktop.jar"
+    destinationDirectory = new File("$buildDir/libs/class/")
+
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+
+    manifest {
+        attributes "Main-Class": "finalCampaign.launch.desktopLauncher"
+    }
+
+    from { [ "override/", zipTree("$buildDir/libs/${project.archivesBaseName}.desktop.raw.jar")] }
+
+    include("META-INF/services/**")
+    include("org/spongepowered/**")
+    include("org/objectweb/**")
+    include("com/google/**")
+    include("shims/**")
+
+    include("finalCampaign/launch/desktop*")
+    include("finalCampaign/launch/share*")
+    include("finalCampaign/launch/both*")
+
+    exclude("finalCampaign/com/**")
+
+    include("fcLaunch/**")
+    include("fcMixin/**")
+
+    include("LICENSE.txt")
+
+}
+
+jar{
+    archiveFileName = "${base.archivesBaseName}.desktop.raw.jar"
+
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+
+    from{[
+        configurations.runtimeClasspath.collect{ it.isDirectory() ? it : zipTree(it) }
+    ]}
+
+    exclude("META-INF/maven/**")
+    exclude("META-INF/*.SF")
+    exclude("META-INF/*.RSA")
+    exclude("module-info.class")
+
+    exclude("org/spongepowered/asm/launch/MixinLaunchPlugin*")
+    exclude("org/spongepowered/asm/launch/MixinTransformationService*")
+    exclude("org/spongepowered/asm/launch/platform/container/ContainerHandleModLauncherEx*")
+    exclude("org/spongepowered/tools/**")
+    exclude("org/spongepowered/asm/mixin/transformer/debug/**")
+    exclude("org/spongepowered/asm/service/modlauncher/**")
+    exclude("org/spongepowered/asm/service/mojang/**")
+    exclude("org/spongepowered/asm/launch/platform/MixinPlatformAgentFMLLegacy*")
+    exclude("org/spongepowered/asm/launch/MixinTweaker*")
+    exclude("org/spongepowered/asm/mixin/EnvironmentStateTweaker*")
+    exclude("org/spongepowered/asm/mixin/transformer/Proxy*")
 
     from(rootDir){
         include "mod.hjson"
@@ -87,9 +324,12 @@ jar{
 }
 
 task deploy(type: Jar){
-    dependsOn jarAndroid
-    dependsOn jar
+    dependsOn "finalJarAndroid"
+    dependsOn "finalJar"
+
     archiveFileName = "${base.archivesBaseName}.jar"
+
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
 
     from{ [zipTree("$buildDir/libs/${project.archivesBaseName}Desktop.jar"), zipTree("$buildDir/libs/${project.archivesBaseName}Android.jar")] }
 
@@ -97,6 +337,9 @@ task deploy(type: Jar){
         delete{
             delete "$buildDir/libs/${project.archivesBaseName}Desktop.jar"
             delete "$buildDir/libs/${project.archivesBaseName}Android.jar"
+            delete "$buildDir/libs/${project.archivesBaseName}.android.raw.jar"
+            delete "$buildDir/libs/${project.archivesBaseName}.android.dex.jar"
+            delete "$buildDir/libs/${project.archivesBaseName}.desktop.raw.jar"
         }
     }
 }

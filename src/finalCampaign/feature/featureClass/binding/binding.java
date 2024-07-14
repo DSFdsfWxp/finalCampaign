@@ -13,22 +13,22 @@ public enum binding implements KeyBind {
     private final KeybindValue defaultValue;
     private final String category;
 
-    binding(KeybindValue defaultValue, String category){
+    binding(KeybindValue defaultValue, String category) {
         this.defaultValue = defaultValue;
         this.category = category;
     }
 
-    binding(KeybindValue defaultValue){
+    binding(KeybindValue defaultValue) {
         this(defaultValue, null);
     }
 
     @Override
-    public KeybindValue defaultValue(DeviceType type){
+    public KeybindValue defaultValue(DeviceType type) {
         return defaultValue;
     }
 
     @Override
-    public String category(){
+    public String category() {
         return category;
     }
 }

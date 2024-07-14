@@ -15,7 +15,7 @@ public class tunerPane extends Table {
     private ObjectMap<String, TextButton> map;
 
     public tunerPane(Table parent) {
-        parent.pane(this).width(600f).scrollX(false).margin(20f);
+        parent.pane(this).width(600f).scrollX(false).margin(50f);
         map = new ObjectMap<>();
     }
 
@@ -60,7 +60,7 @@ public class tunerPane extends Table {
             superName = name;
             addCloseListener();
             addCloseButton();
-            cont.pane((t) -> content = t).width(600f).scrollX(false).margin(20f);
+            cont.pane((t) -> content = t).width(600f).scrollX(false).margin(50f);
             content.setWidth(600f);
         }
         
