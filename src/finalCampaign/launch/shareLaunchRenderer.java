@@ -17,7 +17,7 @@ public class shareLaunchRenderer {
         done = false;
         inited = true;
 
-        logo = new TextureRegion(new Texture(new Pixmap(bothIOUtil.readFileInternalAsByte("fcLaunch/logo.png"))));
+        logo = new TextureRegion(new Texture(new Pixmap(shareIOUtil.readFileInternalAsByte("fcLaunch/logo.png"))));
     }
 
     public static boolean done() {

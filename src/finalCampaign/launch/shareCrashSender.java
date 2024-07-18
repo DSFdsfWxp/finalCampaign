@@ -1,7 +1,6 @@
 package finalCampaign.launch;
 
 import java.lang.Thread.*;
-import arc.*;
 import arc.util.*;
 
 public abstract class shareCrashSender {
@@ -10,7 +9,7 @@ public abstract class shareCrashSender {
 
     public void log(Throwable exception){
         try {
-            Core.settings.getDataDirectory().child("crashes").child("crash_" + System.currentTimeMillis() + ".txt")
+            shareFiles.instance.dataDirectory().child("crashes").child("crash_" + System.currentTimeMillis() + ".txt")
             .writeString(createReport(Strings.neatError(exception)));
         } catch(Throwable ignored) {}
     }

@@ -6,7 +6,6 @@ import java.net.*;
 import java.util.*;
 import arc.util.*;
 import arc.struct.*;
-import arc.files.*;
 import org.spongepowered.asm.launch.platform.container.*;
 import org.spongepowered.asm.logging.*;
 import org.spongepowered.asm.mixin.MixinEnvironment.*;
@@ -19,8 +18,8 @@ public class shareMixinService extends MixinServiceAbstract implements ITransfor
     private static shareClassLoader classLoader;
     private static shareProvider provider;
 
-    public static Fi mod;
-    public static Fi thisJar;
+    public static shareFi mod;
+    public static shareFi thisJar;
     
     private ObjectMap<String, ILogger> loggerMap;
     
@@ -59,7 +58,7 @@ public class shareMixinService extends MixinServiceAbstract implements ITransfor
     public InputStream getResourceAsStream(String name) {
         if (classLoader == null) {
             InputStream stream = shareMixinService.class.getClassLoader().getResourceAsStream(name);
-            if (stream == null) stream = bothIOUtil.readFileInternalAsStream(name);
+            if (stream == null) stream = shareIOUtil.readFileInternalAsStream(name);
             return stream;
         }
         return classLoader.getResourceAsStream(name);
@@ -141,5 +140,9 @@ public class shareMixinService extends MixinServiceAbstract implements ITransfor
 
     public static shareClassLoader getClassLoader() {
         return classLoader;
+    }
+
+    public static String getClassPath() {
+        return thisJar.absolutePath();
     }
 }

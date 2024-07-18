@@ -36,7 +36,7 @@ public class shareProvider implements IClassProvider, IClassBytecodeProvider {
     }
 
     private byte[] getResourceAsByte(String name) throws IOException {
-        return bothIOUtil.readAllBytes(classLoader.getResourceAsStream(name));
+        return shareIOUtil.readAllBytes(classLoader.getResourceAsStream(name));
     }
 
     public ClassNode getClassNode(String className) throws ClassNotFoundException, IOException {

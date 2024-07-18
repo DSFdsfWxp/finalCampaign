@@ -1,8 +1,6 @@
 package finalCampaign.launch;
 
-import arc.*;
 import arc.struct.*;
-import arc.files.*;
 import arc.util.Log;
 import android.annotation.*;
 import android.os.*;
@@ -19,23 +17,23 @@ import finalCampaign.com.android.dx.merge.*;
 import dalvik.system.*;
 
 public class androidClassLoader extends shareClassLoader {
+    // thread safty for pathfinding thread of mindustry, settings backup thread of arc, and other...
     private volatile ObjectMap<String, Object> map;
     private volatile ObjectMap<String, ClassLoader> loaderMap;
-    private Seq<String> loadingClassLst;
+
+    private shareLock mapLock;
+    private shareLock loaderMapLock;
+
     private baseClassLoader loader;
     private DexClassLoader modClassLoader;
-    private androidLock mapLock;
-    private androidLock loaderMapLock;
-    private androidLock loadingLstLock;
 
-    public androidClassLoader(File cacheDir) {
+    public androidClassLoader(File cacheDir, File codeCacheDir, String nativveLibPath) {
         map = new ObjectMap<>();
         loaderMap = new ObjectMap<>();
-        loadingClassLst = new Seq<>();
-        loaderMapLock = new androidLock();
-        mapLock = new androidLock();
-        loadingLstLock = new androidLock();
-        loader = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new inMemoryAndroidClassLoader(this) : new fileAndroidClassLoader(this, cacheDir);
+        loaderMapLock = new shareLock();
+        mapLock = new shareLock();
+        // try our best to make it compatible with api level 14
+        loader = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? new inMemoryAndroidClassLoader(this, nativveLibPath) : new fileAndroidClassLoader(this, cacheDir, codeCacheDir);
     }
 
     public void createModClassLoader(androidLauncher application) {
@@ -115,18 +113,6 @@ public class androidClassLoader extends shareClassLoader {
         });
     }
 
-    private void beginLoadClass(String name) {
-        loadingLstLock.run(() -> {
-            loadingClassLst.add(name);
-        });
-    }
-
-    private void finishLoadClass(String name) {
-        loadingLstLock.run(() -> {
-            loadingClassLst.remove(name);
-        });
-    }
-
     @Override
     protected Class<?> tryLoadClass(String name) throws ClassNotFoundException {
         Log.info("cl req: " + name);
@@ -138,99 +124,79 @@ public class androidClassLoader extends shareClassLoader {
             return definedClass;
         }
 
-        // avoid calling load class from sub loaders
-        if (loadingClassLst.contains(name)) {
-            Log.info("forbidden as loading");
-            throw new ClassNotFoundException("forbidden as loading: " + name);
-        }
-
         ClassLoader packageLoader = loaderMap.get(packageName);
         if (packageLoader != null) {
-            beginLoadClass(name);
             definedClass = packageLoader.loadClass(name);
             putInMap(name, definedClass);
-            finishLoadClass(name);
 
             Log.info("in package -> " + definedClass.toString());
             return definedClass;
         }
 
-        if (name.startsWith("finalCampaign.") && modClassLoader != null) {
-            beginLoadClass(name);
+        // finalCampaign.patch.* are used for mixin
+        // it needs java bytecode instead of class object
+        if (name.startsWith("finalCampaign.") && !name.startsWith("finalCampaign.patch.") && modClassLoader != null) {
             definedClass = modClassLoader.loadClass(name);
             Log.info("mod loader -> " + name.toString());
             putInMap(name, definedClass);
-            finishLoadClass(name);
             return definedClass;
         }
 
         continuousLoadContext context = new continuousLoadContext(packageName, getAllFilesInJarPath(packageName.replace('.', '/')));
         context.run(transformer);
-        ClassLoader cl = loader.loadDex(context.dex);
+        ClassLoader cl = loader.loadDex(context.dex, packageName);
         putInLoaderMap(packageName, cl);
-        beginLoadClass(name);
         definedClass = cl.loadClass(name);
         Log.info("load -> " + definedClass.toString());
         putInMap(name, definedClass);
-        finishLoadClass(name);
 
-        throw new ClassNotFoundException(name);
-    }
-
-    protected Class<?> platformDefineClass(String name, byte[] bytecode) {
-        throw new RuntimeException("Should not go here.");
-        /*
-        loadingClassLst.add(name);
-
-        Class<?> definedClass = loader.defineClass(name, bytecode);
-        putInMap(name, definedClass);
-
-        Log.info("loaded -> " + definedClass.toString());
-
-        loadingClassLst.remove(name);
         return definedClass;
-        */
     }
 
     // load a package in a classloader to avoid illegal access exception happenning between
     // the members in the same package or the same class
+    // we can not load all class in one classloader like what we do on desktop due to android's restrictions
     static class continuousLoadContext {
         String packageName;
         Dex dex;
-        Seq<Fi> lst;
+        Seq<shareFi> lst;
         Seq<String> classNameLst;
         DexOptions dexOptions;
         CfOptions cfOptions;
 
-        public continuousLoadContext(String PackageName, Seq<Fi> classLst) {
+        public continuousLoadContext(String PackageName, Seq<shareFi> classLst) {
             packageName = PackageName;
             lst = new Seq<>();
             classNameLst = new Seq<>();
             dexOptions = new DexOptions();
-            dexOptions.minSdkVersion = Core.app.getVersion();
+            dexOptions.minSdkVersion = android.os.Build.VERSION.SDK_INT;
             cfOptions = new CfOptions();
 
-            for (Fi f : classLst) if (f.extension().equals("class")) lst.add(f);
-            for (Fi f : lst) classNameLst.add(f.nameWithoutExtension());
+            for (shareFi f : classLst) {
+                if (f.extension().equals("class") && classNameLst.indexOf(f.nameWithoutExtension()) == -1) {
+                    lst.add(f);
+                    classNameLst.add(f.nameWithoutExtension());
+                }
+            }
         }
 
         public void run(shareBytecodeTransformer transformer) {
             for (int i=0; i<classNameLst.size; i++) {
                 String name = classNameLst.get(i);
                 String fullName = packageName + "." + name;
-                Fi file = lst.get(i);
+                shareFi file = lst.get(i);
+
                 byte[] classBytecode = transformer.transform(fullName, file == null ? null : file.readBytes());
 
-                Log.info(String.format("loading : %s , %d", fullName, classBytecode == null ? -1 : classBytecode.length));
-
-                bothClassPatcher reader = new bothClassPatcher(classBytecode);
-                for (bothClassPatcher.constentPoolItem item : reader.constentItems) {
+                // resolve synthetic classes which are renamed and injected by mixin and are needed to be generated dynamic
+                androidClassPatcher reader = new androidClassPatcher(classBytecode);
+                for (androidClassPatcher.constentPoolItem item : reader.constentItems) {
                     if (item.tag != 7 && item.tag != 12) continue;
                     Seq<String> classesNeedToParse = new Seq<>();
 
                     if (item.tag == 7) { // class ref
                         classesNeedToParse.add(reader.constentItems[item.pos1].string);
-                    } else { // name and type desc
+                    } else { // name and type descriptor
                         String tmp = null;
                         String src = reader.constentItems[item.pos2].string;
                         for (int ii=0; ii<src.length(); ii++) {
@@ -263,9 +229,11 @@ public class androidClassLoader extends shareClassLoader {
                         String className = classPaths.pop();
                         if (String.join(".", classPaths).equals(packageName)) {
                             int pos = classNameLst.indexOf(className);
+                            // skip existed one
+                            // simply make sure it's what we need
                             if (pos > -1) continue;
                             classNameLst.add(className);
-                            lst.add((Fi) null);
+                            lst.add((shareFi) null);
                         }
                     }
                 }
@@ -278,6 +246,7 @@ public class androidClassLoader extends shareClassLoader {
                     DxContext context = new DxContext();
                     dexFile.add(CfTranslator.translate(context, classFile, null, cfOptions, dexOptions, dexFile));
                     Dex newDex = new Dex(dexFile.toDex(null, false));
+                    // merge them up because one classloader only accepts *one* dex file
                     if (dex == null) {
                         dex = newDex;
                     } else {
@@ -291,21 +260,24 @@ public class androidClassLoader extends shareClassLoader {
     }
 
     static abstract class baseClassLoader {
-        public abstract ClassLoader loadDex(Dex dex);
+        public abstract ClassLoader loadDex(Dex dex, String packageName);
     }
 
+    // class loader from mindustry src: AndroidRhinoContext
     static class fileAndroidClassLoader extends baseClassLoader {
         private File cacheDir;
+        private File codeCacheDir;
         private ClassLoader parent;
         private static long id = 0;
 
-        public fileAndroidClassLoader(ClassLoader parent, File cacheDir) {
+        public fileAndroidClassLoader(ClassLoader parent, File cacheDir, File codeCacheDir) {
             this.parent = parent;
             this.cacheDir = cacheDir;
+            this.codeCacheDir = codeCacheDir;
             cacheDir.mkdirs();
         }
 
-        public ClassLoader loadDex(Dex dex) {
+        public ClassLoader loadDex(Dex dex, String packageName) {
             id ++;
             File dexFile = new File(cacheDir, id + ".dex");
 
@@ -314,8 +286,8 @@ public class androidClassLoader extends shareClassLoader {
             }catch(IOException e){
                 e.printStackTrace();
             }
-            android.content.Context context = (android.content.Context) Core.app;
-            ClassLoader res = new DexClassLoader(dexFile.getPath(), VERSION.SDK_INT >= 21 ? context.getCodeCacheDir().getPath() : context.getCacheDir().getAbsolutePath(), null, parent);
+
+            ClassLoader res = new DexClassLoader(dexFile.getPath(), VERSION.SDK_INT >= 21 ? codeCacheDir.getPath() : cacheDir.getAbsolutePath(), null, parent);
 
             dexFile.delete();
             return res;
@@ -325,13 +297,31 @@ public class androidClassLoader extends shareClassLoader {
     @TargetApi(Build.VERSION_CODES.O)
     static class inMemoryAndroidClassLoader extends baseClassLoader {
         private ClassLoader parent;
+        private String nativeLibPath;
 
-        public inMemoryAndroidClassLoader(ClassLoader parent) {
+        public inMemoryAndroidClassLoader(ClassLoader parent, String nativeLibPath) {
             this.parent = parent;
+            this.nativeLibPath = nativeLibPath;
         }
 
-        public ClassLoader loadDex(Dex dex) {
-            return new InMemoryDexClassLoader(ByteBuffer.wrap(dex.getBytes()), parent);
+        public ClassLoader loadDex(Dex dex, String packageName) {
+            return new InMemoryDexClassLoader(new ByteBuffer[]{ByteBuffer.wrap(dex.getBytes())}, nativeLibPath + File.pathSeparator, new ClassLoader(parent) {
+                @Override
+                protected Class<?> findClass(String name) throws ClassNotFoundException {
+                    Log.info(String.format("find %s in %s", name, packageName));
+                    // when invoke findClass or loadClass in a classloader, it'll find or load from it's parent
+                    // and inMemoryAndroidClassLoader is a *final* class
+                    if (shareClassLoader.getPackageName(name).equals(packageName)) throw new ClassNotFoundException("Load it by youself: " + name);
+                    return super.findClass(name);
+                }
+
+                @Override
+                protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+                    Log.info(String.format("load %s in %s", name, packageName));
+                    if (shareClassLoader.getPackageName(name).equals(packageName)) throw new ClassNotFoundException("Load it by youself: " + name);
+                    return super.loadClass(name, false);
+                }
+            });
         }
     }
 }

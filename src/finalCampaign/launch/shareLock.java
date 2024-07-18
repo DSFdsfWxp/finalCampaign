@@ -3,14 +3,14 @@ package finalCampaign.launch;
 import java.util.concurrent.locks.*;
 import arc.func.*;
 
-public class androidLock {
+public class shareLock {
     private ReentrantLock lock;
 
     public static interface lockAction {
         public void run() throws Throwable;
     }
 
-    public androidLock() {
+    public shareLock() {
         lock = new ReentrantLock();
     }
 

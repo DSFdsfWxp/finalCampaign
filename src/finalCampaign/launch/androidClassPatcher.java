@@ -2,7 +2,7 @@ package finalCampaign.launch;
 
 import java.io.*;
 
-public class bothClassPatcher {
+public class androidClassPatcher {
     private int magic;
     private int version;
     private int constentPoolCount;
@@ -20,7 +20,8 @@ public class bothClassPatcher {
         int pos2;
     }
 
-    public bothClassPatcher(byte[] bin) {
+    // parse java class file and apply patch
+    public androidClassPatcher(byte[] bin) {
         DataInputStream stream = new DataInputStream(new ByteArrayInputStream(bin));
         try {
             magic = stream.readInt();
@@ -148,14 +149,23 @@ public class bothClassPatcher {
         }
     }
 
+    public boolean modified() {
+        return modified;
+    }
+
+    // the aim of these string replacing methods is to replace the class name back, which is modified by dex2jar for a "lambda name security" reason
+    // it just replace "-" to "_" *partly*, yes, not completely
+    // such as:
+    //   a$-CC -> a$_CC,                                causing system could not find a$-CC for interface default function
+    //                                                  (because a$-CC is not directly referred by other class)
+    //   -$$Lambda$a$xx-xx_xx -> _$$Lambda$a$xx_xx_xx,  causing class not found exception
+    //                                                  (it replaced class name, but not replaced *all* references)
+    //
+    // but now we patched dex2jar, so these methods are unused.
     private String replace(String src, String find, String replacement) {
         String out = src.replace(find, replacement);
         if (!out.equals(src)) modified = true;
         return out;
-    }
-
-    public boolean modified() {
-        return modified;
     }
 
     public void replaceString(String find, String replacement, boolean ignoreName, boolean ignoreClass, int ...tags) {

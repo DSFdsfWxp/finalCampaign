@@ -1,14 +1,12 @@
 package finalCampaign.launch;
 
 import java.util.*;
-import arc.*;
-import arc.files.*;
 import arc.struct.*;
 
 public class androidVersionChecker {
     public static boolean modNeedUpdate() {
-        Fi currentVersion = Core.settings.getDataDirectory().child("mod.version");
-        Fi inPackVersion = Core.files.internal("fcLaunch/mod.version");
+        shareFi currentVersion = shareFiles.instance.dataDirectory().child("mod.version");
+        shareFi inPackVersion = shareFiles.instance.internalFile("fcLaunch/mod.version");
         if (!currentVersion.exists()) return true;
 
         String[] currentVers = currentVersion.readString().split("\\.");
@@ -28,38 +26,22 @@ public class androidVersionChecker {
     }
 
     public static void registerCurrentModVersion(int major, int minor, String type) {
-        Fi currentVersion = Core.settings.getDataDirectory().child("mod.version");
+        shareFi currentVersion = shareFiles.instance.dataDirectory().child("mod.version");
         currentVersion.writeString(String.format("%d.%d.%s", major, minor, type));
     }
 
-    public static boolean gameNeedUpdate() {
-        Fi currentVersion = Core.settings.getDataDirectory().child("game.sha256");
-        Fi inPackVersion = Core.files.internal("fcLaunch/game.sha256");
+    public static boolean checkNeedUpdate(String name) {
+        shareFi currentVersion = shareFiles.instance.dataDirectory().child(name + ".sha256");
+        shareFi inPackVersion = shareFiles.instance.internalFile("fcLaunch/" + name + ".sha256");
         if (!currentVersion.exists()) return true;
         if (!Arrays.equals(currentVersion.readBytes(), inPackVersion.readBytes())) return true;
 
         return false;
     }
 
-    public static void registerGameSha256() {
-        Fi currentVersion = Core.settings.getDataDirectory().child("game.sha256");
-        Fi inPackVersion = Core.files.internal("fcLaunch/game.sha256");
-        if (currentVersion.exists()) currentVersion.delete();
-        inPackVersion.copyTo(currentVersion);
-    }
-
-    public static boolean javaNeedUpdate() {
-        Fi currentVersion = Core.settings.getDataDirectory().child("java.sha256");
-        Fi inPackVersion = Core.files.internal("fcLaunch/java.sha256");
-        if (!currentVersion.exists()) return true;
-        if (!Arrays.equals(currentVersion.readBytes(), inPackVersion.readBytes())) return true;
-
-        return false;
-    }
-
-    public static void registerJavaSha256() {
-        Fi currentVersion = Core.settings.getDataDirectory().child("java.sha256");
-        Fi inPackVersion = Core.files.internal("fcLaunch/java.sha256");
+    public static void registerCurrentVersion(String name) {
+        shareFi currentVersion = shareFiles.instance.dataDirectory().child(name + ".sha256");
+        shareFi inPackVersion = shareFiles.instance.internalFile("fcLaunch/" + name + ".sha256");
         if (currentVersion.exists()) currentVersion.delete();
         inPackVersion.copyTo(currentVersion);
     }

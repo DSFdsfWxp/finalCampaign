@@ -1,6 +1,5 @@
 package finalCampaign.launch;
 
-import arc.*;
 import arc.util.*;
 
 public class androidCrashSender extends shareCrashSender {
@@ -10,7 +9,7 @@ public class androidCrashSender extends shareCrashSender {
 
         report += "OS: " + OS.osName + " x" + (OS.osArchBits) + " (" + OS.osArch + ")\n";
         report += "Mod Android Launcher Version: " + bothLauncherVersion.toAndoridVersionString() + "\n";
-        report += Core.app != null ? "Android API level: " + Core.app.getVersion() + "\n" : "";
+        report += "Android API level: " + android.os.Build.VERSION.SDK_INT + "\n";
         report += "Java Version: " + OS.javaVersion + "\n";
         report += "Runtime Available Memory: " + (Runtime.getRuntime().maxMemory() / 1024 / 1024) + "mb\n";
         report += "Cores: " + Runtime.getRuntime().availableProcessors() + "\n";

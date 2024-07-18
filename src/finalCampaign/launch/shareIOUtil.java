@@ -2,12 +2,7 @@ package finalCampaign.launch;
 
 import java.io.*;
 
-import arc.Core;
-import arc.Files.*;
-import arc.files.*;
-import arc.util.*;
-
-public class bothIOUtil {
+public class shareIOUtil {
     public static byte[] readAllBytes(InputStream inputStream) throws IOException {
         final int bufLen = 4 * 0x400; // 4KB
         byte[] buf = new byte[bufLen];
@@ -35,7 +30,7 @@ public class bothIOUtil {
     }
 
     public static InputStream readFileInternalAsStream(String path) {
-        Fi file = OS.isAndroid ? Core.files.internal(path) : new Fi(path, FileType.internal);
+        shareFi file = shareFiles.instance.internalFile(path);
         InputStream stream = null;
         try {
             stream = file.read();

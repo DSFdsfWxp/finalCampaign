@@ -35,6 +35,7 @@ public class injector {
         return true;
     }
 
+    @SuppressWarnings("resource")
     public static boolean injected() {
         if (Vars.mobile) {
             if (inInjectedGame()) return true;
@@ -49,7 +50,7 @@ public class injector {
             gameJar = new Fi(url.getFile());
         } else {
             if (inInjectedGame()) {
-                gameJar = shareMixinService.thisJar;
+                gameJar = new Fi(shareMixinService.getClassPath());
             } else {
                 throw new RuntimeException("Could not resolve class path.");
             }
@@ -60,7 +61,7 @@ public class injector {
             
         Fi configFi = gameJar.parent().child("fcConfig.bin");
         if (configFi.exists()) {
-            if (!bothLauncherVersion.toDesktopVersionString().equals(bothConfigUtil.read(configFi).version)) return false;
+            if (!bothLauncherVersion.toDesktopVersionString().equals(bothConfigUtil.read(configFi.read()).version)) return false;
             return true;
         } else {
             return false;
@@ -112,85 +113,45 @@ public class injector {
             outputFi.mkdirs();
             dex2jar.from(bytecode).to(outputFi.file().toPath());
         }
+        
+        if (!gameApkNotModified) hash.writeString(gameApkHash);
 
-        if (!gameApkNotModified) {
-            for (Fi jar : jarLst) {
-                ObjectMap<Fi, byte[]> filesNeedToWrite = new ObjectMap<>();
-                Seq<Fi> filedNeedToBeDeleted = new Seq<>();
-    
-                allFileWalker walker = new allFileWalker(jar, f -> {
-                    if (!f.extension().equals("class")) return;
-                    Log.info(f.absolutePath());
-                    bothClassPatcher cPatcher = new bothClassPatcher(f.readBytes());
-                    cPatcher.replaceString("$_CC", "$-CC", true, false, 7, 9, 10, 11, 12);
-                    Fi nf = f.parent().child(f.name().replace("$_CC", "$-CC"));
-                    if (!nf.name().equals(f.name()) || cPatcher.modified()) {
-                        filedNeedToBeDeleted.add(f);
-                        filesNeedToWrite.put(nf, cPatcher.build());
-                    }
-                });
-                walker.walk();
-    
-                for (Fi f : filedNeedToBeDeleted) f.delete();
-                for (Fi f : filesNeedToWrite.keys()) f.writeBytes(filesNeedToWrite.get(f));
-            }
-        }
-
-        Fi forcePreLoadLstFi = tmpDir.child("forcePreload.list");
-        if (!gameApkNotModified || !forcePreLoadLstFi.exists()) {
-            Seq<String> forcePreLoadLst = new Seq<>();
-            for (Fi jar : jarLst) {
-                for (Fi sub : jar.list()) {
-                    if (sub.isDirectory()) {
-                        if (!sub.name().equals("mindustry")) {
-                            String rootPath = sub.absolutePath();
-                            allFileWalker walker = new allFileWalker(sub, f -> {
-                                if (!f.extension().equals("class")) return;
-                                // mindustry won't appear in its dependencies, only r8 will do that.
-                                if (f.readString().indexOf("mindustry") > -1) {
-                                    String name = f.nameWithoutExtension();
-                                    name = name.substring(rootPath.length());
-                                    if (name.startsWith("/")) name = name.substring(1);
-                                    forcePreLoadLst.add(name.replace('/', '.'));
-                                }
-                            });
-                            walker.walk();
-                        }
-                    }
-                }
-            }
-            if (forcePreLoadLstFi.exists()) forcePreLoadLstFi.delete();
-            forcePreLoadLstFi.writeString(String.join("\n", forcePreLoadLst));
-        }
-
+        // simply pack the class we need for mixin
         Fi gameJar = tmpDir.child("game.jar");
         jarWriter writer = null;
+        Seq<String> packLst = new Seq<>();
+        packLst.addAll("mindustry", "arc", "com", "net", "rhino");
 
         if (!gameJar.exists() || !gameApkNotModified) {
             if (gameJar.exists()) gameJar.delete();
             writer = new jarWriter(gameJar, false);
 
             for (Fi jar : jarLst) {
-                Fi mindustryDir = jar.child("mindustry");
-                Fi arcDir = jar.child("arc");
-                if (mindustryDir.exists()) writer.add(mindustryDir.name(), mindustryDir);
-                if (arcDir.exists()) writer.add(arcDir.name(), arcDir);
+                for (Fi file: jar.list()) if (packLst.indexOf(file.name()) > -1) {
+                    if (file.isDirectory()) {
+                        writer.add(file.name(), file);
+                    } else {
+                        writer.add(file.name(), file.readBytes());
+                    }
+                }
             }
     
             writer.close();
         }
 
-        if (!gameApkNotModified) hash.writeString(gameApkHash);
-
+        // convert the rest part to dex
+        // maybe it's better to pack them too as android r8 may mix parts of mindustry into them
         Fi classFi = tmpDir.child("classes2.dex");
         if (!classFi.exists() || !gameApkNotModified) {
             if (classFi.exists()) classFi.delete();
             jar2dex jar2dex = new jar2dex();
 
             for (Fi jar : jarLst) {
-                for (Fi file : jar.list()) {
-                    if (file.isDirectory() && !file.name().equals("mindustry")) {
+                for (Fi file : jar.list()) if (packLst.indexOf(file.name()) == -1) {
+                    if (file.isDirectory()) {
                         jar2dex.add(file.name(), file);
+                    } else {
+                        jar2dex.add(file.name(), file.readBytes());
                     }
                 }
             }
@@ -198,42 +159,53 @@ public class injector {
             jar2dex.writeTo(classFi.write());
         }
 
+        // patch AndroidManifest.xml for our new package name and activity name
         Fi manifest = gameApk.child("AndroidManifest.xml");
         xmlPatcher xPatcher = new xmlPatcher(manifest.readBytes());
         xPatcher.replaceString(packageName, packageName + ".finalCampaignMod");
-        xPatcher.replaceString(className, "finalCampaign.launch.androidLauncher");
+        xPatcher.patchActivity(className, "finalCampaign.launch.androidLauncher");
         byte[] patchedManifest = xPatcher.build();
 
+        // patch resource.arsc for new App name and package name
         Fi resources = gameApk.child("resources.arsc");
         arscPatcher aPatcher = new arscPatcher(resources.readBytes());
         aPatcher.replaceString(applicationName, "Fc " + applicationName);
         aPatcher.replacePackageName(packageName, packageName + ".finalCampaignMod");
         byte[] patchedResource = aPatcher.build();
 
+        // build new apk
         Fi patchedApk = tmpDir.child("patched.apk");
         if (patchedApk.exists()) patchedApk.delete();
         writer = new jarWriter(patchedApk, true);
 
+        // put our prepared files
+        // include pre-main dex code, mixin configures and so on.
         Fi preMainJar = finalCampaign.thisModFi.child("class").child("preMain.android.jar");
         Fi preMainJarAsZip = tmpDir.child("preMain.jar");
         if (preMainJarAsZip.exists()) preMainJarAsZip.delete();
         preMainJar.copyTo(preMainJarAsZip);
         preMainJarAsZip = new ZipFi(preMainJarAsZip);
-        writer.add("", preMainJarAsZip);
 
+        Fi classDir = finalCampaign.thisModFi.child("class");
+
+        writer.add("", preMainJarAsZip);
         writer.add("AndroidManifest.xml", patchedManifest);
         writer.add("resources.arsc", patchedResource, ZipOutputStream.STORED);
         writer.add("assets/fcLaunch/game.jar", gameJar.readBytes());
         writer.add("assets/fcLaunch/mod.jar", finalCampaign.thisMod.file.readBytes());
-        writer.add("assets/fcLaunch/forcePreload.list", forcePreLoadLstFi.readBytes());
-        writer.add("classes2.dex", classFi.readBytes());
+        writer.add("assets/fcLaunch/preMain.jar", classDir.child("preMain.android.src.jar").readBytes());
+        if (classFi.exists()) writer.add("classes2.dex", classFi.readBytes());
 
-        Fi javaJar = finalCampaign.thisModFi.child("class").child("java.jar");
-
+        // these are for automatic updating mixin dependencies and our mod.
         writer.add("assets/fcLaunch/mod.version", String.format("%d.%d.%s", version.major, version.minor, version.type).getBytes(StandardCharsets.UTF_8));
         writer.add("assets/fcLaunch/game.sha256", encoding.sha256Hash(gameJar.readBytes()));
-        writer.add("assets/fcLaunch/java.sha256", encoding.sha256Hash(javaJar.readBytes()));
+        writer.add("assets/fcLaunch/preMain.sha256", encoding.sha256Hash(classDir.child("preMain.android.src.jar").readBytes()));
+        writer.add("assets/fcLaunch/java.sha256", encoding.sha256Hash(classDir.child("java.jar").readBytes()));
+        writer.add("assets/fcLaunch/android.sha256", encoding.sha256Hash(classDir.child("android.jar").readBytes()));
 
+        // put the game's resources
+        // do not put signature files and package-relatived files
+        // since we'll keep the first file when files collision happen.
         for (Fi file : gameApk.list()) {
             if (file.isDirectory()) {
                 if (file.name().toLowerCase().equals("meta-inf")) {
@@ -260,6 +232,7 @@ public class injector {
 
         writer.close();
 
+        // sign apk
         apkSigner.init();
         Fi signedApk = apkSigner.sign(patchedApk);
 
@@ -309,7 +282,7 @@ public class injector {
 
         for (Fi file : gameJarAsZip.list()) {
             if (file.isDirectory()) {
-                if (!file.name().equals("mindustry")) writer.add(file.name(), file);
+                if (!file.name().equals("mindustry") && !file.name().equals("arc")) writer.add(file.name(), file);
             } else {
                 writer.add(file.name(), file.readBytes());
             }
@@ -344,7 +317,8 @@ java -jar ./fcMindustry.patched.jar
         configSrc.version = bothLauncherVersion.toDesktopVersionString();
         configSrc.modName = finalCampaign.thisMod.file.name();
         configSrc.gameJarName = gameJar.name();
-        bothConfigUtil.write(configSrc, configFi);
+        configSrc.dataDir = Core.settings.getDataDirectory().absolutePath();
+        bothConfigUtil.write(configSrc, configFi.write());
 
         Log.info("injector:  -> " + patchedFile.absolutePath());
         Log.info("injector: done.");

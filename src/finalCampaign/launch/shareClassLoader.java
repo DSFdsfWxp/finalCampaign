@@ -2,13 +2,12 @@ package finalCampaign.launch;
 
 import java.io.*;
 import java.net.*;
-import arc.files.*;
 import arc.struct.*;
 import arc.util.*;
 
 public abstract class shareClassLoader extends ClassLoader {
     private ClassLoader parent;
-    private Seq<Fi> jars;
+    private Seq<shareFi> jars;
     protected shareBytecodeTransformer transformer;
 
     public shareClassLoader() {
@@ -21,16 +20,17 @@ public abstract class shareClassLoader extends ClassLoader {
         transformer = new shareBytecodeTransformer(shareMixinService.getTransformer());
     }
 
-    public void addJar(Fi jarFi) {
+    public void addJar(shareFi jarFi) {
         jars.add(jarFi);
     }
 
-    protected abstract Class<?> platformDefineClass(String name, byte[] bytecode);
-
+    @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
         try {
-           return super.findClass(name);
+            if (name.startsWith("arc.")) throw new ClassNotFoundException();
+            return super.findClass(name);
         } catch(ClassNotFoundException e) {
+            if (name.startsWith("java.")) throw new ClassNotFoundException(name);
             return tryLoadClass(name);
         }
     }
@@ -39,8 +39,8 @@ public abstract class shareClassLoader extends ClassLoader {
     public URL getResource(String name) {
         URL url = super.getResource(name);
         if (url == null) {
-            for (Fi fi : jars) {
-                Fi f = new ZipFi(fi);
+            for (shareFi fi : jars) {
+                shareFi f = new shareZipFi(fi);
 
                 if (name.startsWith("/")) name = name.substring(1);
                 String[] path = name.split("/");
@@ -57,10 +57,10 @@ public abstract class shareClassLoader extends ClassLoader {
         return url;
     }
 
-    protected Seq<Fi> getAllFilesInJarPath(String path) {
-        Seq<Fi> res = new Seq<>();
-        for (Fi fi : jars) {
-            Fi f = new ZipFi(fi);
+    protected Seq<shareFi> getAllFilesInJarPath(String path) {
+        Seq<shareFi> res = new Seq<>();
+        for (shareFi fi : jars) {
+            shareFi f = new shareZipFi(fi);
 
             if (path.startsWith("/")) path = path.substring(1);
             if (path.endsWith("/")) path = path.substring(0, path.length() - 1);
@@ -69,7 +69,7 @@ public abstract class shareClassLoader extends ClassLoader {
 
             if (f.exists()) {
                 try {
-                    if (f.isDirectory()) for (Fi ff : f.list()) if (!ff.isDirectory()) res.add(ff);
+                    if (f.isDirectory()) for (shareFi ff : f.list()) if (!ff.isDirectory()) res.add(ff);
                     break;
                 } catch(Exception e) {
                     Log.err(e);
@@ -84,8 +84,8 @@ public abstract class shareClassLoader extends ClassLoader {
         InputStream stream = null;
 
         if (OS.isAndroid) {
-            for (Fi fi : jars) {
-                Fi f = new ZipFi(fi);
+            for (shareFi fi : jars) {
+                shareFi f = new shareZipFi(fi);
 
                 if (name.startsWith("/")) name = name.substring(1);
                 String[] path = name.split("/");
@@ -101,16 +101,16 @@ public abstract class shareClassLoader extends ClassLoader {
         }
 
         if (stream == null) stream = parent.getResourceAsStream(name);
-        if (stream == null) stream = bothIOUtil.readFileInternalAsStream(name);
+        if (stream == null) stream = shareIOUtil.readFileInternalAsStream(name);
         return stream;
     }
 
     protected byte[] getResourceAsByte(String name) throws IOException {
         InputStream stream = getResourceAsStream(name);
-        return bothIOUtil.readAllBytes(stream);
+        return shareIOUtil.readAllBytes(stream);
     }
 
-    public String getPackageName(String fullClassName) {
+    public static String getPackageName(String fullClassName) {
         Seq<String> classNames = new Seq<>(fullClassName.split("\\."));
         classNames.pop();
         return String.join(".", classNames);
@@ -119,8 +119,10 @@ public abstract class shareClassLoader extends ClassLoader {
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
         try {
+            if (name.startsWith("arc.")) throw new ClassNotFoundException();
             return super.loadClass(name, resolve);
         } catch(ClassNotFoundException e) {
+            if (name.startsWith("java.")) throw new ClassNotFoundException(name);
             Class<?> c = tryLoadClass(name);
             if (c == null) throw new ClassNotFoundException(name);
             if (resolve) super.resolveClass(c);
@@ -128,24 +130,5 @@ public abstract class shareClassLoader extends ClassLoader {
         }
     }
 
-    protected Class<?> tryLoadClass(String name) throws ClassNotFoundException {
-        if (name.startsWith("java.")) return null;
-        String classPath = name.replace('.', '/').concat(".class");
-        
-        try {
-            byte[] originBytecode = null;
-
-            try {
-                originBytecode = getResourceAsByte(classPath);
-            } catch(Exception ignore) {}
-
-            if (transformer == null) throw new ClassNotFoundException();
-            byte[] transformedBytecode = transformer.transform(name, originBytecode);
-
-            if (transformedBytecode == null) throw new ClassNotFoundException();
-            return platformDefineClass(name, transformedBytecode);
-        } catch(Exception e) {
-            throw new ClassNotFoundException("try load class failed: " + name, e);
-        }
-    }
+    protected abstract Class<?> tryLoadClass(String name) throws ClassNotFoundException;
 }

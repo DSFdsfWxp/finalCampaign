@@ -3,16 +3,20 @@ package finalCampaign.patch.impl;
 import java.net.*;
 import org.spongepowered.asm.mixin.*;
 import arc.files.*;
+import finalCampaign.launch.*;
 import mindustry.core.*;
 
 @Mixin(Platform.class)
 public interface fcPlatform {
     default ClassLoader loadJar(Fi jar, ClassLoader parent) throws Exception{
         try {
+            /*
             Class<?> shareMixinService = Class.forName("finalCampaign.launch.shareMixinService", true, Thread.currentThread().getContextClassLoader());
             Fi mod = (Fi) shareMixinService.getDeclaredField("mod").get(null);
             ClassLoader classLoader = (ClassLoader) shareMixinService.getDeclaredMethod("getClassLoader").invoke(null);
-            if (jar.absolutePath().equals(mod.absolutePath())) return classLoader;
+            */
+            ClassLoader classLoader = shareMixinService.getClassLoader();
+            if (jar.absolutePath().equals(shareMixinService.mod.absolutePath())) return classLoader;
         } catch(Exception ignore) {}
 
         return new URLClassLoader(new URL[]{jar.file().toURI().toURL()}, parent){

@@ -1,166 +1,184 @@
 package finalCampaign.launch;
 
-import java.lang.reflect.*;
+import java.io.*;
+import java.util.*;
+import android.app.*;
 import android.content.*;
-import android.content.pm.*;
+import android.content.res.*;
 import android.os.*;
-import android.telephony.*;
-import arc.*;
-import arc.backend.android.*;
-import arc.files.*;
-import arc.scene.ui.layout.*;
 import arc.util.*;
 
-public class androidLauncher extends AndroidApplication {
-    public static final int PERMISSION_REQUEST_CODE = 1;
+public class androidLauncher extends Activity {
+    private AssetManager fcAssets;
+    private shareLauncher fcInstance;
+    private shareFi fcDataDir;
+    private shareFi fcMindustryCore;
+    private shareFi fcJavaJar;
+    private shareFi fcAndroidJar;
+    private shareFi fcPreMainJar;
+    private boolean fcFirstOnCreate;
 
-    private ApplicationListener listener;
-    private Method handlePermissionsResult;
-    private ApplicationListener instance;
-    private Fi mindustryCore;
-    private Fi javaJar;
+    public static Activity fcActivity;
+    public static Activity thisActivityInstance;
 
-    boolean doubleScaleTablets = true;
+    public androidLauncher() {
+        thisActivityInstance = this;
+        fcFirstOnCreate = true;
+    }
 
+    // proxies between this true activity to the fake activity (AndroidApplication in arc)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        shareCrashSender.setDefaultUncaughtExceptionHandler(new androidCrashSender());
+        if (fcActivity != null) Reflect.invoke(fcActivity, "onCreate", new Object[] {savedInstanceState}, Bundle.class);
 
-        if(doubleScaleTablets && isTablet(this)){
-            Scl.setAddition(0.5f);
-        }
-
-        Log.info("[finalCampaign] pre-main bootstrap");
-
-        instance = new shareApplicationListener() {
-            protected void handleCrash(Throwable e, String msg) {
-                shareCrashSender.sender.log(e);
-                Log.err(msg, e);
-                System.exit(1);
-            }
-
-            protected shareClassLoader createClassLoader() {
-                return new androidClassLoader(getCacheDir());
-            }
-
-            protected void beforeLaunch() {
-                Fi dataDir = Core.settings.getDataDirectory();
-                Fi modDir = dataDir.child("mods");
-
-                mindustryCore = dataDir.child("game.jar");
-                shareMixinService.mod = modDir.child("finalCampaign.jar");
-                javaJar = dataDir.child("java.jar");
-
-                if (androidVersionChecker.modNeedUpdate() && shareMixinService.mod.exists()) shareMixinService.mod.delete();
-                if (androidVersionChecker.gameNeedUpdate() && mindustryCore.exists()) mindustryCore.delete();
-                if (androidVersionChecker.javaNeedUpdate() && javaJar.exists()) javaJar.delete();
-                
-                if (!mindustryCore.exists()) {
-                    Fi file = Core.files.internal("fcLaunch/game.jar");
-                    if (!dataDir.exists()) dataDir.mkdirs();
-                    file.copyTo(mindustryCore);
-                }
-
-                if (!shareMixinService.mod.exists()) {
-                    Fi file = Core.files.internal("fcLaunch/mod.jar");
-                    if (!modDir.exists()) modDir.mkdirs();
-                    file.copyTo(shareMixinService.mod);
-                }
-
-                if (!javaJar.exists()) {
-                    ZipFi mod = new ZipFi(shareMixinService.mod);
-                    Fi javaJarSrc = mod.child("class").child("java.jar");
-                    javaJarSrc.copyTo(javaJar);
-                }
-            }
-
-            protected Fi[] getJar() {
-                ((androidClassLoader) shareMixinService.getClassLoader()).createModClassLoader(androidLauncher.this);
-                return new Fi[] {mindustryCore, javaJar, shareMixinService.mod};
-            }
-
-            protected ApplicationListener createApplicationListener() {
-                try {
-                    Class<?> androidClientLauncher = shareMixinService.getClassLoader().findClass("finalCampaign.launch.sideAndroidClientLauncher");
-                    listener = (ApplicationListener) androidClientLauncher.getDeclaredConstructor(androidLauncher.class).newInstance(androidLauncher.this);
-
-                    handlePermissionsResult = androidClientLauncher.getDeclaredMethod("handlePermissionsResult");
-                    Method checkFiles = androidClientLauncher.getDeclaredMethod("checkFiles", Intent.class);
-
-                    handlePermissionsResult.setAccessible(true);
-                    checkFiles.setAccessible(true);
-
-                    checkFiles.invoke(listener, getIntent());
-
-                    return listener;
-                } catch(Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-
-        initialize(instance, new AndroidApplicationConfiguration() {{
-            useImmersiveMode = true;
-            hideStatusBar = true;
-        }});
-
-        try {
-            //new external folder
-            Fi data = Core.files.absolute(((Context)this).getExternalFilesDir(null).getAbsolutePath());
-            Core.settings.setDataDirectory(data);
-
-            //delete unused cache folder to free up space
-            try {
-                Fi cache = Core.settings.getDataDirectory().child("cache");
-                if (cache.exists()) {
-                    cache.deleteDirectory();
-                }
-            } catch(Throwable t) {
-                Log.err("Failed to delete cached folder", t);
-            }
-
-
-            //move to internal storage if there's no file indicating that it moved
-            if (!Core.files.local("files_moved").exists()) {
-                Log.info("Moving files to external storage...");
-
-                try {
-                    //current local storage folder
-                    Fi src = Core.files.absolute(Core.files.getLocalStoragePath());
-                    for (Fi fi : src.list()) {
-                        fi.copyTo(data);
-                    }
-                    //create marker
-                    Core.files.local("files_moved").writeString("files moved to " + data);
-                    Core.files.local("files_moved_103").writeString("files moved again");
-                    Log.info("Files moved.");
-                } catch(Throwable t) {
-                    Log.err("Failed to move files!");
-                    t.printStackTrace();
-                }
-            }
-        } catch(Exception e) {
-            //print log but don't crash
-            Log.err(e);
-        }
+        if (fcFirstOnCreate) main(savedInstanceState);
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            for (int i : grantResults) {
-                if(i != PackageManager.PERMISSION_GRANTED) return;
-            }
-            try {
-                handlePermissionsResult.invoke(listener);
-            } catch(Exception ignore) {}
-        }
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        super.onActivityResult(requestCode, resultCode, data);
+        if (fcActivity != null) Reflect.invoke(fcActivity, "onActivityResult", new Object[] {requestCode, resultCode, data}, int.class, int.class, Intent.class);
     }
 
-    private boolean isTablet(Context context) {
-        TelephonyManager manager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
-        return manager != null && manager.getPhoneType() == TelephonyManager.PHONE_TYPE_NONE;
+    @Override
+    public void onConfigurationChanged(Configuration config){
+        super.onConfigurationChanged(config);
+        if (fcActivity != null) fcActivity.onConfigurationChanged(config);
+    }
+
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        if (fcActivity != null) Reflect.invoke(fcActivity, "onDestroy");
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        if (fcActivity != null) Reflect.invoke(fcActivity, "onResume");
+    }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+        if (fcActivity != null) Reflect.invoke(fcActivity, "onPause");
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus){
+        super.onWindowFocusChanged(hasFocus);
+        if (fcActivity != null) fcActivity.onWindowFocusChanged(hasFocus);
+    }
+
+    private void main(Bundle savedInstanceState) {
+        shareFiles.ExternalStoragePath = "/sdcard/";
+        try {
+            File externalFileRootDir = getExternalFilesDir(null);
+            do {
+                externalFileRootDir = Objects.requireNonNull(externalFileRootDir).getParentFile();
+            } while (Objects.requireNonNull(externalFileRootDir).getAbsolutePath().contains("/Android"));
+            shareFiles.ExternalStoragePath = externalFileRootDir.getAbsolutePath() + "/";
+        } catch(Throwable ignore) {}
+
+        getFilesDir();
+        shareFiles.LocalStoragePath = getExternalFilesDir(null).getAbsolutePath();
+        if (!shareFiles.LocalStoragePath.endsWith("/")) shareFiles.LocalStoragePath += "/";
+        
+        fcAssets = getAssets();
+
+        fcDataDir = new androidFi(fcAssets, getExternalFilesDir(null), shareFi.FileType.absolute);
+        if (!fcDataDir.exists()) fcDataDir.mkdirs();
+
+        shareFiles.instance = new shareFiles() {
+            public shareFi internalFile(String path) {
+                return new androidFi(fcAssets, path, shareFi.FileType.internal);
+            }
+
+            public shareFi dataDirectory() {
+                return fcDataDir;
+            }
+        };
+
+        shareCrashSender.setDefaultUncaughtExceptionHandler(new androidCrashSender());
+
+        fcInstance = new shareLauncher() {
+            protected void handleCrash(Throwable e, String msg) {
+                shareCrashSender.sender.log(e);
+                Log.err(msg, e);
+                throw new RuntimeException(e);
+            }
+
+            protected shareClassLoader createClassLoader() {
+                return new androidClassLoader(getCacheDir(), getCodeCacheDir(), androidLauncher.this.getApplicationInfo().nativeLibraryDir);
+            }
+
+            protected shareFi[] getJar() {
+                ((androidClassLoader) shareMixinService.getClassLoader()).createModClassLoader(androidLauncher.this);
+                return new shareFi[] {fcMindustryCore, fcJavaJar, fcPreMainJar, shareMixinService.mod, fcAndroidJar};
+            }
+
+            protected void launch() throws Exception {
+                Class<?> main = shareMixinService.getClassLoader().findClass("finalCampaign.launch.sideAndroidMain");
+                main.getDeclaredMethod("main", String.class, Activity.class, Bundle.class).invoke(null, fcDataDir.absolutePath(), androidLauncher.this, savedInstanceState);
+            }
+        };
+
+        fcInstance.init();
+
+        update();
+
+        fcInstance.startup();
+        fcFirstOnCreate = false;
+    }
+
+    private void update() {
+        shareFi modDir = fcDataDir.child("mods");
+        if (!modDir.exists()) modDir.mkdirs();
+
+        shareMixinService.mod = modDir.child("finalCampaign.jar");
+        fcMindustryCore = fcDataDir.child("game.jar");
+        fcJavaJar = fcDataDir.child("java.jar");
+        fcAndroidJar = fcDataDir.child("android.jar");
+        fcPreMainJar = fcDataDir.child("preMain.jar");
+
+        if (androidVersionChecker.modNeedUpdate() && shareMixinService.mod.exists()) shareMixinService.mod.delete();
+        if (androidVersionChecker.checkNeedUpdate("game") && fcMindustryCore.exists()) fcMindustryCore.delete();
+        if (androidVersionChecker.checkNeedUpdate("java") && fcJavaJar.exists()) fcJavaJar.delete();
+        if (androidVersionChecker.checkNeedUpdate("android") && fcAndroidJar.exists()) fcAndroidJar.delete();
+        if (androidVersionChecker.checkNeedUpdate("preMain") && fcPreMainJar.exists()) fcPreMainJar.delete();
+
+        if (!shareMixinService.mod.exists()) {
+            shareFi file = shareFiles.instance.internalFile("fcLaunch/mod.jar");
+            file.copyTo(shareMixinService.mod);
+            if (fcJavaJar.exists()) fcJavaJar.delete();
+        }
+
+        shareZipFi mod = new shareZipFi(shareMixinService.mod);
+
+        if (!fcMindustryCore.exists()) {
+            shareFi src = shareFiles.instance.internalFile("fcLaunch/game.jar");
+            src.copyTo(fcMindustryCore);
+            androidVersionChecker.registerCurrentVersion("game");
+        }
+
+        if (!fcJavaJar.exists()) {
+            shareFi src = mod.child("class").child("java.jar");
+            src.copyTo(fcJavaJar);
+            androidVersionChecker.registerCurrentVersion("java");
+        }
+
+        if (!fcAndroidJar.exists()) {
+            shareFi src = mod.child("class").child("android.jar");
+            src.copyTo(fcAndroidJar);
+            androidVersionChecker.registerCurrentVersion("android");
+        }
+
+        if (!fcPreMainJar.exists()) {
+            shareFi src = shareFiles.instance.internalFile("fcLaunch/preMain.jar");
+            src.copyTo(fcPreMainJar);
+            androidVersionChecker.registerCurrentVersion("preMain");
+        }
     }
 }

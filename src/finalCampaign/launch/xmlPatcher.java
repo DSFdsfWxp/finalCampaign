@@ -1,123 +1,544 @@
 package finalCampaign.launch;
 
-import java.io.*;
-import java.util.*;
+import java.util.Arrays;
+
+import android.content.Intent;
+import arc.struct.*;
 
 public class xmlPatcher {
-    private final int magic = 0x00080003;
-    private final int StringChunkType = 0x001c0001;
+    private static final int magic = 0x00080003;
+    public static final int StringChunkType = 0x001c0001;
+    public static final int ResourceIdChunkType = 0x00080180;
+    public static final int StartNamespaceChunkType = 0x00100100;
+    public static final int EndNamespaceChunkType = 0x00100101;
+    public static final int StartTagChunkType = 0x00100102;
+    public static final int EndTagChunkType = 0x00100103;
+    public static final int TextChunkType = 0x00100104;
 
-    private byte[] bin;
-    private byte[] originalContent;
+    public static final int AttrStringType = 0x03000008;
 
-    private String[] stringMap;
-    private String[] styleMap;
+    public static class basePackage {
+        int magic;
+        int length;
+        byte[] data;
 
-    public xmlPatcher(byte[] src) {
-        bin = src;
-        parse();
-    }
+        public basePackage(byte[] bin) {
+            littleEndianDataInputStream stream = new littleEndianDataInputStream(bin);
+            magic = stream.readInt();
+            length = stream.readInt();
+            data = stream.readNBytes(length - 8);
+        }
 
-    private void parse() {
-        littleEndianDataInputStream stream = new littleEndianDataInputStream(bin);
-        if (stream.readInt() != magic) throw new RuntimeException("Not a valid AndroidManifest.xml");
-        stream.skipBytes(4);
-
-        if (stream.readInt() != StringChunkType) throw new RuntimeException("No String Chunk found in AndroidManifest.xml");
-        int chunkSize = stream.readInt();
-
-        byte[] stringChunk = Arrays.copyOfRange(bin, 8, chunkSize + 8);
-        originalContent = Arrays.copyOfRange(bin, 8 + chunkSize, bin.length);
-
-        int stringCount = stream.readInt();
-        int styleCount = stream.readInt();
-        stream.skipBytes(4);
-        int stringPoolOffset = stream.readInt();
-        int stylePoolOffset = stream.readInt();
-
-        stringMap = new String[stringCount];
-        styleMap = new String[styleCount];
-
-        stream = new littleEndianDataInputStream(stringChunk);
-        stream.skipBytes(stringPoolOffset);
-
-        for (int i=0; i<stringCount; i++) stringMap[i] = stream.readUTF(true, 2, 2);
-
-        if (styleCount > 0) {
-            stream = new littleEndianDataInputStream(stringChunk);
-            stream.skipBytes(stylePoolOffset);
-
-            for (int i=0; i<styleCount; i++) styleMap[i] = stream.readUTF(true, 2, 2);
+        public byte[] build() {
+            littleEndianDataOutputStream stream = new littleEndianDataOutputStream();
+            stream.writeInt(magic);
+            stream.writeInt(data.length + 8);
+            stream.write(data);
+            return stream.toByteArray();
         }
     }
 
-    public void replaceString(String find, String replacement) {
-        for (int i=0; i<stringMap.length; i++) stringMap[i] = stringMap[i].replace(find, replacement);
-    }
+    public static class stringChunk extends basePackage {
+        Seq<String> strings;
+        Seq<String> styles;
 
-    public void replaceStyle(String find, String replacement) {
-        for (int i=0; i<styleMap.length; i++) styleMap[i] = styleMap[i].replace(find, replacement);
-    }
+        public stringChunk(byte[] bin) {
+            super(bin);
+            if (magic != StringChunkType) throw new RuntimeException("Not a valid string chunk.");
+            littleEndianDataInputStream stream = new littleEndianDataInputStream(data);
 
-    private byte[] buildPackage(int magic, byte[] content) {
-        littleEndianDataOutputStream stream = new littleEndianDataOutputStream();
-        stream.writeInt(magic);
-        stream.writeInt(content.length + 8);
-        stream.write(content);
-        return stream.toByteArray();
-    }
+            int stringCount = stream.readInt();
+            int styleCount = stream.readInt();
 
-    public byte[] build() {
-        littleEndianDataOutputStream stream = new littleEndianDataOutputStream();
+            stream.skipBytes(4 * (stringCount + styleCount + 3));
 
-        try {
-            byte[] stringOffsets;
+            String[] strings = new String[stringCount];
+            String[] styles = new String[styleCount];
 
-            int offset = 0;
-            for (int i=0; i<stringMap.length; i++) {
-                stream.writeInt(offset);
-                offset += stringMap[i].length() * 2 + 4;
+            for (int i=0; i<stringCount; i++) strings[i] = stream.readUTF(true, 2, 2);
+            for (int i=0; i<styleCount; i++) styles[i] = stream.readUTF(true, 2, 2);
+
+            this.strings = new Seq<>(strings);
+            this.styles = new Seq<>(styles);
+        }
+
+        public byte[] build() {
+            littleEndianDataOutputStream stream = new littleEndianDataOutputStream();
+            littleEndianDataOutputStream offsetsStream = new littleEndianDataOutputStream();
+            littleEndianDataOutputStream poolStream = new littleEndianDataOutputStream();
+
+            for (String s : strings) {
+                offsetsStream.writeInt(poolStream.length());
+                poolStream.writeUTF(s, true, 2, 2);
             }
 
-            stringOffsets = stream.toByteArray();
+            int offset = poolStream.length();
+            for (String s : styles) {
+                offsetsStream.writeInt(poolStream.length() - offset);
+                poolStream.writeUTF(s, true, 2, 2);
+            }
 
-            stream = new littleEndianDataOutputStream();
+            poolStream.align(4);
 
-            stream.writeInt(stringMap.length);
-            stream.writeInt(styleMap.length);
+            stream.writeInt(strings.size);
+            stream.writeInt(styles.size);
 
             stream.writeInt(0);
 
-            int stringPoolOffset = 4 * 7 + stringMap.length * 4 + styleMap.length * 4;
-            int stylePoolOffset = styleMap.length > 0 ? stringPoolOffset + offset : 0;
-            stream.writeInt(stringPoolOffset);
-            stream.writeInt(stylePoolOffset);
+            stream.writeInt(4 * (strings.size + styles.size + 7));
+            stream.writeInt(styles.size == 0 ? 0 : (4 * (strings.size + styles.size + 7) + offset));
 
-            stream.write(stringOffsets);
+            stream.write(offsetsStream.toByteArray());
+            stream.write(poolStream.toByteArray());
 
-            offset = 0;
-            for (int i=0; i<styleMap.length; i++) {
-                stream.writeInt(offset);
-                offset += styleMap[i].length() * 2 + 4;
+            data = stream.toByteArray();
+            return super.build();
+        }
+
+        public int locateOrAddString(String str) {
+            int pos = strings.indexOf(str);
+            if (pos == -1) {
+                pos = strings.size;
+                strings.add(str);
+            }
+            return pos;
+        }
+    }
+
+    public static class resourceIdChunk extends basePackage {
+        Seq<Integer> ids;
+
+        public resourceIdChunk(byte[] bin) {
+            super(bin);
+            if (magic != ResourceIdChunkType) throw new RuntimeException("Not a valid resource id chunk.");
+            littleEndianDataInputStream stream = new littleEndianDataInputStream(data);
+
+            int num = stream.length() / 4;
+            Integer[] ids = new Integer[num];
+
+            for (int i=0; i<num; i++) ids[i] = stream.readInt();
+
+            this.ids = new Seq<>(ids);
+        }
+
+        public byte[] build() {
+            littleEndianDataOutputStream stream = new littleEndianDataOutputStream();
+
+            for (Integer i : ids) stream.writeInt(i);
+
+            data = stream.toByteArray();
+            return super.build();
+        }
+    }
+
+    public static class xmlContentChunk extends basePackage {
+        int lineNumber;
+        byte[] xmlData;
+
+        public xmlContentChunk(byte[] bin) {
+            super(bin);
+            littleEndianDataInputStream stream = new littleEndianDataInputStream(data);
+
+            lineNumber = stream.readInt();
+
+            stream.skipBytes(4);
+
+            xmlData = stream.readAllAvailabled();
+        }
+
+        public byte[] build() {
+            littleEndianDataOutputStream stream = new littleEndianDataOutputStream();
+
+            stream.writeInt(lineNumber);
+
+            stream.writeInt(0xffffffff);
+
+            stream.write(xmlData);
+
+            data = stream.toByteArray();
+            return super.build();
+        }
+    }
+
+    public static class startNamespaceChunk extends xmlContentChunk {
+        int prefix;
+        int uri;
+
+        public startNamespaceChunk(byte[] bin) {
+            super(bin);
+            if (magic != StartNamespaceChunkType) throw new RuntimeException("Not a valid start namespace chunk.");
+            littleEndianDataInputStream stream = new littleEndianDataInputStream(xmlData);
+
+            prefix = stream.readInt();
+            uri = stream.readInt();
+        }
+
+        public byte[] build() {
+            littleEndianDataOutputStream stream = new littleEndianDataOutputStream();
+
+            stream.writeInt(prefix);
+            stream.writeInt(uri);
+
+            xmlData = stream.toByteArray();
+            return super.build();
+        }
+    }
+
+    public static class endNamespaceChunk extends xmlContentChunk {
+        int prefix;
+        int uri;
+
+        public endNamespaceChunk(byte[] bin) {
+            super(bin);
+            if (magic != EndNamespaceChunkType) throw new RuntimeException("Not a valid end namespace chunk.");
+            littleEndianDataInputStream stream = new littleEndianDataInputStream(xmlData);
+
+            prefix = stream.readInt();
+            uri = stream.readInt();
+        }
+
+        public byte[] build() {
+            littleEndianDataOutputStream stream = new littleEndianDataOutputStream();
+
+            stream.writeInt(prefix);
+            stream.writeInt(uri);
+
+            xmlData = stream.toByteArray();
+            return super.build();
+        }
+    }
+
+    public class tagAttribute {
+        int namespaceUri;
+        int name;
+        int valueStr;
+        int type;
+        int data;
+
+        public String readAsString() {
+            if (type != AttrStringType) throw new RuntimeException("Not a string type attribute: " + this.toString());
+            return manifest.string.strings.get(valueStr);
+        }
+
+        public String name() {
+            return manifest.string.strings.get(name);
+        }
+    }
+
+    public class startTagChunk extends xmlContentChunk {
+        int namespaceUri;
+        int name;
+        int flag;
+        int classAttribute;
+        Seq<tagAttribute> attributes;
+
+        public startTagChunk(byte[] bin) {
+            super(bin);
+            if (magic != StartTagChunkType) throw new RuntimeException("Not a valid start tag chunk.");
+            littleEndianDataInputStream stream = new littleEndianDataInputStream(xmlData);
+
+            namespaceUri = stream.readInt();
+            name = stream.readInt();
+            flag = stream.readInt();
+
+            int attributeNum = stream.readInt();
+
+            classAttribute = stream.readInt();
+            
+            tagAttribute[] attributes = new tagAttribute[attributeNum];
+            for (int i=0; i<attributeNum; i++) {
+                tagAttribute attribute = new tagAttribute();
+                attribute.namespaceUri = stream.readInt();
+                attribute.name = stream.readInt();
+                attribute.valueStr = stream.readInt();
+                attribute.type = stream.readInt();
+                attribute.data = stream.readInt();
+                attributes[i] = attribute;
             }
 
-            littleEndianDataOutputStream stringStream = new littleEndianDataOutputStream();
-
-            for (int i=0; i<stringMap.length; i++) stringStream.writeUTF(stringMap[i], true, 2, 2);
-            for (int i=0; i<styleMap.length; i++) stringStream.writeUTF(styleMap[i], true, 2, 2);
-
-            stringStream.align(4);
-            stream.write(stringStream.toByteArray());
-
-            byte[] stringChunk = buildPackage(StringChunkType, stream.toByteArray());
-
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            outputStream.write(stringChunk);
-            outputStream.write(originalContent);
-
-            return buildPackage(magic, outputStream.toByteArray());
-        } catch(Exception e) {
-            throw new RuntimeException(e);
+            this.attributes = new Seq<>(attributes);
         }
+
+        public byte[] build() {
+            littleEndianDataOutputStream stream = new littleEndianDataOutputStream();
+
+            stream.writeInt(namespaceUri);
+            stream.writeInt(name);
+            stream.writeInt(flag);
+            stream.writeInt(attributes.size);
+            stream.writeInt(classAttribute);
+
+            for (tagAttribute attribute : attributes) {
+                stream.writeInt(attribute.namespaceUri);
+                stream.writeInt(attribute.name);
+                stream.writeInt(attribute.valueStr);
+                stream.writeInt(attribute.type);
+                stream.writeInt(attribute.data);
+            }
+
+            xmlData = stream.toByteArray();
+            return super.build();
+        }
+
+        public String name() {
+            return manifest.string.strings.get(name);
+        }
+    }
+
+    public class endTagChunk extends xmlContentChunk {
+        int namespaceUri;
+        int name;
+
+        public endTagChunk(byte[] bin) {
+            super(bin);
+            if (magic != EndTagChunkType) throw new RuntimeException("Not a valid end tag chunk.");
+            littleEndianDataInputStream stream = new littleEndianDataInputStream(xmlData);
+
+            namespaceUri = stream.readInt();
+            name = stream.readInt();
+        }
+
+        public byte[] build() {
+            littleEndianDataOutputStream stream = new littleEndianDataOutputStream();
+
+            stream.writeInt(namespaceUri);
+            stream.writeInt(name);
+
+            xmlData = stream.toByteArray();
+            return super.build();
+        }
+
+        public String name() {
+            return manifest.string.strings.get(name);
+        }
+    }
+
+    public class textChunk extends xmlContentChunk {
+        int name;
+        int unknow1;
+        int unknow2;
+
+        public textChunk(byte[] bin) {
+            super(bin);
+            if (magic != TextChunkType) throw new RuntimeException("Not a valid text chunk.");
+            littleEndianDataInputStream stream = new littleEndianDataInputStream(xmlData);
+
+            name = stream.readInt();
+            unknow1 = stream.readInt();
+            unknow2 = stream.readInt();
+        }
+
+        public byte[] build() {
+            littleEndianDataOutputStream stream = new littleEndianDataOutputStream();
+
+            stream.writeInt(name);
+            stream.writeInt(unknow1);
+            stream.writeInt(unknow2);
+
+            xmlData = stream.toByteArray();
+            return super.build();
+        }
+
+        public String name() {
+            return manifest.string.strings.get(name);
+        }
+    }
+
+    public class androidManifest extends basePackage {
+        stringChunk string;
+        resourceIdChunk resourceId;
+        xmlItem xml;
+
+        public androidManifest(byte[] bin) {
+            super(bin);
+            if (magic != xmlPatcher.magic) throw new RuntimeException("Not a valid AndroidManifest.xml");
+            littleEndianDataInputStream stream = new littleEndianDataInputStream(data);
+            
+            int offset = 0;
+            string = new stringChunk(data);
+            offset += string.length;
+
+            stream.skipBytes(offset);
+            resourceId = new resourceIdChunk(stream.readAllAvailabled());
+            offset += resourceId.length;
+
+            Seq<xmlContentChunk> xmls = new Seq<>();
+            while (offset < data.length) {
+                stream = new littleEndianDataInputStream(data);
+                stream.skipBytes(offset);
+                xmlContentChunk xml = new xmlContentChunk(stream.readAllAvailabled());
+                offset += xml.length;
+                xmls.add(cloneAndParseXmlContentChunk(xml));
+            }
+
+            manifest = this;
+            xml = new xmlItem(xmls);
+        }
+
+        public byte[] build() {
+            littleEndianDataOutputStream stream = new littleEndianDataOutputStream();
+
+            stream.write(string.build());
+            stream.write(resourceId.build());
+            Seq<xmlContentChunk> xmls = xml.build();
+            for (xmlContentChunk c : xmls) stream.write(c.build());
+
+            data = stream.toByteArray();
+            return super.build();
+        }
+    }
+
+    public androidManifest manifest;
+
+    public xmlPatcher(byte[] src) {
+        manifest = new androidManifest(src);
+    }
+
+    public xmlContentChunk cloneAndParseXmlContentChunk(xmlContentChunk base) {
+        byte[] d = base.build();
+        switch (base.magic) {
+            case StartNamespaceChunkType: 
+                return new startNamespaceChunk(d);
+            case EndNamespaceChunkType:
+                return new endNamespaceChunk(d);
+            case StartTagChunkType:
+                return new startTagChunk(d);
+            case EndTagChunkType:
+                return new endTagChunk(d);
+            case TextChunkType:
+                return new textChunk(d);
+        }
+        throw new RuntimeException("Can not parse xml content chunk: " + base.toString());
+    }
+
+    public void replaceString(String find, String replacement) {
+        for (int i=0; i<manifest.string.strings.size; i++) manifest.string.strings.set(i, manifest.string.strings.get(i).replace(find, replacement));
+    }
+
+    public void replaceStyle(String find, String replacement) {
+        for (int i=0; i<manifest.string.styles.size; i++) manifest.string.styles.set(i, manifest.string.styles.get(i).replace(find, replacement));
+    }
+
+    public byte[] build() {
+        return manifest.build();
+    }
+
+    public class xmlItem {
+        boolean isNamespace;
+        xmlContentChunk start;
+        xmlContentChunk end;
+        Seq<xmlItem> child;
+        String name;
+
+        public xmlItem(xmlItem src) {
+            isNamespace = src.isNamespace;
+            start = cloneAndParseXmlContentChunk(src.start);
+            if (src.start == src.end) {
+                end = start;
+            } else {
+                end = cloneAndParseXmlContentChunk(src.end);
+            }
+            name = src.name;
+            child = new Seq<>();
+            for (xmlItem i : src.child) child.add(i.clone());
+        }
+
+        public xmlItem(textChunk src) {
+            isNamespace = false;
+            start = src;
+            end = src;
+            child = new Seq<>();
+            name = manifest.string.strings.get(src.name);
+        }
+
+        public xmlItem(Seq<xmlContentChunk> src) {
+            start = src.get(0);
+            isNamespace = start instanceof startNamespaceChunk;
+            if (!isNamespace) name = ((startTagChunk) start).name();
+            this.child = new Seq<>();
+            for (int i=1; i<src.size; i++) {
+                xmlContentChunk item = src.get(i);
+                if (item instanceof startNamespaceChunk || item instanceof startTagChunk) {
+                    Seq<xmlContentChunk> r = new Seq<>(Arrays.copyOfRange(src.toArray(xmlContentChunk.class), i, src.size));
+                    xmlItem child = new xmlItem(r);
+                    i = src.indexOf(child.end, true);
+                    this.child.add(child);
+                    continue;
+                }
+                if (item instanceof endNamespaceChunk || item instanceof endTagChunk) {
+                    if (item instanceof endNamespaceChunk != isNamespace) throw new RuntimeException("Not expected end of item: " + item.toString());
+                    if (!isNamespace && ((startTagChunk) start).name != ((endTagChunk) item).name) throw new RuntimeException("Not expected end of item: " + item.toString());
+                    end = item;
+                    break;
+                }
+                child.add(new xmlItem((textChunk) item));
+            }
+        }
+
+        public tagAttribute findAttribute(String name, int type) {
+            for (tagAttribute a : ((startTagChunk) start).attributes) {
+                if (manifest.string.strings.get(a.name).equals(name) && a.type == type) return a;
+            }
+            throw new RuntimeException("Attribute not found: " + name + ", " + type);
+        }
+
+        public Seq<xmlContentChunk> build() {
+            Seq<xmlContentChunk> res = new Seq<>();
+            res.add(start);
+            if (start == end) return res;
+            for (xmlItem i : child) res.add(i.build());
+            res.add(end);
+            return res;
+        }
+
+        public xmlItem clone() {
+            return new xmlItem(this);
+        }
+
+        public Seq<xmlItem> selectChild(String name) {
+            Seq<xmlItem> res = new Seq<>();
+            for (xmlItem c : child) if (c.name != null) if (c.name.equals(name)) res.add(c);
+            return res;
+        }
+
+        public xmlItem findChild(String name) {
+            for (xmlItem c : child) if (c.name != null) if (c.name.equals(name)) return c;
+            throw new RuntimeException("Child not found: " + name);
+        }
+    }
+
+    // new activity for original mindustry android launcher is for one solution of ours, which is proved impossible.
+    public void patchActivity(String name, String newName) {
+        xmlItem application = manifest.xml.child.get(0).findChild("application");
+        Seq<xmlItem> activities = application.selectChild("activity");
+        Seq<xmlItem> patchedLst = new Seq<>();
+        for (xmlItem a : activities) {
+            if (a.findAttribute("name", AttrStringType).readAsString().equals(name)) {
+                xmlItem n = a.clone();
+                Seq<xmlItem> intentFilters = n.selectChild("intent-filter");
+                for (xmlItem i : intentFilters) {
+                    Seq<xmlItem> actions = i.selectChild("action");
+                    Seq<xmlItem> categories = i.selectChild("category");
+                    xmlItem targetAction = null;
+                    xmlItem targetCategory = null;
+                    for (xmlItem ac : actions) if (ac.findAttribute("name", AttrStringType).readAsString().equals(Intent.ACTION_MAIN) && targetAction == null) targetAction = ac;
+                    for (xmlItem c : categories) if (c.findAttribute("name", AttrStringType).readAsString().equals(Intent.CATEGORY_LAUNCHER) && targetCategory == null) targetCategory = c;
+                    if (targetAction != null && targetCategory != null) {
+
+                        // some applications read valueStr field while system reading data field
+                        targetAction.findAttribute("name", AttrStringType).valueStr = manifest.string.locateOrAddString("finalCampaignMod.LAUNCH");
+                        targetAction.findAttribute("name", AttrStringType).data = manifest.string.locateOrAddString("finalCampaignMod.LAUNCH");
+                        targetCategory.findAttribute("name", AttrStringType).valueStr = manifest.string.locateOrAddString(Intent.CATEGORY_DEFAULT);
+                        targetCategory.findAttribute("name", AttrStringType).data = manifest.string.locateOrAddString(Intent.CATEGORY_DEFAULT);
+                        a.findAttribute("name", AttrStringType).valueStr = manifest.string.locateOrAddString(newName);
+                        a.findAttribute("name", AttrStringType).data = manifest.string.locateOrAddString(newName);
+                        patchedLst.add(n);
+                        break;
+                    }
+                }
+            }
+        }
+        if (patchedLst.size < 1) throw new RuntimeException("Failed to patch activity: " + name + " -> " + newName);
+        application.child.add(patchedLst);
     }
 }

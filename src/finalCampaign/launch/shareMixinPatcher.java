@@ -20,7 +20,7 @@ public class shareMixinPatcher {
     public static int maxClassMinorVersion = 0;
     public static String maxJavaVersion = "21";
 
-    public static int API_VERSION = 589824;
+    public static int API_VERSION = 0x90000;
 
     public static void read() {
         try {
@@ -98,11 +98,6 @@ public class shareMixinPatcher {
             maxClassMajorVersion.set(null, shareMixinPatcher.maxClassMajorVersion);
             maxClassMinorVersion.set(null, shareMixinPatcher.maxClassMinorVersion);
             maxJavaVersion.set(null, shareMixinPatcher.maxJavaVersion);
-
-            Field modifiersField = Field.class.getDeclaredField("modifiers");
-            modifiersField.setAccessible(true);
-            modifiersField.setInt(API_VERSION, API_VERSION.getModifiers() & ~Modifier.FINAL);
-
             API_VERSION.set(null, shareMixinPatcher.API_VERSION);
 
         } catch(Exception e) {
