@@ -5,7 +5,8 @@
     "mixins": [
         "fcContentLoader",
         "fcDesktopInput",
-        "fcPlatform"
+        "fcPlatform",
+        "fcPlacementFragment"
     ],
     "client": [
 	]

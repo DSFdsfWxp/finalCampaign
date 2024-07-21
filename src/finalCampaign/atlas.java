@@ -5,6 +5,7 @@ import arc.*;
 import arc.struct.*;
 import arc.files.*;
 import arc.graphics.*;
+import arc.graphics.Texture.TextureFilter;
 import arc.graphics.g2d.*;
 import arc.graphics.g2d.TextureAtlas.*;
 import arc.scene.style.*;
@@ -44,20 +45,30 @@ public class atlas {
         Seq<Texture> texture = new Seq<>();
         Seq<Pixmap> pixmap = new Seq<>();
 
+        boolean linear = Core.settings.getBool("linear", true);
+
         for (int i=0; i<info.textureNum; i++) pixmap.add(new Pixmap(pack.child("sprite-" + Integer.toString(i) + ".png")));
-        for (int i=0; i<info.textureNum; i++) texture.add(new Texture(pixmap.get(i)));
+        for (int i=0; i<info.textureNum; i++) {
+            Texture t = new Texture(pixmap.get(i));
+            t.setFilter(linear ? TextureFilter.linear : TextureFilter.nearest);
+            texture.add(t);
+            Core.atlas.getTextures().add(t);
+        };
 
         for (spritePacker.regionInfo rInfo : info.region) {
-            TextureRegion region = new TextureRegion();
+            Texture rTexture = texture.get(rInfo.texturePos);
+            TextureAtlas.AtlasRegion region = new TextureAtlas.AtlasRegion(rTexture, rInfo.x, rInfo.y, rInfo.width, rInfo.height);
 
-            region.texture = texture.get(rInfo.texturePos);
-            region.u = rInfo.u;
-            region.v = rInfo.v;
-            region.u2 = rInfo.u2;
-            region.v2 = rInfo.v2;
-            region.width = rInfo.width;
-            region.height = rInfo.height;
-            region.scale = rInfo.scale;
+            if(rInfo.splits != null){
+                region.splits = rInfo.splits;
+                region.pads = rInfo.pads;
+            }
+
+            region.name = rInfo.name;
+            region.offsetX = rInfo.offsetX;
+            region.offsetY = rInfo.offsetY;
+            region.originalWidth = rInfo.originalWidth;
+            region.originalHeight = rInfo.originalHeight;
 
             if (drawables.containsKey(rInfo.name)) drawables.remove(rInfo.name);
             if (regionmap.containsKey(rInfo.name)) regionmap.remove(rInfo.name);
@@ -71,7 +82,8 @@ public class atlas {
             }
             if (shouldBeRemovedRegion != null) regions.remove(shouldBeRemovedRegion);
 
-            Core.atlas.addRegion(rInfo.name, region);
+            Core.atlas.getRegions().add(region);
+            Core.atlas.getRegionMap().put(rInfo.name, region);
         }
     }
 
@@ -102,5 +114,9 @@ public class atlas {
                 Vars.ui.showOkText("Info", "Sprite pack done. See your output directory.", () -> {});
             }
         });
+    }
+
+    public static AtlasRegion find(String name) {
+        return Core.atlas.find("final-campaign-" + name);
     }
 }

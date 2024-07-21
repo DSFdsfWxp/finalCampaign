@@ -282,7 +282,10 @@ public class injector {
 
         for (Fi file : gameJarAsZip.list()) {
             if (file.isDirectory()) {
-                if (!file.name().equals("mindustry") && !file.name().equals("arc")) writer.add(file.name(), file);
+                if (!file.name().equals("mindustry") &&
+                    !file.name().equals("arc") &&
+                    !file.name().equals("net") &&
+                    !file.name().equals("rhino")) writer.add(file.name(), file);
             } else {
                 writer.add(file.name(), file.readBytes());
             }

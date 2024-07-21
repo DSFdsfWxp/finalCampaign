@@ -32,7 +32,7 @@ public class spritePacker {
         Cons<Fi> runPack = dir -> {
             String path = dir.absolutePath().substring(rawAssetDir.absolutePath().length());
             Fi pageFi = dir.child("page.json");
-            TextureFilter filter = Core.settings.getBool("linear", true) ? TextureFilter.linear : TextureFilter.nearest;
+            TextureFilter filter = TextureFilter.linear;
 
             Log.info("spritePacker: enter: " + path);
 
@@ -50,6 +50,7 @@ public class spritePacker {
                         String name = (prefix ? "final-campaign-" : "") + subFi.nameWithoutExtension();
                         Log.info("spritePacker:   " + name);
                         Pixmap pixmap = new Pixmap(subFi);
+                        Pixmaps.bleed(pixmap, 2);
                         rawPixmap.add(pixmap);
                         packer.pack(name, pixmap);
                     }
@@ -59,34 +60,41 @@ public class spritePacker {
                 if (output.exists()) output.deleteDirectory();
                 output.mkdirs();
 
-                TextureAtlas atlas = packer.generateTextureAtlas(filter, filter, false);
+                //TextureAtlas atlas = packer.generateTextureAtlas(filter, filter, false);
+                packer.updatePageTextures(filter, filter, false);
                 Seq<Pixmap> pixmap = new Seq<>();
                 Seq<Texture> texture = new Seq<>();
                 Seq<regionInfo> region = new Seq<>();
 
                 for (Page page : packer.getPages()) {
+                    int pos = pixmap.size;
                     pixmap.add(page.getPixmap());
                     texture.add(page.getTexture());
-                }
+                    OrderedMap<String, PixmapPackerRect> rects = page.getRects();
 
-                for (AtlasRegion r : atlas.getRegions()) {
-                    int texturePos = texture.indexOf(r.texture, true);
-                    if (texturePos < 0) throw new RuntimeException("texture not found.");
+                    for (String name : rects.keys()) {
+                        regionInfo info = new regionInfo();
+                        PixmapPackerRect rect = rects.get(name);
+                        info.x = (int) rect.x;
+                        info.y = (int) rect.y;
+                        info.width = (int) rect.width;
+                        info.height = (int) rect.height;
 
-                    regionNameLst.add(r.name);
+                        if(rect.splits != null){
+                            info.splits = rect.splits;
+                            info.pads = rect.pads;
+                        }
 
-                    regionInfo info = new regionInfo();
-                    info.texturePos = texturePos;
-                    info.name = r.name;
-                    info.u = r.u;
-                    info.v = r.v;
-                    info.u2 = r.u2;
-                    info.v2 = r.v2;
-                    info.width = r.width;
-                    info.height = r.height;
-                    info.scale = r.scale;
+                        info.name = name;
+                        info.offsetX = Reflect.get(rect, "offsetX");
+                        info.originalHeight = Reflect.get(rect, "originalHeight");
+                        info.originalWidth = Reflect.get(rect, "originalWidth");
+                        info.offsetY = (int)(info.originalHeight - rect.height - (Integer) Reflect.get(rect, "offsetY"));
 
-                    region.add(info);
+                        info.texturePos = pos;
+                        region.add(info);
+                        regionNameLst.add(name);
+                    }
                 }
 
                 for (Pixmap p : pixmap) {
@@ -126,6 +134,11 @@ public class spritePacker {
         dataDir.child("cache").writeBytes(objectData.write(cache));
     }
 
+    public static void clear() {
+        Fi dataDir = finalCampaign.dataDir.child("spritePacker");
+        if (dataDir.exists()) dataDir.deleteDirectory();
+    }
+
     public static void packGenerated(packCache cache) {
         Fi outputDir = (new Fi(cache.outputDir)).child("generated");
         Seq<String> lst = new Seq<>(cache.regionNameLst);
@@ -149,32 +162,41 @@ public class spritePacker {
 
         if (!outputDir.exists()) outputDir.mkdirs();
 
-        TextureAtlas atlas = packer.generateTextureAtlas(filter, filter, false);
+        //TextureAtlas atlas = packer.generateTextureAtlas(filter, filter, false);
+        packer.updatePageTextures(filter, filter, false);
         Seq<regionInfo> regions = new Seq<>();
         Seq<Pixmap> pixmaps = new Seq<>();
         Seq<Texture> textures = new Seq<>();
 
         for (Page page : packer.getPages()) {
+            int pos = pixmaps.size;
             pixmaps.add(page.getPixmap());
             textures.add(page.getTexture());
-        }
+            OrderedMap<String, PixmapPackerRect> rects = page.getRects();
 
-        for (AtlasRegion r : atlas.getRegions()) {
-            int texturePos = textures.indexOf(r.texture, true);
-            if (texturePos < 0) throw new RuntimeException("texture not found.");
+            for (String name : rects.keys()) {
+                regionInfo info = new regionInfo();
+                PixmapPackerRect rect = rects.get(name);
+                info.x = (int) rect.x;
+                info.y = (int) rect.y;
+                info.width = (int) rect.width;
+                info.height = (int) rect.height;
 
-            regionInfo info = new regionInfo();
-            info.texturePos = texturePos;
-            info.name = r.name;
-            info.u = r.u;
-            info.v = r.v;
-            info.u2 = r.u2;
-            info.v2 = r.v2;
-            info.width = r.width;
-            info.height = r.height;
-            info.scale = r.scale;
+                if(rect.splits != null){
+                    info.splits = rect.splits;
+                    info.pads = rect.pads;
+                }
 
-            regions.add(info);
+                info.name = name;
+                info.offsetX = Reflect.get(rect, "offsetX");
+                info.originalHeight = Reflect.get(rect, "originalHeight");
+                info.originalWidth = Reflect.get(rect, "originalWidth");
+                info.offsetY = (int)(info.originalHeight - rect.height - (Integer) Reflect.get(rect, "offsetY"));
+
+                info.texturePos = pos;
+                regions.add(info);
+            }
+
         }
 
         for (Pixmap p : pixmaps) {
@@ -208,13 +230,14 @@ public class spritePacker {
     public static class regionInfo {
         public String name;
         public int texturePos;
-        public float u;
-        public float v;
-        public float u2;
-        public float v2;
+        public int x;
+        public int y;
         public int width;
         public int height;
-        public float scale;
+        public int[] splits;
+        public int[] pads;
+        public int offsetX, offsetY;
+        public int originalWidth, originalHeight;
     }
 
     public static class packCache {

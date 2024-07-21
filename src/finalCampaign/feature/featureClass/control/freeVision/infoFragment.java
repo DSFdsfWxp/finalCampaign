@@ -27,9 +27,9 @@ public class infoFragment extends fragment {
         setWidth(Core.scene.getWidth());
         setPosition(parent.x, parent.y + 20f);
         setHeight(labelHeight + 20f);
-        added(20f, () -> {
+        added(0.4f, () -> {
             Time.run(120f, () -> {
-                remove(20f);
+                remove(0.4f);
             });
         });
     }

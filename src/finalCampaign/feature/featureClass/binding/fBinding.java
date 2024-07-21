@@ -3,7 +3,10 @@ package finalCampaign.feature.featureClass.binding;
 import java.lang.reflect.*;
 import arc.*;
 import arc.struct.*;
+import arc.util.Reflect;
 import arc.KeyBinds.*;
+import arc.input.InputDevice.*;
+import arc.input.*;
 import mindustry.*;
 import mindustry.input.*;
 import mindustry.ui.dialogs.*;
@@ -28,5 +31,22 @@ public class fBinding {
         load.invoke(newKeyBinds);
 
         Vars.ui.controls = new KeybindDialog();
+    }
+
+    public static void clear(String name) {
+        for (KeyBind bind : allKeyBinds) if (bind.name().equals(name)) clear(bind, false);
+    }
+
+    public static void clear(KeyBind name, boolean reload) {
+        Core.keybinds.get(name).key = KeyCode.unknown;
+        Reflect.invoke(Core.keybinds, "save");
+        for (DeviceType type : DeviceType.values()) {
+            Core.settings.put("keybind-default-" + type.name() + "-" + name.name() + "-key", KeyCode.unknown.ordinal());
+        }
+        if (reload) {
+            try {
+                load();
+            } catch(Exception ignore) {}
+        }
     }
 }

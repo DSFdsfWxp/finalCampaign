@@ -57,7 +57,6 @@ public class finalCampaign extends Mod{
 
                 asyncTask.subTask(() -> loadDialog.nextStep("Initializing"));
                 asyncTask.defaultDelay(5f);
-                asyncTask.subTask(patchEngine::init);
                 asyncTask.subTask(bundle::init);
                 asyncTask.subTask(featureLoader::init);
                 asyncTask.subTask(version::init);
@@ -91,8 +90,6 @@ public class finalCampaign extends Mod{
 
                     return;
                 }
-
-                asyncTask.subTask(patchEngine::load);
 
                 asyncTask.subTask(0f, () -> loadDialog.nextStep(bundle.get("load.loadingFeature")));
                 asyncTask.subTask(0f, () -> {

@@ -12,12 +12,9 @@ import arc.util.*;
 import finalCampaign.feature.featureClass.binding.*;
 import finalCampaign.feature.featureClass.control.freeVision.*;
 import finalCampaign.feature.featureClass.fcDesktopInput.*;
-import mindustry.Vars;
-import mindustry.core.World;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
-import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
@@ -67,240 +64,8 @@ public abstract class fcDesktopInput extends InputHandler {
 
     int maxLength = 100;
 
-    void pollInput(){
-        if(scene.hasField()) return;
-
-        Tile selected = fcInputHandleUtil.tileAt(Core.input.mouseX(), Core.input.mouseY());
-        int cursorX = fcInputHandleUtil.tileX(Core.input.mouseX());
-        int cursorY = fcInputHandleUtil.tileY(Core.input.mouseY());
-        int rawCursorX = World.toTile(Core.input.mouseWorld().x), rawCursorY = World.toTile(Core.input.mouseWorld().y);
-
-        //automatically pause building if the current build queue is empty
-        if(Core.settings.getBool("buildautopause") && isBuilding && !player.unit().isBuilding()){
-            isBuilding = false;
-            buildWasAutoPaused = true;
-        }
-
-        if(!selectPlans.isEmpty()){
-            int shiftX = rawCursorX - schematicX, shiftY = rawCursorY - schematicY;
-
-            selectPlans.each(s -> {
-                s.x += shiftX;
-                s.y += shiftY;
-            });
-
-            schematicX += shiftX;
-            schematicY += shiftY;
-        }
-
-        if(Core.input.keyTap(Binding.deselect) && !isPlacing() && player.unit().plans.isEmpty() && !commandMode){
-            player.unit().mineTile = null;
-        }
-
-        if(Core.input.keyTap(Binding.clear_building)){
-            player.unit().clearBuilding();
-        }
-
-        if((Core.input.keyTap(Binding.schematic_select) || Core.input.keyTap(Binding.rebuild_select)) && !Core.scene.hasKeyboard() && mode != breaking){
-            schemX = rawCursorX;
-            schemY = rawCursorY;
-        }
-
-        if(Core.input.keyTap(Binding.schematic_menu) && !Core.scene.hasKeyboard()){
-            if(ui.schematics.isShown()){
-                ui.schematics.hide();
-            }else{
-                ui.schematics.show();
-            }
-        }
-
-        if(Core.input.keyTap(Binding.clear_building) || isPlacing()){
-            lastSchematic = null;
-            selectPlans.clear();
-        }
-
-        if( !Core.scene.hasKeyboard() && selectX == -1 && selectY == -1 && schemX != -1 && schemY != -1){
-            if(Core.input.keyRelease(Binding.schematic_select)){
-                lastSchematic = schematics.create(schemX, schemY, rawCursorX, rawCursorY);
-                useSchematic(lastSchematic);
-                if(selectPlans.isEmpty()){
-                    lastSchematic = null;
-                }
-                schemX = -1;
-                schemY = -1;
-            }else if(input.keyRelease(Binding.rebuild_select)){
-
-                rebuildArea(schemX, schemY, rawCursorX, rawCursorY);
-                schemX = -1;
-                schemY = -1;
-            }
-        }
-
-        if(!selectPlans.isEmpty()){
-            if(Core.input.keyTap(Binding.schematic_flip_x)){
-                flipPlans(selectPlans, true);
-            }
-
-            if(Core.input.keyTap(Binding.schematic_flip_y)){
-                flipPlans(selectPlans, false);
-            }
-        }
-
-        if(splan != null){
-            float offset = ((splan.block.size + 2) % 2) * tilesize / 2f;
-            float x = Core.input.mouseWorld().x + offset;
-            float y = Core.input.mouseWorld().y + offset;
-            splan.x = (int)(x / tilesize);
-            splan.y = (int)(y / tilesize);
-        }
-
-        if(block == null || mode != placing){
-            linePlans.clear();
-        }
-
-        if(Core.input.keyTap(Binding.pause_building)){
-            isBuilding = !isBuilding;
-            buildWasAutoPaused = false;
-
-            if(isBuilding){
-                player.shooting = false;
-                manualShooting = false;
-            }
-        }
-
-        if((cursorX != lastLineX || cursorY != lastLineY) && isPlacing() && mode == placing){
-            updateLine(selectX, selectY);
-            lastLineX = cursorX;
-            lastLineY = cursorY;
-        }
-
-        //select some units
-        if(Core.input.keyRelease(Binding.select) && commandRect){
-            selectUnitsRect();
-        }
-
-        if(Core.input.keyTap(Binding.select) && !Core.scene.hasMouse()){
-            tappedOne = false;
-            BuildPlan plan = getPlan(cursorX, cursorY);
-
-            if(Core.input.keyDown(Binding.break_block)){
-                mode = none;
-            }else if(!selectPlans.isEmpty()){
-                flushPlans(selectPlans);
-            }else if(isPlacing()){
-                selectX = cursorX;
-                selectY = cursorY;
-                lastLineX = cursorX;
-                lastLineY = cursorY;
-                mode = placing;
-                updateLine(selectX, selectY);
-            }else if(plan != null && !plan.breaking && mode == none && !plan.initialized){
-                splan = plan;
-            }else if(plan != null && plan.breaking){
-                deleting = true;
-            }else if(commandMode){
-                commandRect = true;
-                commandRectX = input.mouseWorldX();
-                commandRectY = input.mouseWorldY();
-            }else if(!fcInputHandleUtil.checkConfigTap() && selected != null){
-                //only begin shooting if there's no cursor event
-                if(!fcInputHandleUtil.tryTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y) && !fcInputHandleUtil.tileTapped(selected.build) && !player.unit().activelyBuilding() && !droppingItem
-                    && !(fcInputHandleUtil.tryStopMine(selected) || (!settings.getBool("doubletapmine") || selected == prevSelected && Time.timeSinceMillis(selectMillis) < 500) && fcInputHandleUtil.tryBeginMine(selected)) && !Core.scene.hasKeyboard()){
-                    player.shooting = shouldShoot;
-                    manualShooting = shouldShoot;
-                }
-            }else if(!Core.scene.hasKeyboard()){ //if it's out of bounds, shooting is just fine
-                player.shooting = shouldShoot;
-                manualShooting = shouldShoot;
-            }
-            selectMillis = Time.millis();
-            prevSelected = selected;
-        }else if(Core.input.keyTap(Binding.deselect) && isPlacing()){
-            block = null;
-            mode = none;
-        }else if(Core.input.keyTap(Binding.deselect) && !selectPlans.isEmpty()){
-            selectPlans.clear();
-            lastSchematic = null;
-        }else if(Core.input.keyTap(Binding.break_block) && !Core.scene.hasMouse() && player.isBuilder() && !commandMode){
-            //is recalculated because setting the mode to breaking removes potential multiblock cursor offset
-            deleting = false;
-            mode = breaking;
-            selectX = fcInputHandleUtil.tileX(Core.input.mouseX());
-            selectY = fcInputHandleUtil.tileY(Core.input.mouseY());
-            schemX = rawCursorX;
-            schemY = rawCursorY;
-        }
-
-        if(Core.input.keyDown(Binding.select) && mode == none && !isPlacing() && deleting){
-            var plan = getPlan(cursorX, cursorY);
-            if(plan != null && plan.breaking){
-                player.unit().plans().remove(plan);
-            }
-        }else{
-            deleting = false;
-        }
-
-        if(mode == placing && block != null){
-            if(!overrideLineRotation && !Core.input.keyDown(Binding.diagonal_placement) && (selectX != cursorX || selectY != cursorY) && ((int)Core.input.axisTap(Binding.rotate) != 0)){
-                rotation = ((int)((Angles.angle(selectX, selectY, cursorX, cursorY) + 45) / 90f)) % 4;
-                overrideLineRotation = true;
-            }
-        }else{
-            overrideLineRotation = false;
-        }
-
-        if(Core.input.keyRelease(Binding.break_block) && Core.input.keyDown(Binding.schematic_select) && mode == breaking){
-            lastSchematic = schematics.create(schemX, schemY, rawCursorX, rawCursorY);
-            schemX = -1;
-            schemY = -1;
-        }
-
-        if(Core.input.keyRelease(Binding.break_block) || Core.input.keyRelease(Binding.select)){
-
-            if(mode == placing && block != null){ //touch up while placing, place everything in selection
-                if(input.keyDown(Binding.boost)){
-                    flushPlansReverse(linePlans);
-                }else{
-                    flushPlans(linePlans);
-                }
-
-                linePlans.clear();
-                Events.fire(new LineConfirmEvent());
-            }else if(mode == breaking){ //touch up while breaking, break everything in selection
-                removeSelection(selectX, selectY, cursorX, cursorY, !Core.input.keyDown(Binding.schematic_select) ? maxLength : Vars.maxSchematicSize);
-                if(lastSchematic != null){
-                    useSchematic(lastSchematic);
-                    lastSchematic = null;
-                }
-            }
-            selectX = -1;
-            selectY = -1;
-
-            tryDropItems(selected == null ? null : selected.build, Core.input.mouseWorld().x, Core.input.mouseWorld().y);
-
-            if(splan != null){
-                if(getPlan(splan.x, splan.y, splan.block.size, splan) != null){
-                    player.unit().plans().remove(splan, true);
-                }
-                splan = null;
-            }
-
-            mode = none;
-        }
-
-        if(Core.input.keyTap(Binding.toggle_block_status)){
-            Core.settings.put("blockstatus", !Core.settings.getBool("blockstatus"));
-        }
-
-        if(Core.input.keyTap(Binding.toggle_power_lines)){
-            if(Core.settings.getInt("lasersopacity") == 0){
-                Core.settings.put("lasersopacity", Core.settings.getInt("preferredlaseropacity", 100));
-            }else{
-                Core.settings.put("preferredlaseropacity", Core.settings.getInt("lasersopacity"));
-                Core.settings.put("lasersopacity", 0);
-            }
-        }
-    }
+    @Shadow(remap = false)
+    abstract void pollInput();
 
     @Override
     public void updateState(){
@@ -347,7 +112,7 @@ public abstract class fcDesktopInput extends InputHandler {
         }else{
             Building tile = world.buildWorld(x, y);
 
-            if((tile != null && player.team() != tile.team && (tile.team != Team.derelict || state.rules.coreCapture)) || (tile != null && player.unit().type.canHeal && tile.team == player.team() && tile.damaged())){
+            if((tile != null && player.team() != tile.team && (tile.team != Team.derelict || state.rules.coreCapture) && !player.unit().type.canHeal) || (tile != null && player.unit().type.canHeal && tile.team == player.team() && tile.damaged())){
                 player.unit().mineTile = null;
                 target = tile;
             }
@@ -682,7 +447,7 @@ public abstract class fcDesktopInput extends InputHandler {
                     if(manualShooting){
                         player.shooting = !boosted;
                         unit.aim(player.mouseX = Core.input.mouseWorldX(), player.mouseY = Core.input.mouseWorldY());
-                    }else if(!(player.unit() instanceof BlockUnitUnit u && u.tile() instanceof ControlBlock c && !c.shouldAutoTarget())){
+                    }else if(!(player.unit() instanceof BlockUnitUnit u && u.tile() instanceof ControlBlock c && !c.shouldAutoTarget()) && fFreeVision.autoTargetingEnabled()){
                         if(player.unit().type.canAttack){
                             target = Units.closestTarget(unit.team, unit.x, unit.y, range, (u) -> u.checkTarget(type.targetAir, type.targetGround), (u) -> type.targetGround);
                         }
@@ -690,7 +455,7 @@ public abstract class fcDesktopInput extends InputHandler {
                         if(allowHealing && target == null){
                             target = Geometry.findClosest(unit.x, unit.y, indexer.getDamaged(player.team()));
                             if(target != null && !unit.within(target, range)){
-                                player.shooting = false;
+                                //player.shooting = false;
                                 target = null;
                             }
                         }

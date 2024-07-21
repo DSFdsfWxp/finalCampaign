@@ -13,33 +13,14 @@ import finalCampaign.util.*;
 import mindustry.*;
 import mindustry.gen.*;
 import mindustry.input.*;
-import mindustry.core.GameState.*;
-import mindustry.game.EventType.*;
 
 public class crosshairFragment extends fragment {
     private boolean lastMoving, moving;
-    private boolean isOn, usingPoint, invertColor;
-    private float movingOpacity, staticOpacity;
-    private float scaleX, scaleY;
-    private Color customColor;
 
     public crosshairFragment(Group parent) {
         super(parent);
         lastMoving = true;
         moving = false;
-
-        Events.on(StateChangeEvent.class, e -> {
-            if (e.to == State.playing) {
-                movingOpacity = fCrosshair.movingOpacity();
-                staticOpacity = fCrosshair.staticOpacity();
-                scaleX = fCrosshair.scaleX();
-                scaleY = fCrosshair.scaleY();
-                usingPoint = fCrosshair.usingPoint();
-                invertColor = fCrosshair.isInvertColor();
-                customColor = fCrosshair.color();
-                isOn = fCrosshair.isOn();
-            }
-        });
     }
 
     public void checkMoving() {
@@ -50,29 +31,30 @@ public class crosshairFragment extends fragment {
     @Override
     public void draw() {
         super.draw();
-        if (!isOn) return;
+        if (!fCrosshair.isOn()) return;
 
         if ((moving || Vars.state.isPaused()) != lastMoving) {
             lastMoving = !lastMoving;
 
             if (lastMoving) {
-                actions(Actions.alpha(movingOpacity, 30f));
+                actions(Actions.alpha(fCrosshair.movingOpacity(), 0.4f));
             } else {
-                actions(Actions.alpha(staticOpacity, 30f));
+                actions(Actions.alpha(fCrosshair.staticOpacity(), 0.4f));
             }
         }
 
-        final int dotHeight = (int)(4 * scaleY);
-        final int dotWidth = (int)(4 * scaleX);
-        final int crossHeight = (int)(4 * scaleY);
-        final int crossWidth = (int)(20 * scaleX);
+        final int dotHeight = (int)(4 * fCrosshair.scaleY());
+        final int dotWidth = (int)(4 * fCrosshair.scaleX());
+        final int crossHeight = (int)(4 * fCrosshair.scaleY());
+        final int crossWidth = (int)(20 * fCrosshair.scaleX());
         final float cY = (layout.getSceneHeight() - this.y) / 2f;
         final float cX = (layout.getSceneWidth() - this.x) / 2f;
         
-        if (invertColor) {
+        if (fCrosshair.isInvertColor()) {
             shaders.crosshair.a = color.a;
             Draw.shader(shaders.crosshair);
         } else {
+            Color customColor = fCrosshair.color();
             Draw.color(customColor.cpy().a(customColor.a * color.a));
         }
 
@@ -81,8 +63,8 @@ public class crosshairFragment extends fragment {
         Texture texture1 = null;
         Texture texture2 = null;
 
-        if (invertColor) {
-            if (usingPoint) {
+        if (fCrosshair.isInvertColor()) {
+            if (fCrosshair.usingPoint()) {
                 final int length = dotHeight * dotWidth * 4;
     
                 int x = (int)(cX - dotWidth / 2);
@@ -112,7 +94,7 @@ public class crosshairFragment extends fragment {
                 Draw.rect(new TextureRegion(texture2), cX, cY, crossWidth, crossHeight);
             }
         } else {
-            if (usingPoint) {
+            if (fCrosshair.usingPoint()) {
                 Fill.rect(cX, cY, dotWidth, dotHeight);
             } else {
                 Fill.rect(cX, cY, crossHeight, crossWidth);
@@ -120,7 +102,7 @@ public class crosshairFragment extends fragment {
             }
         }
 
-        if (invertColor) {
+        if (fCrosshair.isInvertColor()) {
             Draw.shader();
 
             if (texture1 != null) texture1.dispose();

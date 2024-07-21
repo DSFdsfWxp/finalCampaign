@@ -27,15 +27,15 @@ public class fragment extends Table {
     }
 
     public void added() {
-        added(false, 0f, null, null);
+        added(false, 0f, Interp.fade, null);
     }
 
     public void added(float fadeInDuration) {
-        added(true, fadeInDuration, null, null);
+        added(true, fadeInDuration, Interp.fade, null);
     }
 
     public void added(float fadeInDuration, Runnable callback) {
-        added(true, fadeInDuration, null, callback);
+        added(true, fadeInDuration, Interp.fade, callback);
     }
 
     public void added(boolean fadeIn, float duration, @Nullable Interp interpolation, @Nullable Runnable callback) {
@@ -66,11 +66,11 @@ public class fragment extends Table {
     }
 
     public void remove(float fadeOutDuration) {
-        remove(true, fadeOutDuration, null, null);
+        remove(true, fadeOutDuration, Interp.fade, null);
     }
 
     public void remove(float fadeOutDuration, Runnable callback) {
-        remove(true, fadeOutDuration, null, callback);
+        remove(true, fadeOutDuration, Interp.fade, callback);
     }
     
     public boolean remove(boolean fadeOut, float duration, @Nullable Interp interpolation, @Nullable Runnable callback) {
@@ -94,11 +94,5 @@ public class fragment extends Table {
 
         removed = true;
         return true;
-    }
-
-    @Override
-    public void draw() {
-        act(Time.delta);
-        super.draw();
     }
 }

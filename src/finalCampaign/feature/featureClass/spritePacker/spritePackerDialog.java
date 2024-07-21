@@ -28,5 +28,10 @@ public class spritePackerDialog {
                 }
             });
         }).width(100f).padTop(10f).center();
+        table.row();
+        table.button("Clear Status", () -> {
+            spritePacker.clear();
+            Vars.ui.showOkText("Pack", "Cleared.", () -> {});
+        }).width(100f).padTop(10f).center();
     }
 }
