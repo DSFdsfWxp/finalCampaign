@@ -6,7 +6,11 @@
         "fcContentLoader",
         "fcDesktopInput",
         "fcPlatform",
-        "fcPlacementFragment"
+        "fcPlacementFragment",
+        "fcBuilding",
+        "fcPowerGraph",
+        "fcPowerModule",
+        "fcItemModule"
     ],
     "client": [
 	]

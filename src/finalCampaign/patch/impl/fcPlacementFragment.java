@@ -12,6 +12,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import finalCampaign.feature.featureClass.blockShortcut.*;
+import finalCampaign.feature.featureClass.control.setMode.fSetMode;
 import mindustry.*;
 import mindustry.ai.*;
 import mindustry.core.*;
@@ -96,7 +97,8 @@ public abstract class fcPlacementFragment {
     public void build(Group parent){
         parent.fill(full -> {
             toggler = full;
-            full.bottom().right().visible(() -> ui.hudfrag.shown);
+            full.bottom().right().visible(() -> ui.hudfrag.shown && !fSetMode.isOn());
+            full.name = "fcPlacementFragment";
 
             full.table(frame -> {
 

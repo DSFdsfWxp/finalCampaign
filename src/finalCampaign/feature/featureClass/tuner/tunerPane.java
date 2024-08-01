@@ -68,7 +68,7 @@ public class tunerPane extends Table {
             cont.clear();
 
             cont.pane((t) -> content = t).width(650f).scrollX(false);
-            content.setWidth(600f);
+            content.setWidth(Scl.scl(600f));
 
             load(false);
 

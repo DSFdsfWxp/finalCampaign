@@ -72,4 +72,24 @@ public class bundle {
     public static String format(String name, Object ...args) {
         return Core.bundle.format("finalCampaign." + name, args);
     }
+
+    public static class bundleNS {
+        private final String namespace;
+        
+        public bundleNS(String namespace) {
+            this.namespace = namespace;
+        }
+
+        public bundleNS appendNS(String ns) {
+            return new bundleNS(namespace + "." + ns);
+        }
+
+        public String get(String name) {
+            return bundle.get(namespace + "." + name);
+        }
+
+        public String format(String name, Object ...args) {
+            return bundle.format(namespace + "." + name, args);
+        }
+    }
 }

@@ -61,7 +61,12 @@ public class injector {
             
         Fi configFi = gameJar.parent().child("fcConfig.bin");
         if (configFi.exists()) {
-            if (!bothLauncherVersion.toDesktopVersionString().equals(bothConfigUtil.read(configFi.read()).version)) return false;
+            try {
+                if (!bothLauncherVersion.toDesktopVersionString().equals(bothConfigUtil.read(configFi.read()).version)) return false;
+            } catch(Exception e) {
+                Log.err(e);
+                return false;
+            }
             return true;
         } else {
             return false;

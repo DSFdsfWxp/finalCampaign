@@ -6,11 +6,12 @@ import arc.files.*;
 import finalCampaign.dialog.*;
 import finalCampaign.feature.*;
 import finalCampaign.graphics.*;
-import finalCampaign.launch.injector;
+import finalCampaign.launch.*;
+import finalCampaign.net.*;
 import finalCampaign.util.*;
 import mindustry.mod.*;
 import mindustry.mod.Mods.*;
-import mindustry.Vars;
+import mindustry.*;
 import mindustry.game.EventType.*;
 
 import static mindustry.Vars.*;
@@ -61,6 +62,7 @@ public class finalCampaign extends Mod{
                 asyncTask.subTask(featureLoader::init);
                 asyncTask.subTask(version::init);
                 asyncTask.subTask(atlas::init);
+                asyncTask.subTask(fcCall::register);
 
                 asyncTask.defaultDelay(10f);
                 asyncTask.subTask(0f, () -> loadDialog.nextStep("Loading bundle"));

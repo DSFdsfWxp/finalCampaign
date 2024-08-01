@@ -1,6 +1,8 @@
 package finalCampaign.patch.impl;
 
 import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.callback.*;
 import arc.*;
 import arc.Graphics.*;
 import arc.Graphics.Cursor.*;
@@ -11,6 +13,7 @@ import arc.math.geom.*;
 import arc.util.*;
 import finalCampaign.feature.featureClass.binding.*;
 import finalCampaign.feature.featureClass.control.freeVision.*;
+import finalCampaign.feature.featureClass.control.setMode.fSetMode;
 import finalCampaign.feature.featureClass.fcDesktopInput.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -66,6 +69,11 @@ public abstract class fcDesktopInput extends InputHandler {
 
     @Shadow(remap = false)
     abstract void pollInput();
+
+    @Inject(method = "drawTop", at = @At("HEAD"), remap = false)
+    public void fcDrawTopInject(CallbackInfo ci) {
+        for (Runnable handle : fFcDesktopInput.drawTopHandleLst) handle.run();
+    }
 
     @Override
     public void updateState(){
@@ -290,7 +298,7 @@ public abstract class fcDesktopInput extends InputHandler {
         }
 
         pollInput();
-        for (bindingHandle handle : fFcDesktopInput.handleLst) handle.run();
+        for (bindingHandle handle : fFcDesktopInput.bindingHandleLst) handle.run();
 
         //deselect if not placing
         if(!isPlacing() && mode == placing){
@@ -390,13 +398,15 @@ public abstract class fcDesktopInput extends InputHandler {
             }
     
             float mouseAngle = Angles.mouseAngle(unit.x, unit.y);
-            boolean aimCursor = omni && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !boosted;
+            boolean aimCursor = omni && player.shooting && unit.type.hasWeapons() && unit.type.faceTarget && !boosted && !fSetMode.isOn();
     
             if(aimCursor){
                 unit.lookAt(mouseAngle);
             }else{
                 unit.lookAt(unit.prefRotation());
             }
+
+            if (fSetMode.isOn()) player.shooting = false;
     
             unit.movePref(movement);
     
@@ -408,7 +418,7 @@ public abstract class fcDesktopInput extends InputHandler {
             player.mouseY = unit.aimY();
         } else {
             float mouseAngle = unit.angleTo(unit.aimX(), unit.aimY());
-            boolean aimCursor = omni && player.shooting && type.hasWeapons() && !boosted && type.faceTarget;
+            boolean aimCursor = omni && player.shooting && type.hasWeapons() && !boosted && type.faceTarget && !fSetMode.isOn();
 
             if((Units.invalidateTarget(target, unit, type.range) && !validHealTarget) || state.isEditor()){
                 if (target != null) player.shooting = false;
@@ -474,6 +484,8 @@ public abstract class fcDesktopInput extends InputHandler {
                     unit.aim(player.mouseX, player.mouseY);
                 }
             }
+
+            if (fSetMode.isOn()) player.shooting = false;
     
             unit.controlWeapons(true, player.shooting && !boosted);
 

@@ -11,6 +11,7 @@ public class infoFragment extends fragment {
     private float labelHeight;
 
     public infoFragment() {
+        this.name = "fcFreeVisionInfo";
         table((t) -> {
             t.setFillParent(false);
             t.defaults().left();

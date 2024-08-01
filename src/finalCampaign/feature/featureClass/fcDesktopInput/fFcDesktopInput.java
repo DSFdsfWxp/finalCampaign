@@ -4,11 +4,13 @@ import arc.struct.*;
 import finalCampaign.feature.featureClass.binding.*;
 
 public class fFcDesktopInput {
-    public static Seq<bindingHandle> handleLst;
+    public static Seq<bindingHandle> bindingHandleLst;
+    public static Seq<Runnable> drawTopHandleLst;
     private static boolean inited = false;
 
     public static void init() {
-        handleLst = new Seq<>();
+        bindingHandleLst = new Seq<>();
+        drawTopHandleLst = new Seq<>();
     }
 
     public static void load() {
@@ -17,6 +19,11 @@ public class fFcDesktopInput {
 
     public static void addBindingHandle(bindingHandle handle) {
         if (!inited) return;
-        if (!handleLst.contains(handle)) handleLst.add(handle);
+        if (!bindingHandleLst.contains(handle)) bindingHandleLst.add(handle);
+    }
+
+    public static void addDrawTopHandle(Runnable handle) {
+        if (!inited) return;
+        if (!drawTopHandleLst.contains(handle)) drawTopHandleLst.add(handle);
     }
 }

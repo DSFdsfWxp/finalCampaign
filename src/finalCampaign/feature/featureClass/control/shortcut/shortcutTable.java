@@ -23,6 +23,7 @@ public class shortcutTable extends Table {
     private Field hoverBlock;
     
     public shortcutTable() {
+        this.name = "fcShortcut";
         super.visibility = () -> Vars.ui.hudfrag.shown && fShortcut.isOn() && !Vars.control.input.commandMode;
         setBackground(Tex.pane);
         setSize(Scl.scl(248f), Scl.scl(110f));

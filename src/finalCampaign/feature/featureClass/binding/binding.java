@@ -18,7 +18,9 @@ public enum binding implements KeyBind {
     blockShortcut_7(KeyCode.num7),
     blockShortcut_8(KeyCode.num8),
     blockShortcut_9(KeyCode.num9),
-    blockShortcut_10(KeyCode.num0)
+    blockShortcut_10(KeyCode.num0),
+
+    setMode(KeyCode.controlLeft)
     ;
     
     private final KeybindValue defaultValue;

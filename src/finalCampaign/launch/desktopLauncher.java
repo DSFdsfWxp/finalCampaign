@@ -31,7 +31,15 @@ public class desktopLauncher extends shareLauncher {
         shareFi path = shareMixinService.thisJar.parent();
         shareFi configFi = path.child("fcConfig.bin");
 
-        bothConfigUtil.config config = bothConfigUtil.read(configFi.read());
+        bothConfigUtil.config config = null;
+        try {
+            config = bothConfigUtil.read(configFi.read());
+        } catch (Exception e) {
+            Log.err(e);
+            configFi.delete();
+            Log.info("  Maybe a update is needed.");
+        }
+
         mindustryCore = path.child(config.gameJarName);
 
         dataDir = new shareFi(config.dataDir);
