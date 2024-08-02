@@ -79,8 +79,7 @@ public class shortcutTable extends Table {
                     Building core = Vars.player.core();
                     Color color = (Vars.state.rules.infiniteResources || (core != null && (core.items.has(blocks[pos].requirements, Vars.state.rules.buildCostMultiplier) || Vars.state.rules.infiniteResources))) && Vars.player.isBuilder() ? Color.white : Color.gray;
                     button.forEach(elem -> elem.setColor(color));
-                    button.setChecked(Vars.control.input.block == blocks[pos]);
-                    group.setUncheckLast(true);
+                    if (!group.getChecked().name.equals(button.name)) button.setChecked(Vars.control.input.block == blocks[pos]);
 
                     if(invalidBlock(blocks[pos])){
                         button.forEach(elem -> elem.setColor(Color.darkGray));
@@ -91,6 +90,7 @@ public class shortcutTable extends Table {
                     if (hoverBlock != null && blocks[pos] != null) {
                         try {
                             hoverBlock.set(Vars.ui.hudfrag.blockfrag, blocks[pos]);
+                            fBlockShortcut.forceIgnoreCheck = true;
                         } catch(Exception ignore) {}
                     }
                 });
@@ -100,6 +100,7 @@ public class shortcutTable extends Table {
                         try {
                             if (hoverBlock.get(Vars.ui.hudfrag.blockfrag) == blocks[pos]) {
                                 hoverBlock.set(Vars.ui.hudfrag.blockfrag, null);
+                                fBlockShortcut.forceIgnoreCheck = false;
                             }
                         } catch(Exception ignore) {}
                     }

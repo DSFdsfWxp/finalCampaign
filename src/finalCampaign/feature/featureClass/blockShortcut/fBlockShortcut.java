@@ -3,7 +3,7 @@ package finalCampaign.feature.featureClass.blockShortcut;
 import finalCampaign.*;
 import finalCampaign.feature.featureClass.binding.*;
 import finalCampaign.feature.featureClass.fcDesktopInput.*;
-import finalCampaign.feature.featureClass.tuner.fTuner;
+import finalCampaign.feature.featureClass.tuner.*;
 import finalCampaign.feature.featureClass.tuner.fTuner.*;
 import mindustry.*;
 import mindustry.core.GameState.*;
@@ -22,6 +22,7 @@ public class fBlockShortcut {
     private static boolean isOn;
     private static config config;
     private static Binding[] bindings;
+    public static boolean forceIgnoreCheck;
 
     public static class config {
         public boolean disableGameBlockSelect = false;
@@ -43,6 +44,7 @@ public class fBlockShortcut {
         keyLst.add(binding.blockShortcut_10);
 
         isOn = false;
+        forceIgnoreCheck = false;
         config = new config();
 
         String[] subFeatures = new String[] {"roulette", "shortcut"};
@@ -62,8 +64,6 @@ public class fBlockShortcut {
     }
 
     public static void load() {
-        //for (int i=1; i<=10; i++) fBinding.clear("block_select_" + (i < 10 ? "0" + Integer.toString(i) : Integer.toString(i)));
-
         for (int i=0; i<10; i++) blockLst[i] = Vars.content.block(setting.getAndCast("blockShortcut.lst." + Integer.toString(i), ""));
 
         fTuner.add("blockShortcut", config);
@@ -80,6 +80,8 @@ public class fBlockShortcut {
     }
 
     private static void checkAndSave(int id) {
+        if (forceIgnoreCheck) return;
+        
         Block block = Reflect.get(Vars.ui.hudfrag.blockfrag, "menuHoverBlock");
         if (block != null) {
             if (blockLst[id] == block) {
@@ -91,6 +93,8 @@ public class fBlockShortcut {
             }
             
             Events.fire(new shortcutChangeEvent(blockLst[id], id));
+        } else {
+            if (blockLst[id] != null) Vars.control.input.block = blockLst[id];
         }
     }
 

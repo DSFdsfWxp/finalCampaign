@@ -66,10 +66,12 @@ public class bundle {
     }
 
     public static String get(String name) {
+        if (name.startsWith("@")) name = name.substring(1);
         return Core.bundle.get("finalCampaign." + name);
     }
 
     public static String format(String name, Object ...args) {
+        if (name.startsWith("@")) name = name.substring(1);
         return Core.bundle.format("finalCampaign." + name, args);
     }
 
@@ -85,10 +87,12 @@ public class bundle {
         }
 
         public String get(String name) {
+            if (name.startsWith("@")) name = name.substring(1);
             return bundle.get(namespace + "." + name);
         }
 
         public String format(String name, Object ...args) {
+            if (name.startsWith("@")) name = name.substring(1);
             return bundle.format(namespace + "." + name, args);
         }
     }
