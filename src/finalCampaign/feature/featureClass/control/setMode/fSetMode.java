@@ -84,6 +84,12 @@ public class fSetMode {
                     y = Core.input.mouseWorldY();
                     selectedNumDelta = 0;
                 } else {
+                    float ox, oy, ow, oh;
+                    ox = fSetMode.x;
+                    oy = fSetMode.y;
+                    ow = fSetMode.w;
+                    oh = fSetMode.h;
+                    
                     w = Core.input.mouseWorldX();
                     y = Core.input.mouseWorldY();
     
@@ -100,12 +106,22 @@ public class fSetMode {
 
                     if (w <= 0) w = Vars.tilesize;
                     if (h <= 0) h = Vars.tilesize;
+                    if (ow <=0) ow = Vars.tilesize;
+                    if (oh <=0) oh = Vars.tilesize;
 
                     int wx, wy, ww, wh;
                     wx = (int)(x / Vars.tilesize);
                     wy = (int)(y / Vars.tilesize);
                     ww = (int)(w / Vars.tilesize);
                     wh = (int)(h / Vars.tilesize);
+
+                    int owx, owy, oww, owh;
+                    owx = (int)(ox / Vars.tilesize);
+                    owy = (int)(oy / Vars.tilesize);
+                    oww = (int)(ow / Vars.tilesize);
+                    owh = (int)(oh / Vars.tilesize);
+
+                    if (wx == owx && wy == owy && ww == oww && wh == owh) return;
                     
                     for (int py=0; py<wh; py++) {
                         for (int px=0; px<ww; px++) {

@@ -15,6 +15,7 @@ import finalCampaign.ui.*;
 import finalCampaign.util.*;
 import mindustry.*;
 import mindustry.ctype.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
@@ -44,13 +45,9 @@ public class itemStack extends iFeature {
     public void buildUI(Building[] selected, Table table, bundleNS bundleNS) {
         Building building = selected[0];
         IFcBuilding fcBuilding = (IFcBuilding) building;
-        timer rebuildTimer = new timer();
 
         if (building instanceof BaseTurretBuild) {
-            fakeFinal<Item> currentItem = new fakeFinal<>();
-            Collapser col = new Collapser(new Table(), true);
-            fakeFinal<Runnable> rebuildCol = new fakeFinal<>();
-
+            timer rebuildTimer = new timer();
             table.table().update(t -> {
                 if (rebuildTimer.marked()) if (rebuildTimer.sTime() < 0.2f || ((dragLayout) rebuildTimer.customObject).dragging()) return;
                 rebuildTimer.mark();
@@ -76,11 +73,6 @@ public class itemStack extends iFeature {
                         it.color.set(ie.item.color);
                         it.image(ie.item.uiIcon).size(32f).scaling(Scaling.fit).center().get().addListener(new forwardEventListener(it));
                         it.addListener(new dragHandle(it, layout));
-                        it.clicked(() -> {
-                            currentItem.set(ie.item);
-                            rebuildCol.get().run();
-                            col.toggle();
-                        });
                         layout.addChild(it);
                         map.put(it, ie);
                     }
@@ -133,67 +125,20 @@ public class itemStack extends iFeature {
                     });
                 }
             }).center().row();
-
-            col.setTable(new Table(tc -> {
-                tc.setWidth(Scl.scl(172f));
-
-                rebuildCol.set(() -> {
-                    tc.clear();
-
-                    Item current = currentItem.get();
-                    Player player = Vars.player;
-                    if (current == null || player == null) return;
-                    if (player.dead()) return;
-                    Unit unit = player.unit();
-                    int capacity = unit.type.itemCapacity;
-                    ItemTurretBuild turretBuild = (ItemTurretBuild) building;
-                    fakeFinal<AmmoEntry> entry = new fakeFinal<>(); 
-
-                    tc.image(current.uiIcon).size(32f).scaling(Scaling.fit).left();
-                    tc.add(current.localizedName).padLeft(4f).width(100f).wrap().growY().left();
-                    for (AmmoEntry ae : turretBuild.ammo) {
-                        ItemEntry ie = (ItemEntry) ae;
-                        if (ie.item != current) continue;
-                        entry.set(ae);
-                        tc.add(Integer.toString(ie.amount)).update(l -> l.setText(Integer.toString(ie.amount))).width(32f).wrap().growY().right();
-                        break;
-                    }
-                    tc.row();
-
-                    if (capacity <= 0) {
-                        tc.add(bundleNS.get("invalidPlayerUnit")).color(Color.lightGray).colspan(3).padTop(8f).center();
-                    } else {
-                        textSlider slider = tc.add(new textSlider(bundleNS.get("num"), 0, 0, capacity, 1f, 172f)).padTop(8f).colspan(3).center().get();
-                        tc.row();
-                        tc.table(butt -> {
-                            TextField field = butt.field("0", txt -> slider.value(Integer.parseInt(txt))).valid(value -> Strings.canParsePositiveInt(value)).width(50f).left().get();
-                            slider.changed(() -> field.setText(Float.toString(slider.value())));
-                            butt.button(bundleNS.get("take"), () -> {
-                                int taken = (int) Math.min(entry.get().amount, slider.value());
-                                taken = Math.min(taken, unit.maxAccepted(current));
-                                Call.requestItem(player, building, current, taken);
-                            }).left().width(50f).padLeft(5f);
-                            butt.button(bundleNS.get("remove"), () -> {
-                                int removed = (int) Math.min(entry.get().amount, slider.value());
-                                removed = Math.min(removed, unit.itemCapacity() - unit.stack.amount);
-                                fcCall.setTurretAmmo(unit, building, current, -removed);
-                            }).padLeft(5f).width(50f).left();
-                        }).center().colspan(3).padTop(4f);
-                    }
-                });
-
-                rebuildCol.get().run();
-            }));
-
-            table.add(col).center().row();
         }
 
         {
+            timer rebuildTimer = new timer();
             fakeFinal<Item> currentItem = new fakeFinal<>();
+            fakeFinal<Item> currentItemAmmo = new fakeFinal<>();
             fakeFinal<Liquid> currentLiquid = new fakeFinal<>();
             fakeFinal<Boolean> currentPower = new fakeFinal<>();
             Collapser col = new Collapser(new Table(), true);
+            Collapser addCol = new Collapser(new Table(), true);
             fakeFinal<Runnable> rebuildCol = new fakeFinal<>();
+            fakeFinal<Runnable> rebuildAddCol = new fakeFinal<>();
+            fakeFinal<Float> currentAmount = new fakeFinal<>(0f);
+            fakeFinal<Boolean> currentAmountInfinity = new fakeFinal<>(false);
 
             table.table().update(t -> {
                 if (rebuildTimer.sTime() < 0.2f) return;
@@ -210,11 +155,42 @@ public class itemStack extends iFeature {
                             tt.add(item.localizedName).left().row();
                             tt.add(num == Integer.MAX_VALUE ? "∞" : Integer.toString(num)).color(Color.lightGray).left();
                         }).get().clicked(() -> {
+                            if (currentItem.get() == item) {
+                                col.setCollapsed(true);
+                                return;
+                            }
                             currentItem.set(item);
+                            currentItemAmmo.set(null);
                             currentLiquid.set(null);
                             currentPower.set(false);
+                            currentAmount.set((float) num);
+                            currentAmountInfinity.set(num == Integer.MAX_VALUE);
                             rebuildCol.get().run();
-                            col.toggle();
+                            if (col.isCollapsed()) col.setCollapsed(false);
+                        });
+                        if (++ count % 5 == 0) t.row();
+                    }
+                }
+
+                if (building instanceof ItemTurretBuild itb) {
+                    for (AmmoEntry ae : itb.ammo) {
+                        ItemEntry ie = (ItemEntry) ae;
+                        t.add(new ItemImage(ie.item.uiIcon, ie.amount)).padRight(8).tooltip(tt -> {
+                            tt.add(ie.item.localizedName).left().row();
+                            tt.add(ie.amount == Integer.MAX_VALUE ? "∞" : Integer.toString(ie.amount)).color(Color.lightGray).left();
+                        }).get().clicked(() -> {
+                            if (currentItem.get() == ie.item) {
+                                col.setCollapsed(true);
+                                return;
+                            }
+                            currentItem.set(null);
+                            currentItemAmmo.set(ie.item);
+                            currentLiquid.set(null);
+                            currentPower.set(false);
+                            currentAmount.set((float) ie.amount);
+                            currentAmountInfinity.set(ie.amount == Integer.MAX_VALUE);
+                            rebuildCol.get().run();
+                            if (col.isCollapsed()) col.setCollapsed(false);
                         });
                         if (++ count % 5 == 0) t.row();
                     }
@@ -228,11 +204,18 @@ public class itemStack extends iFeature {
                             tt.add(liquid.localizedName).left().row();
                             tt.add(amount == Float.POSITIVE_INFINITY ? "∞" : Float.toString(amount)).color(Color.lightGray).left();
                         }).get().clicked(() -> {
+                            if (currentLiquid.get() == liquid) {
+                                col.setCollapsed(true);
+                                return;
+                            }
                             currentItem.set(null);
+                            currentItemAmmo.set(null);
                             currentLiquid.set(liquid);
                             currentPower.set(false);
+                            currentAmount.set(amount);
+                            currentAmountInfinity.set(amount == Float.POSITIVE_INFINITY);
                             rebuildCol.get().run();
-                            col.toggle();
+                            if (col.isCollapsed()) col.setCollapsed(false);
                         });
                         if (++ count % 5 == 0) t.row();
                     }
@@ -245,88 +228,245 @@ public class itemStack extends iFeature {
                             tt.add(Core.bundle.get("unit.powerunits")).row();
                             tt.add(amount == Float.POSITIVE_INFINITY ? "∞" : Float.toString(amount)).color(Color.lightGray).left();
                         }).get().clicked(() -> {
+                            if (currentPower.get()) {
+                                col.setCollapsed(true);
+                                return;
+                            }
                             currentItem.set(null);
+                            currentItemAmmo.set(null);
                             currentLiquid.set(null);
                             currentPower.set(true);
+                            currentAmount.set(amount);
+                            currentAmountInfinity.set(amount == Float.POSITIVE_INFINITY);
                             rebuildCol.get().run();
-                            col.toggle();
+                            if (col.isCollapsed()) col.setCollapsed(false);
                         });
                         if (++ count % 5 == 0) t.row();
                     }
                 }
+
+                if (Vars.state.rules.mode() == Gamemode.sandbox) {
+                    t.image(Icon.add).size(32f).scaling(Scaling.fit).padRight(8f).get().clicked(() -> {
+                        currentItem.set(null);
+                        currentItemAmmo.set(null);
+                        currentLiquid.set(null);
+                        currentPower.set(false);
+                        currentAmount.set(0f);
+                        currentAmountInfinity.set(false);
+                        if (!col.isCollapsed()) col.setCollapsed(true);
+                        addCol.toggle();
+                        if (!addCol.isCollapsed()) rebuildAddCol.get().run();
+                    });
+                    if (++ count % 5 == 0) t.row();
+                }
             }).center();
 
-            col.setTable(new Table(tc -> {
-                tc.setWidth(Scl.scl(172f));
+            col.setTable(new Table(ctc -> {
+                ctc.setWidth(Scl.scl(172f));
+                ctc.setBackground(Tex.sliderBack);
 
                 rebuildCol.set(() -> {
-                    tc.clear();
+                    ctc.clear();
 
-                    fakeFinal<UnlockableContent> selectedContent = new fakeFinal<>();
+                    ctc.table(tc -> {
+                        fakeFinal<UnlockableContent> selectedContent = new fakeFinal<>();
 
-                    if (currentItem.get() != null) {
-                        Item current = currentItem.get();
-                        selectedContent.set(current);
-                        tc.image(current.uiIcon).size(32f).scaling(Scaling.fit).left();
-                        tc.add(current.localizedName).left().padLeft(4f).width(100f).wrap().growY();
-                        tc.add("").right().width(32f).wrap().growY().update(l -> l.setText(Integer.toString(building.items.get(current)))).row();
-                    }
-                    if (currentLiquid.get() != null) {
-                        Liquid current = currentLiquid.get();
-                        selectedContent.set(current);
-                        tc.image(current.uiIcon).size(32f).scaling(Scaling.fit).left();
-                        tc.add(current.localizedName).left().padLeft(4f).width(100f).wrap().growY();
-                        tc.add("").right().width(32f).wrap().growY().update(l -> l.setText(Float.toString(building.liquids.get(current)))).row();
-                    }
-                    if (currentPower.get()) {
-                        selectedContent.set(null);
-                        tc.image(Vars.ui.getIcon(Category.power.name()).getRegion()).color(Pal.accent).size(32f).scaling(Scaling.fit).left();
-                        tc.add(Core.bundle.get("unit.powerunits")).left().padLeft(4f).width(100f).wrap().growY();
-                        if (building.block.consPower != null) tc.add("").right().width(32f).wrap().growY().update(l -> l.setText(Float.toString(building.power.status * building.block.consPower.capacity)));
-                        tc.row();
-                    }
-
-                    Player player = Vars.player;
-                    if (player.dead()) return;
-                    Unit unit = player.unit();
-                    int capacity = unit.type.itemCapacity;
-
-                    if (capacity <= 0) {
-                        tc.add(bundleNS.get("invalidPlayerUnit")).color(Color.lightGray).colspan(3).padTop(8f).center();
-                    } else {
-                        textSlider slider = tc.add(new textSlider(bundleNS.get("num"), 0, 0, capacity, 1f, 172f)).width(172f).padTop(8f).center().colspan(3).get();
-                        tc.row();
-                        tc.table(butt -> {
-                            TextField field = butt.field("0", txt -> slider.value(Integer.parseInt(txt))).valid(value -> Strings.canParsePositiveInt(value)).width(50f).left().get();
-                            slider.changed(() -> field.setText(Float.toString(slider.value())));
-                            butt.button(bundleNS.get("take"), () -> {
-                                if (selectedContent.get() instanceof Item item) {
-                                    int taken = (int) Math.min(building.items.get(item), slider.value());
-                                    taken = Math.min(taken, unit.maxAccepted(item));
-                                    Call.requestItem(player, building, item, taken);
-                                } else if (selectedContent.get() instanceof Liquid liquid) {
-                                    float taken = Math.min(building.liquids.get(liquid), capacity);
-                                    fcCall.takeLiquid(unit, building, liquid, taken);
-                                } else if (currentPower.get() && building.block.consPower != null) {
-                                    float taken = Math.min(building.power.status * building.block.consPower.capacity, capacity);
-                                    fcCall.takePower(unit, building, taken);
+                        if (currentItem.get() != null) {
+                            Item current = currentItem.get();
+                            selectedContent.set(current);
+                            tc.image(current.uiIcon).size(32f).scaling(Scaling.fit).left();
+                            tc.add(current.localizedName).left().padLeft(4f).width(100f).wrap().growY();
+                            tc.add("").right().width(32f).wrap().growY().update(l -> l.setText(building.items.get(current) == Integer.MAX_VALUE ? "∞" : Integer.toString(building.items.get(current)))).row();
+                        }
+                        if (currentItemAmmo.get() != null) {
+                            Item current = currentItemAmmo.get();
+                            selectedContent.set(current);
+                            tc.image(current.uiIcon).size(32f).scaling(Scaling.fit).left();
+                            tc.add(current.localizedName).left().padLeft(4f).width(100f).wrap().growY();
+                            tc.add("").right().width(32f).wrap().growY().update(l -> {
+                                String txt = "N/A";
+                                if (building instanceof ItemTurretBuild itb) {
+                                    for (AmmoEntry ae : itb.ammo) {
+                                        ItemEntry ie = (ItemEntry) ae;
+                                        if (ie.item != current) continue;
+                                        txt = ie.amount == Integer.MAX_VALUE ? "∞" : Integer.toString(ie.amount);
+                                        break;
+                                    }
                                 }
-                            }).left().width(50f).padLeft(5f);
-                            butt.button(bundleNS.get("remove"), () -> {
-                                if (selectedContent.get() instanceof Item item) {
-                                    int removed = (int) Math.min(building.items.get(item), slider.value());
-                                    removed = Math.min(removed, unit.stack.amount);
-                                    fcCall.setItem(unit, building, item, -removed);
-                                }
-                            }).padLeft(5f).width(50f).left().get().setDisabled(() -> !(selectedContent.get() instanceof Item));
-                        }).center().colspan(3).padTop(4f);
-                    }
+                                l.setText(txt);
+                            }).row();
+                        }
+                        if (currentLiquid.get() != null) {
+                            Liquid current = currentLiquid.get();
+                            selectedContent.set(current);
+                            tc.image(current.uiIcon).size(32f).scaling(Scaling.fit).left();
+                            tc.add(current.localizedName).left().padLeft(4f).width(100f).wrap().growY();
+                            tc.add("").right().width(32f).wrap().growY().update(l -> l.setText(building.liquids.get(current) == Float.POSITIVE_INFINITY ? "∞" : Float.toString(building.liquids.get(current)))).row();
+                        }
+                        if (currentPower.get()) {
+                            selectedContent.set(null);
+                            tc.image(Vars.ui.getIcon(Category.power.name()).getRegion()).color(Pal.accent).size(32f).scaling(Scaling.fit).left();
+                            tc.add(Core.bundle.get("unit.powerunits")).left().padLeft(4f).width(100f).wrap().growY();
+                            if (building.block.consPower != null) tc.add("").right().width(32f).wrap().growY().update(l -> l.setText(building.power.status * building.block.consPower.capacity == Float.POSITIVE_INFINITY ? "∞" : Float.toString(building.power.status * building.block.consPower.capacity)));
+                            tc.row();
+                        }
+    
+                        Player player = Vars.player;
+                        if (player.dead()) return;
+                        Unit unit = player.unit();
+                        boolean sandbox = Vars.state.rules.mode() == Gamemode.sandbox;
+                        float capacity = sandbox ? (currentAmountInfinity.get() ? unit.type.itemCapacity : currentAmount.get()) : unit.type.itemCapacity;
+    
+                        if (capacity <= 0) {
+                            tc.add(bundleNS.get("invalidPlayerUnit")).color(Color.lightGray).colspan(3).padTop(8f).center();
+                        } else {
+                            textSlider slider = tc.add(new textSlider("", 0, 0, capacity, 1f, 164f)).width(164f).padTop(8f).center().colspan(3).get();
+                            slider.showNum = false;
+                            tc.row();
+                            tc.table(butt -> {
+                                TextField field = butt.field("0", txt -> slider.rawValue(Integer.parseInt(txt))).valid(value -> Strings.canParsePositiveInt(value)).width(50f).left().get();
+                                slider.changed(() -> field.setText(Float.toString(slider.value())));
+                                butt.button(bundleNS.get("take"), () -> {
+                                    if (selectedContent.get() instanceof Item item) {
+                                        if (building instanceof ItemTurretBuild itb) {
+                                            int amount = 0;
+                                            for (AmmoEntry ae : itb.ammo) {
+                                                ItemEntry ie = (ItemEntry) ae;
+                                                if (ie.item != item) continue;
+                                                amount = ie.amount;
+                                                break;
+                                            }
+                                            int taken = (int) Math.min(amount, slider.value());
+                                            taken = Math.min(taken, unit.maxAccepted(item));
+                                            fcCall.takeTurretAmmo(unit, building, item, taken);
+                                        } else {
+                                            int taken = (int) Math.min(building.items.get(item), slider.value());
+                                            taken = Math.min(taken, unit.maxAccepted(item));
+                                            Call.requestItem(player, building, item, taken);
+                                        }
+                                    } else if (selectedContent.get() instanceof Liquid liquid) {
+                                        float taken = Math.min(building.liquids.get(liquid), slider.value());
+                                        fcCall.takeLiquid(unit, building, liquid, taken);
+                                    } else if (currentPower.get() && building.block.consPower != null) {
+                                        float taken = Math.min(building.power.status * building.block.consPower.capacity, slider.value());
+                                        fcCall.takePower(unit, building, taken);
+                                    }
+                                }).right().width(50f).padLeft(5f);
+                                butt.button(bundleNS.get("remove"), () -> {
+                                    if (selectedContent.get() instanceof Item item && !currentAmountInfinity.get()) {
+                                        if (building instanceof ItemTurretBuild itb) {
+                                            int amount = 0;
+                                            for (AmmoEntry ae : itb.ammo) {
+                                                ItemEntry ie = (ItemEntry) ae;
+                                                if (ie.item != item) continue;
+                                                amount = ie.amount;
+                                                break;
+                                            }
+                                            int removed = (int) Math.min(amount, slider.value());
+                                            removed = Math.min(removed, unit.stack.amount);
+                                            if (sandbox) {
+                                                fcCall.setTurretAmmo(unit, building, item, amount - removed);
+                                            } else {
+                                                fcCall.setTurretAmmo(unit, building, item, -removed);
+                                            }
+                                        } else {
+                                            int removed = (int) Math.min(building.items.get(item), slider.value());
+                                            removed = Math.min(removed, unit.stack.amount);
+                                            if (sandbox) {
+                                                fcCall.setItem(unit, building, item, building.items.get(item) - removed);
+                                            } else {
+                                                fcCall.setItem(unit, building, item, -removed);
+                                            }
+                                        }
+                                    } else if (selectedContent.get() instanceof Liquid liquid && !currentAmountInfinity.get()) {
+                                        float removed = Math.min(building.liquids.get(liquid), slider.value());
+                                        fcCall.setLiquid(building, liquid, building.liquids.get(liquid) - removed);
+                                    } else if (currentPower.get() && building.block.consPower != null && !currentAmountInfinity.get()) {
+                                        float current = building.power.status * building.block.consPower.capacity;
+                                        float removed = Math.min(current, slider.value());
+                                        fcCall.setPower(building, current - removed);
+                                    }
+                                }).padLeft(5f).width(50f).right().get().setDisabled(() -> !(selectedContent.get() instanceof Item) || sandbox);
+                            }).center().colspan(3).padTop(4f);
+                        }
+                    }).pad(4f);
                 });
+            }));
 
-                rebuildCol.get().run();
+            addCol.setTable(new Table(ctc -> {
+                ctc.setWidth(Scl.scl(172f));
+                ctc.setBackground(Tex.sliderBack);
+
+                rebuildAddCol.set(() -> {
+                    ctc.clear();
+
+                    ctc.table(t -> {
+                        contentSelecter selecter = new contentSelecter();
+                        fakeFinal<barSetter> setter = new fakeFinal<>();
+                        for (Item item : Vars.content.items()) if (building.block.consumesItem(item)) selecter.add(item);
+                        for (Liquid liquid : Vars.content.liquids()) if (building.block.consumesLiquid(liquid)) selecter.add(liquid);
+                        if (building.power != null && building.block.consPower != null) selecter.add(Vars.ui.getIcon(Category.power.name()), "power").color(Pal.accent);
+                        t.add(selecter).center().colspan(2).width(164f).row();
+                        Table setterTable = t.table().left().width(120f).get();
+                        t.button("+", () -> {
+                            Player player = Vars.player;
+                            if (player.dead()) return;
+                            Unit unit = player.unit();
+
+                            UnlockableContent content = selecter.getSelectedContent();
+                            if (content == null) {
+                                if (selecter.getSelectedName().equals("power")) {
+                                    float amount = building.power.status * building.block.consPower.capacity;
+                                    fcCall.setPower(building, amount + setter.get().value());
+                                }
+                            } else {
+                                if (content instanceof Item item) {
+                                    if (building instanceof ItemTurretBuild itb) {
+                                        int amount = 0;
+                                        for (AmmoEntry ae : itb.ammo) {
+                                            ItemEntry ie = (ItemEntry) ae;
+                                            if (ie.item != item) continue;
+                                            amount = ie.amount;
+                                            break;
+                                        }
+                                        fcCall.setTurretAmmo(unit, building, item, amount + (int) setter.get().value());
+                                    } else {
+                                        int amount = building.items.get(item);
+                                        fcCall.setItem(unit, building, item, amount + (int) setter.get().value());
+                                    }
+                                } else if (content instanceof Liquid liquid) {
+                                    float amount = building.liquids.get(liquid);
+                                    fcCall.setLiquid(building, liquid, amount + setter.get().value());
+                                }
+                            }
+                        }).right().width(44f).growY();
+                        selecter.changed(() -> {
+                            setterTable.clear();
+                            UnlockableContent content = selecter.getSelectedContent();
+                            if (content == null) {
+                                if (selecter.getSelectedName().equals("power")) {
+                                    setter.set(new barSetter("", 112f, building.block.consPower.capacity, 0, 0, false, true, true, true, true));
+                                } else {
+                                    setter.set(new barSetter("", 112f, 100f, 0, 0, false, true, true, true, true));
+                                    setter.get().setDisabled(true);
+                                }
+                            } else {
+                                if (content instanceof Item) {
+                                    setter.set(new barSetter("", 112f, building.block.itemCapacity, 0, 0, true, true, true, true, true));
+                                } else if (content instanceof Liquid) {
+                                    setter.set(new barSetter("", 112f, building.block.liquidCapacity, 0, 0, false, true, true, true, true));
+                                }
+                            }
+
+                            setterTable.add(setter.get());
+                        });
+                        selecter.change();
+                    }).pad(4f);
+                });
             }));
 
             table.add(col).center();
+            table.add(addCol).center();
         }
     }
 }

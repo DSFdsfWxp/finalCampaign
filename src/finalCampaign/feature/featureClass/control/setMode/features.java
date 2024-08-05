@@ -10,5 +10,8 @@ public class features {
 
         // content
         fSetMode.addFeature(new itemStack());
+
+        // setting
+        fSetMode.addFeature(new enabled());
     }
 }

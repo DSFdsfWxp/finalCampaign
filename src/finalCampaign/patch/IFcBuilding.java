@@ -7,6 +7,9 @@ public interface IFcBuilding {
     public boolean fcForceDisable();
     public void fcForceDisable(boolean v);
 
+    public boolean fcForceEnable();
+    public void fcForceEnable(boolean v);
+
     public String fcStatus();
     public void fcStatus(String v);
 

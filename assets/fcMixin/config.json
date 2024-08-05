@@ -10,7 +10,9 @@
         "fcBuilding",
         "fcPowerGraph",
         "fcPowerModule",
-        "fcItemModule"
+        "fcItemModule",
+        "fcLiquidModule",
+        "fcStatValues"
     ],
     "client": [
 	]

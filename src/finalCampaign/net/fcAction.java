@@ -1,9 +1,9 @@
 package finalCampaign.net;
 
 import java.lang.reflect.*;
-
-import arc.util.Reflect;
+import arc.util.*;
 import finalCampaign.net.fcNet.*;
+import finalCampaign.patch.*;
 import finalCampaign.util.*;
 import mindustry.*;
 import mindustry.game.*;
@@ -15,16 +15,20 @@ import mindustry.world.blocks.defense.turrets.Turret.*;
 
 public class fcAction {
     private static boolean checkTeam(Teamc ...objs) {
-        boolean sandbox = Vars.state.rules.mode() == Gamemode.sandbox;
-        if (objs.length == 0 || sandbox) return sandbox;
+        boolean skipCheck = sandbox() || Vars.state.rules.editor;
+        if (objs.length == 0 || skipCheck) return skipCheck;
         Team t = objs[0].team();
         for (Teamc c : objs) if (c.team() != t) return false;
         return true;
     }
 
+    private static boolean sandbox() {
+        return Vars.state.rules.mode() == Gamemode.sandbox;
+    }
+
     @CallFrom(PacketSource.both)
     public static boolean takeTurretAmmo(Player player, Unit unit, Building building, Item item, int amount) {
-        if (player == null || unit == null || unit == Nulls.unit || building == null || amount <= 0f) return false;
+        if (player == null || unit == null || building == null || amount <= 0f) return false;
         if (player.dead() || unit.dead() || building.dead()) return false;
         if (unit.stack.amount > 0 && unit.stack.item != item) return false;
         if (!checkTeam(unit, building) || player.team() != unit.team()) return false;
@@ -48,7 +52,7 @@ public class fcAction {
 
     @CallFrom(PacketSource.both)
     public static boolean setTurretAmmo(Player player, Unit unit, Building building, Item item, int amount) {
-        if (player == null || unit == null || unit == Nulls.unit || building == null) return false;
+        if (player == null || unit == null || building == null) return false;
         if (player.team() != unit.team()) return false;
         if (building.dead()) return false;
         boolean remove = amount < 0;
@@ -73,7 +77,7 @@ public class fcAction {
     
             return false;
         } else {
-            if (Vars.state.rules.mode() != Gamemode.sandbox) return false;
+            if (!sandbox()) return false;
 
             if (building instanceof ItemTurretBuild itb) {
                 for (AmmoEntry ae : itb.ammo) {
@@ -98,7 +102,7 @@ public class fcAction {
 
     @CallFrom(PacketSource.both)
     public static boolean takeLiquid(Player player, Unit unit, Building building, Liquid liquid, float amount) {
-        if (player == null || unit == null || unit == Nulls.unit || building == null || amount <= 0f) return false;
+        if (player == null || unit == null || building == null || amount <= 0f) return false;
         if (building.liquids == null) return false;
         if (building.liquids.get(liquid) <= 0f) return false;
         if (player.dead() || unit.dead() || building.dead()) return false;
@@ -117,7 +121,7 @@ public class fcAction {
         if (player == null || building == null || amount <= 0f) return false;
         if (building.liquids == null) return false;
         if (player.dead() || building.dead()) return false;
-        if (Vars.state.rules.mode() != Gamemode.sandbox) return false;
+        if (!sandbox()) return false;
         if (!building.block.consumesLiquid(liquid)) return false;
 
         building.liquids.set(liquid, amount);
@@ -126,7 +130,7 @@ public class fcAction {
 
     @CallFrom(PacketSource.both)
     public static boolean takePower(Player player, Unit unit, Building building, float amount) {
-        if (player == null || unit == null || unit == Nulls.unit || building == null || amount <= 0f) return false;
+        if (player == null || unit == null || building == null || amount <= 0f) return false;
         if (unit.dead() || player.dead() || building.dead()) return false;
         if (building.power == null || building.block.consPower == null) return false;
         if (!checkTeam(unit, building) || unit.team() != player.team()) return false;
@@ -137,12 +141,26 @@ public class fcAction {
         amount = Math.min(amount, capacity);
         
         building.power.status = (current - amount) / building.block.consPower.capacity;
+        unit.apply(Vars.content.statusEffect("electrified"), amount / 60f);
+        return true;
+    }
+
+    @CallFrom(PacketSource.both)
+    public static boolean setPower(Player player, Building building, float amount) {
+        if (player == null || building == null || amount <= 0f) return false;
+        if (player.dead() || building.dead()) return false;
+        if (building.power == null || building.block.consPower == null) return false;
+        if (!sandbox()) return false;
+        
+        IFcBuilding f = (IFcBuilding) building;
+        building.power.status = amount / building.block.consPower.capacity;
+        f.fcInfinityPower(amount == Float.POSITIVE_INFINITY);
         return true;
     }
 
     @CallFrom(PacketSource.both)
     public static boolean setItem(Player player, Unit unit, Building building, Item item, int amount) {
-        if (player == null || unit == null || unit == Nulls.unit || building == null || amount <= 0) return false;
+        if (player == null || unit == null || building == null || amount <= 0) return false;
         if (building.items == null) return false;
         if (building.dead()) return false;
         if (player.team() != unit.team()) return false;
@@ -160,7 +178,7 @@ public class fcAction {
             building.items.remove(item, amount);
             return true;
         } else {
-            if (Vars.state.rules.mode() != Gamemode.sandbox) return false;
+            if (!sandbox()) return false;
             if (!building.block.consumesItem(item)) return false;
 
             building.items.set(item, amount);
@@ -202,6 +220,36 @@ public class fcAction {
         
         if (building.liquids.current() == liquid) return false;
         Reflect.set(building.liquids, "current", liquid);
+
+        return true;
+    }
+
+    @CallFrom(PacketSource.both)
+    public static boolean setForceStatus(Player player, Building building, boolean forceStatus, boolean forceDisable) {
+        if (player == null || building == null) return false;
+        if (player.dead()) return false;
+        if (!checkTeam(player.unit(), building)) return false;
+
+        IFcBuilding f = (IFcBuilding) building;
+        if (forceStatus) {
+            f.fcForceDisable(false);
+            f.fcForceEnable(false);
+        } else {
+            f.fcForceDisable(forceDisable);
+            f.fcForceEnable(!forceDisable);
+        }
+
+        return true;
+    }
+
+    @CallFrom(PacketSource.both)
+    public static boolean setHealth(Player player, Building building, float amount) {
+        if (player == null || building == null) return false;
+        if (player.dead()) return false;
+        if (!sandbox()) return false;
+
+        if (amount < 0) amount = 0f;
+        building.health = amount;
 
         return true;
     }
