@@ -415,7 +415,9 @@ public class itemStack extends iFeature {
 
                             UnlockableContent content = selecter.getSelectedContent();
                             if (content == null) {
-                                if (selecter.getSelectedName().equals("power")) {
+                                String name = selecter.getSelectedName();
+                                if (name == null) name = "";
+                                if (name.equals("power")) {
                                     float amount = building.power.status * building.block.consPower.capacity;
                                     fcCall.setPower(building, amount + setter.get().value());
                                 }
@@ -429,10 +431,18 @@ public class itemStack extends iFeature {
                                             amount = ie.amount;
                                             break;
                                         }
-                                        fcCall.setTurretAmmo(unit, building, item, amount + (int) setter.get().value());
+                                        if (amount == Integer.MAX_VALUE) return;
+                                        int add = (int) setter.get().value();
+                                        amount = add == Integer.MAX_VALUE ? add : amount + add;
+                                        if (amount != Integer.MAX_VALUE) amount = Math.min(amount, building.block.itemCapacity);
+                                        fcCall.setTurretAmmo(unit, building, item, amount);
                                     } else {
                                         int amount = building.items.get(item);
-                                        fcCall.setItem(unit, building, item, amount + (int) setter.get().value());
+                                        if (amount == Integer.MAX_VALUE) return;
+                                        int add = (int) setter.get().value();
+                                        amount = add == Integer.MAX_VALUE ? add : amount + add;
+                                        if (amount != Integer.MAX_VALUE) amount = Math.min(amount, building.block.itemCapacity);
+                                        fcCall.setItem(unit, building, item, amount);
                                     }
                                 } else if (content instanceof Liquid liquid) {
                                     float amount = building.liquids.get(liquid);
@@ -444,7 +454,9 @@ public class itemStack extends iFeature {
                             setterTable.clear();
                             UnlockableContent content = selecter.getSelectedContent();
                             if (content == null) {
-                                if (selecter.getSelectedName().equals("power")) {
+                                String name = selecter.getSelectedName();
+                                if (name == null) name = "";
+                                if (name.equals("power")) {
                                     setter.set(new barSetter("", 112f, building.block.consPower.capacity, 0, 0, false, true, true, true, true));
                                 } else {
                                     setter.set(new barSetter("", 112f, 100f, 0, 0, false, true, true, true, true));
@@ -458,7 +470,7 @@ public class itemStack extends iFeature {
                                 }
                             }
 
-                            setterTable.add(setter.get());
+                            setterTable.add(setter.get()).center();
                         });
                         selecter.change();
                     }).pad(4f);
