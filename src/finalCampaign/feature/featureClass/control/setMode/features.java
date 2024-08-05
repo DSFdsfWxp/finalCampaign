@@ -10,8 +10,10 @@ public class features {
 
         // content
         fSetMode.addFeature(new itemStack());
+        fSetMode.addFeature(new multiItemStack());
 
         // setting
         fSetMode.addFeature(new enabled());
+        fSetMode.addFeature(new teamSetter());
     }
 }

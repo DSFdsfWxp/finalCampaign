@@ -9,6 +9,7 @@ import mindustry.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.type.*;
+import mindustry.world.Tile;
 import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.ItemTurret.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
@@ -250,6 +251,24 @@ public class fcAction {
 
         if (amount < 0) amount = 0f;
         building.health = amount;
+
+        return true;
+    }
+
+    @CallFrom(PacketSource.both)
+    public static boolean setTeam(Player player, Teamc teamc, Team team) {
+        if (player == null || teamc == null) return false;
+        if (!sandbox()) return false;
+        if (player.dead()) return false;
+
+        teamc.team(team);
+        if (teamc instanceof Building building) {
+            Tile tile = building.tile();
+            if (tile != null) {
+                Vars.indexer.removeIndex(tile);
+                Vars.indexer.addIndex(tile);
+            }
+        }
 
         return true;
     }

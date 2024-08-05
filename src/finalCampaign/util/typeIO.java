@@ -31,4 +31,22 @@ public class typeIO {
     public static void writePlayer(Writes writes, Player player) {
         player.write(writes);
     }
+
+    public static Teamc readTeamc(Reads reads) {
+        boolean isUnit = reads.bool();
+        if (isUnit) return TypeIO.readUnit(reads);
+        return TypeIO.readBuilding(reads);
+    }
+
+    public static void writeTeamc(Writes writes, Teamc teamc) {
+        if (teamc instanceof Building building) {
+            writes.bool(false);
+            TypeIO.writeBuilding(writes, building);
+        } else if (teamc instanceof Unit unit) {
+            writes.bool(true);
+            TypeIO.writeUnit(writes, unit);
+        } else {
+            throw new RuntimeException("Not supported Teamc: " + teamc.toString());
+        }
+    }
 }
