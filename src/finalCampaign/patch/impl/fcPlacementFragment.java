@@ -12,7 +12,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import finalCampaign.feature.featureClass.blockShortcut.*;
-import finalCampaign.feature.featureClass.control.setMode.fSetMode;
+import finalCampaign.feature.featureClass.control.setMode.*;
 import mindustry.*;
 import mindustry.ai.*;
 import mindustry.core.*;

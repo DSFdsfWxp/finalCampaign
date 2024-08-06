@@ -70,6 +70,11 @@ public class bundle {
         return Core.bundle.get("finalCampaign." + name);
     }
 
+    public static String get(String name, String fallback) {
+        if (name.startsWith("@")) name = name.substring(1);
+        return Core.bundle.get("finalCampaign." + name, fallback);
+    }
+
     public static String format(String name, Object ...args) {
         if (name.startsWith("@")) name = name.substring(1);
         return Core.bundle.format("finalCampaign." + name, args);
