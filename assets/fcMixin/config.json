@@ -12,7 +12,8 @@
         "fcPowerModule",
         "fcItemModule",
         "fcLiquidModule",
-        "fcStatValues"
+        "fcStatValues",
+        "fcTurretBuild"
     ],
     "client": [
 	]

@@ -272,4 +272,16 @@ public class fcAction {
 
         return true;
     }
+
+    @CallFrom(PacketSource.both)
+    public static boolean setBuildingForceDisablePredictTarget(Player player, Building building, boolean v) {
+        if (player == null || building == null) return false;
+        if (player.dead()) return false;
+        if (!checkTeam(player.unit(), building)) return false;
+
+        IFcTurretBuild f = (IFcTurretBuild) building;
+        f.fcForceDisablePredictTarget(v);
+
+        return true;
+    }
 }

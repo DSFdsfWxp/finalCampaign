@@ -7,12 +7,10 @@ import finalCampaign.net.packet.*;
 
 @SuppressWarnings("all")
 public class fcCall {
-    public static void setItem(mindustry.gen.Unit unit, mindustry.gen.Building building, mindustry.type.Item item, int amount) {
-        setItemPacket packet = new setItemPacket();
-        packet.unit = unit;
+    public static void setBuildingForceDisablePredictTarget(mindustry.gen.Building building, boolean v) {
+        setBuildingForceDisablePredictTargetPacket packet = new setBuildingForceDisablePredictTargetPacket();
         packet.building = building;
-        packet.item = item;
-        packet.amount = amount;
+        packet.v = v;
 
         if (!Vars.net.active() || Vars.net.server())
             packet.handleServer(Vars.player);
@@ -25,28 +23,6 @@ public class fcCall {
         packet.building = building;
         packet.liquid = liquid;
         packet.amount = amount;
-
-        if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
-        if (Vars.net.client())
-            fcNet.send(packet);
-    }
-
-    public static void setTurretAmmoOrder(mindustry.gen.Building building, mindustry.type.Item[] order) {
-        setTurretAmmoOrderPacket packet = new setTurretAmmoOrderPacket();
-        packet.building = building;
-        packet.order = order;
-
-        if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
-        if (Vars.net.client())
-            fcNet.send(packet);
-    }
-
-    public static void setCurrentLiquid(mindustry.gen.Building building, mindustry.type.Liquid liquid) {
-        setCurrentLiquidPacket packet = new setCurrentLiquidPacket();
-        packet.building = building;
-        packet.liquid = liquid;
 
         if (!Vars.net.active() || Vars.net.server())
             packet.handleServer(Vars.player);
@@ -80,6 +56,87 @@ public class fcCall {
             fcNet.send(packet);
     }
 
+    public static void takeLiquid(mindustry.gen.Unit unit, mindustry.gen.Building building, mindustry.type.Liquid liquid, float amount) {
+        takeLiquidPacket packet = new takeLiquidPacket();
+        packet.unit = unit;
+        packet.building = building;
+        packet.liquid = liquid;
+        packet.amount = amount;
+
+        if (!Vars.net.active() || Vars.net.server())
+            packet.handleServer(Vars.player);
+        if (Vars.net.client())
+            fcNet.send(packet);
+    }
+
+    public static void setTeam(mindustry.gen.Teamc teamc, mindustry.game.Team team) {
+        setTeamPacket packet = new setTeamPacket();
+        packet.teamc = teamc;
+        packet.team = team;
+
+        if (!Vars.net.active() || Vars.net.server())
+            packet.handleServer(Vars.player);
+        if (Vars.net.client())
+            fcNet.send(packet);
+    }
+
+    public static void setTurretAmmoOrder(mindustry.gen.Building building, mindustry.type.Item[] order) {
+        setTurretAmmoOrderPacket packet = new setTurretAmmoOrderPacket();
+        packet.building = building;
+        packet.order = order;
+
+        if (!Vars.net.active() || Vars.net.server())
+            packet.handleServer(Vars.player);
+        if (Vars.net.client())
+            fcNet.send(packet);
+    }
+
+    public static void setHealth(mindustry.gen.Building building, float amount) {
+        setHealthPacket packet = new setHealthPacket();
+        packet.building = building;
+        packet.amount = amount;
+
+        if (!Vars.net.active() || Vars.net.server())
+            packet.handleServer(Vars.player);
+        if (Vars.net.client())
+            fcNet.send(packet);
+    }
+
+    public static void setItem(mindustry.gen.Unit unit, mindustry.gen.Building building, mindustry.type.Item item, int amount) {
+        setItemPacket packet = new setItemPacket();
+        packet.unit = unit;
+        packet.building = building;
+        packet.item = item;
+        packet.amount = amount;
+
+        if (!Vars.net.active() || Vars.net.server())
+            packet.handleServer(Vars.player);
+        if (Vars.net.client())
+            fcNet.send(packet);
+    }
+
+    public static void setPower(mindustry.gen.Building building, float amount) {
+        setPowerPacket packet = new setPowerPacket();
+        packet.building = building;
+        packet.amount = amount;
+
+        if (!Vars.net.active() || Vars.net.server())
+            packet.handleServer(Vars.player);
+        if (Vars.net.client())
+            fcNet.send(packet);
+    }
+
+    public static void setCurrentLiquid(mindustry.gen.Building building, mindustry.type.Liquid liquid) {
+        setCurrentLiquidPacket packet = new setCurrentLiquidPacket();
+        packet.building = building;
+        packet.liquid = liquid;
+
+        if (!Vars.net.active() || Vars.net.server())
+            packet.handleServer(Vars.player);
+        if (Vars.net.client())
+            fcNet.send(packet);
+    }
+
     public static void setForceStatus(mindustry.gen.Building building, boolean forceStatus, boolean forceDisable) {
         setForceStatusPacket packet = new setForceStatusPacket();
         packet.building = building;
@@ -104,57 +161,12 @@ public class fcCall {
             fcNet.send(packet);
     }
 
-    public static void takeLiquid(mindustry.gen.Unit unit, mindustry.gen.Building building, mindustry.type.Liquid liquid, float amount) {
-        takeLiquidPacket packet = new takeLiquidPacket();
-        packet.unit = unit;
-        packet.building = building;
-        packet.liquid = liquid;
-        packet.amount = amount;
-
-        if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
-        if (Vars.net.client())
-            fcNet.send(packet);
-    }
-
-    public static void setPower(mindustry.gen.Building building, float amount) {
-        setPowerPacket packet = new setPowerPacket();
-        packet.building = building;
-        packet.amount = amount;
-
-        if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
-        if (Vars.net.client())
-            fcNet.send(packet);
-    }
-
-    public static void setHealth(mindustry.gen.Building building, float amount) {
-        setHealthPacket packet = new setHealthPacket();
-        packet.building = building;
-        packet.amount = amount;
-
-        if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
-        if (Vars.net.client())
-            fcNet.send(packet);
-    }
-
-    public static void setTeam(mindustry.gen.Teamc teamc, mindustry.game.Team team) {
-        setTeamPacket packet = new setTeamPacket();
-        packet.teamc = teamc;
-        packet.team = team;
-
-        if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
-        if (Vars.net.client())
-            fcNet.send(packet);
-    }
-
     public static void register() {
         packets.registerPacket(setHealthPacket::new);
         packets.registerPacket(setTeamPacket::new);
         packets.registerPacket(setTurretAmmoPacket::new);
         packets.registerPacket(takeLiquidPacket::new);
+        packets.registerPacket(setBuildingForceDisablePredictTargetPacket::new);
         packets.registerPacket(setForceStatusPacket::new);
         packets.registerPacket(takePowerPacket::new);
         packets.registerPacket(setLiquidPacket::new);
