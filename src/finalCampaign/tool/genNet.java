@@ -186,7 +186,7 @@ public class genNet {
         code += "public class fcCall {\n";
         code += String.join("\n\n", fcCall) + "\n\n";
         code += "    public static void register() {\n";
-        for (String packet : generatedPacket.keys()) code += "        packets.registerPacket(" + packet + "::new);\n";
+        for (String packet : generatedPacket.keys().toSeq().sort()) code += "        packets.registerPacket(" + packet + "::new);\n";
         code += "    }\n";
         code += "}";
 

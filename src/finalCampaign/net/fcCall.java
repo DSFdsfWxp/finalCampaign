@@ -162,18 +162,18 @@ public class fcCall {
     }
 
     public static void register() {
-        packets.registerPacket(setHealthPacket::new);
-        packets.registerPacket(setTeamPacket::new);
-        packets.registerPacket(setTurretAmmoPacket::new);
-        packets.registerPacket(takeLiquidPacket::new);
         packets.registerPacket(setBuildingForceDisablePredictTargetPacket::new);
+        packets.registerPacket(setCurrentLiquidPacket::new);
         packets.registerPacket(setForceStatusPacket::new);
-        packets.registerPacket(takePowerPacket::new);
+        packets.registerPacket(setHealthPacket::new);
+        packets.registerPacket(setItemPacket::new);
         packets.registerPacket(setLiquidPacket::new);
         packets.registerPacket(setPowerPacket::new);
-        packets.registerPacket(takeTurretAmmoPacket::new);
+        packets.registerPacket(setTeamPacket::new);
         packets.registerPacket(setTurretAmmoOrderPacket::new);
-        packets.registerPacket(setCurrentLiquidPacket::new);
-        packets.registerPacket(setItemPacket::new);
+        packets.registerPacket(setTurretAmmoPacket::new);
+        packets.registerPacket(takeLiquidPacket::new);
+        packets.registerPacket(takePowerPacket::new);
+        packets.registerPacket(takeTurretAmmoPacket::new);
     }
 }
