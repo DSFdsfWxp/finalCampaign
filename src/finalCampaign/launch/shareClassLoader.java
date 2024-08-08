@@ -28,7 +28,9 @@ public abstract class shareClassLoader extends ClassLoader {
     protected Class<?> findClass(String name) throws ClassNotFoundException {
         try {
             if (name.startsWith("arc.")) throw new ClassNotFoundException();
-            return super.findClass(name);
+            Class<?> res = findLoadedClass(name);
+            if (res == null) throw new ClassNotFoundException();
+            return res;
         } catch(ClassNotFoundException e) {
             if (name.startsWith("java.")) throw new ClassNotFoundException(name);
             return tryLoadClass(name);

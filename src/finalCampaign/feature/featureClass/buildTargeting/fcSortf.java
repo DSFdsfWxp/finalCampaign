@@ -1,21 +1,34 @@
 package finalCampaign.feature.featureClass.buildTargeting;
 
 import arc.func.*;
-import arc.math.Mathf;
+import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.io.*;
+import finalCampaign.*;
 import finalCampaign.patch.*;
-import finalCampaign.util.bezier;
+import finalCampaign.util.*;
 import mindustry.entities.Units.*;
 import mindustry.gen.*;
+import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 
 public class fcSortf implements Sortf {
     protected final static ObjectMap<String, Func<TurretBuild, baseSortf<?>>> provs = new ObjectMap<>();
+    protected final static Seq<String> lst = new Seq<>();
+    
     public final Seq<baseSortf<?>> sortfs;
     private final TurretBuild build;
     private final IFcAttractiveEntityType buildType;
+
+    public static void register(String name, Func<TurretBuild, baseSortf<?>> prov) {
+        provs.put(name, prov);
+        lst.add(name);
+    }
+
+    public static String[] sortfLst() {
+        return lst.toArray(String.class);
+    }
 
     public fcSortf(TurretBuild build) {
         this.build = build;
@@ -104,22 +117,33 @@ public class fcSortf implements Sortf {
     
     public static abstract class baseSortf<T> {
         public final String name;
+        public final String localizedName;
         public final TurretBuild build;
+        public final IFcTurretBuild fcBuild;
+        public final Turret block;
         public T config;
 
         public baseSortf(String name, TurretBuild build) {
             this.name = name;
             this.build = build;
+            this.block = (Turret) build.block;
+            fcBuild = (IFcTurretBuild) build;
+            localizedName = bundle.get("sortf." + name, name);
             this.config = defaultConfig();
         }
 
         protected float clampFloat(float v) {
+            if (v < 1) v = 1f;
             int s = (int) Math.log10(v);
             return s / 100f + v / (float) Math.pow(10, s + 3);
         }
 
         public boolean hasConfig() {
             return !defaultConfig().getClass().equals(NoneConfig.class);
+        }
+
+        public Class<?> configType() {
+            return defaultConfig().getClass();
         }
 
         @SuppressWarnings("unchecked")

@@ -26,4 +26,21 @@ public class reflect {
             throw new RuntimeException(e);
         }
     }
+
+    public static <T> Field getDeclaredField(Class<T> c, String name) {
+        try {
+            return c.getDeclaredField(name);
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T get(Field field, Object object) {
+        try {
+            return (T) field.get(object);
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

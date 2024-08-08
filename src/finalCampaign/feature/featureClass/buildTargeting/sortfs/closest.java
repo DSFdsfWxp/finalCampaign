@@ -1,0 +1,28 @@
+package finalCampaign.feature.featureClass.buildTargeting.sortfs;
+
+import arc.math.geom.*;
+import finalCampaign.feature.featureClass.buildTargeting.fcSortf.*;
+import mindustry.gen.*;
+import mindustry.world.blocks.defense.turrets.Turret.*;
+
+public class closest extends baseSortf<NoneConfig> {
+    public closest(TurretBuild build) {
+        super("closest", build);
+    }
+
+    public NoneConfig defaultConfig() {
+        return new NoneConfig();
+    }
+
+    public boolean isValid() {
+        return true;
+    }
+
+    public float calc(Unit unit) {
+        return 1f - clampFloat((new Vec2(unit.x - build.x, unit.y - build.y)).len());
+    }
+
+    public float calc(Building building) {
+        return 1f - clampFloat((new Vec2(building.x - build.x, building.y - build.y)).len());
+    }
+}

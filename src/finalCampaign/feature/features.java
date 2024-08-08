@@ -3,6 +3,8 @@ package finalCampaign.feature;
 import finalCampaign.*;
 import finalCampaign.feature.featureClass.binding.*;
 import finalCampaign.feature.featureClass.blockShortcut.*;
+import finalCampaign.feature.featureClass.buildTargeting.*;
+import finalCampaign.feature.featureClass.buildTargetingLimit.*;
 import finalCampaign.feature.featureClass.control.freeVision.*;
 import finalCampaign.feature.featureClass.control.roulette.*;
 import finalCampaign.feature.featureClass.control.setMode.*;
@@ -27,6 +29,8 @@ public class features {
         featureLoader.add(fShortcut.class);
         featureLoader.add(fSetMode.class);
         featureLoader.add(fWiki.class);
+        featureLoader.add(fBuildTargeting.class);
+        featureLoader.add(fBuildTargetingLimit.class);
         
         featureLoader.add(fBinding.class);
     }

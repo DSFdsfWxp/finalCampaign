@@ -6,7 +6,10 @@ import org.spongepowered.asm.mixin.injection.callback.*;
 import arc.math.geom.*;
 import arc.util.*;
 import arc.util.io.*;
+import finalCampaign.feature.featureClass.buildTargeting.*;
+import finalCampaign.feature.featureClass.buildTargetingLimit.fcFilter;
 import finalCampaign.patch.*;
+import mindustry.*;
 import mindustry.entities.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -32,6 +35,8 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
     private Turret turretBlock = (Turret) this.block;
     private boolean fcForceDisablePredictTarget = false;
     private boolean fcPreferBuildingTarget = false;
+    private fcSortf fcSortf = new fcSortf((TurretBuild)(Object) this);
+    private fcFilter fcFilter = new fcFilter((TurretBuild)(Object) this);
 
     public boolean fcForceDisablePredictTarget() {
         return fcForceDisablePredictTarget;
@@ -47,6 +52,14 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
 
     public void fcPreferBuildingTarget(boolean v) {
         fcPreferBuildingTarget = v;
+    }
+
+    public fcSortf fcSortf() {
+        return fcSortf;
+    }
+
+    public fcFilter fcFilter() {
+        return fcFilter;
     }
 
     @Override
@@ -73,27 +86,39 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
     public void fcRead(Reads read, byte revision, CallbackInfo ci) {
         fcForceDisablePredictTarget = read.bool();
         fcPreferBuildingTarget = read.bool();
+        fcSortf.read(read);
     }
 
     @Inject(method = "write", at = @At("RETURN"), remap = false)
     public void fcWrite(Writes write) {
         write.bool(fcForceDisablePredictTarget);
         write.bool(fcPreferBuildingTarget);
+        fcSortf.write(write);
     }
 
-    protected void findTarget() {
+    public void fcFindTarget() {
         float range = range();
 
         Runnable findUnitTarget = () -> {
-            if (turretBlock.targetAir && !turretBlock.targetGround) {
-                target = Units.bestEnemy(team, x, y, range, e -> !e.dead() && !e.isGrounded() && turretBlock.unitFilter.get(e), turretBlock.unitSort);
-            } else {
-                target = Units.bestTarget(team, x, y, range, e -> !e.dead() && turretBlock.unitFilter.get(e) && (e.isGrounded() || turretBlock.targetAir) && (!e.isGrounded() || turretBlock.targetGround), b -> false, turretBlock.unitSort);
-            }
+            fcSortf.beforeTargeting();
+
+            target = Units.bestEnemy(team, x, y, range, e -> !e.dead() && (fcFilter.filters.size > 0 ? fcFilter.unitFilter.get(e) : turretBlock.unitFilter.get(e)) && (e.isGrounded() || turretBlock.targetAir) && (!e.isGrounded() || turretBlock.targetGround), fcSortf.sortfs.size > 0 ? fcSortf : turretBlock.unitSort);
         };
 
         Runnable findBuildingTarget = () -> {
-            target = Units.bestTarget(team, x, y, range, e -> false, b -> turretBlock.targetGround && turretBlock.buildingFilter.get(b), turretBlock.unitSort);
+            if (!turretBlock.targetGround) return;
+            target = null;
+            float cost = Float.POSITIVE_INFINITY;
+
+            fcSortf.beforeTargeting();
+
+            Vars.indexer.allBuildings(x, y, range, building -> {
+                if (building.team == Team.derelict && !Vars.state.rules.coreCapture) return;
+                if (!turretBlock.buildingFilter.get(building) || !building.block.targetable || building.team == team || !(fcFilter.filters.size > 0 ? fcFilter.buildingFilter.get(building) : turretBlock.buildingFilter.get(building))) return;
+
+                if (fcSortf.cost(building) < cost) target = building;
+            });
+
             if (target == null) target = canHeal() ? Units.findAllyTile(team, x, y, range, b -> b.damaged() && b != this) : null;
         };
 
@@ -104,6 +129,9 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
             findUnitTarget.run();
             if (target == null) findBuildingTarget.run();
         }
-        
+    }
+
+    protected void findTarget() {
+        fcFindTarget();
     }
 }
