@@ -7,7 +7,7 @@ import arc.math.geom.*;
 import arc.util.*;
 import arc.util.io.*;
 import finalCampaign.feature.featureClass.buildTargeting.*;
-import finalCampaign.feature.featureClass.buildTargetingLimit.fcFilter;
+import finalCampaign.feature.featureClass.buildTargetingLimit.*;
 import finalCampaign.patch.*;
 import mindustry.*;
 import mindustry.entities.*;

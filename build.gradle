@@ -50,6 +50,7 @@ allprojects{
         java8Root = System.getenv("JAVA_8_HOME")
 
         projectRootDir = "$buildDir/.."
+        runtimeBinDir = "$projectRootDir/bin/main"
 
         check = {
             if(!sdkRoot || !new File(sdkRoot).exists()) throw new GradleException("No valid Android SDK found. Ensure that ANDROID_HOME is set to your Android SDK directory.");
@@ -401,9 +402,9 @@ task genNet {
         def dependencies = (configurations.compileClasspath.asList()).collect{ "$it.path" }.join(";")
         def dir = new File("$buildDir/genNet")
         mkdir("$buildDir/genNet")
-        "javac -g -parameters -cp $dependencies -d $buildDir/genNet ./src/finalCampaign/tool/genNet.java ./src/finalCampaign/net/fcAction.java ./src/finalCampaign/net/fcNet.java ./src/finalCampaign/net/packets.java ./src/finalCampaign/net/fcPacket.java ./src/finalCampaign/util/reflect.java ./src/finalCampaign/util/typeIO.java ./src/finalCampaign/patch/*.java"
+        "javac -g -parameters -cp $dependencies;$runtimeBinDir -d $buildDir/genNet ./src/finalCampaign/net/fcAction.java"
             .execute(null, new File("$projectRootDir")).waitForProcessOutput(System.out, System.err)
-        "java -cp $dependencies;$buildDir/genNet finalCampaign.tool.genNet"
+        "java -cp $dependencies;$buildDir/genNet;$runtimeBinDir finalCampaign.tool.genNet"
             .execute(null, new File("$projectRootDir")).waitForProcessOutput(System.out, System.err)
     }
 }
