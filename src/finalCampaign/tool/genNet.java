@@ -18,8 +18,15 @@ public class genNet {
 
     public static void main(String[] args) {
         Class<?> actions = fcAction.class;
+        Seq<Method> actionMethods = new Seq<>();
 
-        for (Method action : actions.getDeclaredMethods()) {
+        {
+            ObjectMap<String, Method> map = new ObjectMap<>();
+            for (Method action : actions.getDeclaredMethods()) map.put(action.getName(), action);
+            for (String k : map.keys().toSeq().sort()) actionMethods.add(map.get(k));
+        }
+
+        for (Method action : actionMethods) {
             CallFrom callFrom = null;
             for (Annotation annotation : action.getDeclaredAnnotations())
                 if (annotation instanceof CallFrom cf) callFrom = cf;

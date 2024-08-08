@@ -8,6 +8,8 @@ import mindustry.io.*;
 import mindustry.type.*;
 
 public class typeIO {
+    private static Constructor<Player> playerCon;
+
     public static Item[] readItems(Reads reads) {
         int len = reads.i();
         Item[] out = new Item[len];
@@ -21,9 +23,11 @@ public class typeIO {
     }
 
     public static Player readPlayer(Reads reads) {
-        Constructor<Player> con = reflect.getDeclaredConstructor(Player.class);
-        reflect.setAccessible(con, true);
-        Player player = reflect.newInstance(con);
+        if (playerCon == null) {
+            playerCon = reflect.getDeclaredConstructor(Player.class);
+            reflect.setAccessible(playerCon, true);
+        }
+        Player player = reflect.newInstance(playerCon);
         player.read(reads);
         return player;
     }

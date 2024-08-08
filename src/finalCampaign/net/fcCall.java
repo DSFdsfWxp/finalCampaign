@@ -18,47 +18,10 @@ public class fcCall {
             fcNet.send(packet);
     }
 
-    public static void takeTurretAmmo(mindustry.gen.Unit unit, mindustry.gen.Building building, mindustry.type.Item item, int amount) {
-        takeTurretAmmoPacket packet = new takeTurretAmmoPacket();
-        packet.unit = unit;
+    public static void setCurrentLiquid(mindustry.gen.Building building, mindustry.type.Liquid liquid) {
+        setCurrentLiquidPacket packet = new setCurrentLiquidPacket();
         packet.building = building;
-        packet.item = item;
-        packet.amount = amount;
-
-        if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
-        if (Vars.net.client())
-            fcNet.send(packet);
-    }
-
-    public static void setTurretAmmoOrder(mindustry.gen.Building building, mindustry.type.Item[] order) {
-        setTurretAmmoOrderPacket packet = new setTurretAmmoOrderPacket();
-        packet.building = building;
-        packet.order = order;
-
-        if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
-        if (Vars.net.client())
-            fcNet.send(packet);
-    }
-
-    public static void setPower(mindustry.gen.Building building, float amount) {
-        setPowerPacket packet = new setPowerPacket();
-        packet.building = building;
-        packet.amount = amount;
-
-        if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
-        if (Vars.net.client())
-            fcNet.send(packet);
-    }
-
-    public static void setTurretAmmo(mindustry.gen.Unit unit, mindustry.gen.Building building, mindustry.type.Item item, int amount) {
-        setTurretAmmoPacket packet = new setTurretAmmoPacket();
-        packet.unit = unit;
-        packet.building = building;
-        packet.item = item;
-        packet.amount = amount;
+        packet.liquid = liquid;
 
         if (!Vars.net.active() || Vars.net.server())
             packet.handleServer(Vars.player);
@@ -71,6 +34,17 @@ public class fcCall {
         packet.building = building;
         packet.forceStatus = forceStatus;
         packet.forceDisable = forceDisable;
+
+        if (!Vars.net.active() || Vars.net.server())
+            packet.handleServer(Vars.player);
+        if (Vars.net.client())
+            fcNet.send(packet);
+    }
+
+    public static void setHealth(mindustry.gen.Building building, float amount) {
+        setHealthPacket packet = new setHealthPacket();
+        packet.building = building;
+        packet.amount = amount;
 
         if (!Vars.net.active() || Vars.net.server())
             packet.handleServer(Vars.player);
@@ -103,11 +77,45 @@ public class fcCall {
             fcNet.send(packet);
     }
 
-    public static void takePower(mindustry.gen.Unit unit, mindustry.gen.Building building, float amount) {
-        takePowerPacket packet = new takePowerPacket();
-        packet.unit = unit;
+    public static void setPower(mindustry.gen.Building building, float amount) {
+        setPowerPacket packet = new setPowerPacket();
         packet.building = building;
         packet.amount = amount;
+
+        if (!Vars.net.active() || Vars.net.server())
+            packet.handleServer(Vars.player);
+        if (Vars.net.client())
+            fcNet.send(packet);
+    }
+
+    public static void setTeam(mindustry.gen.Teamc teamc, mindustry.game.Team team) {
+        setTeamPacket packet = new setTeamPacket();
+        packet.teamc = teamc;
+        packet.team = team;
+
+        if (!Vars.net.active() || Vars.net.server())
+            packet.handleServer(Vars.player);
+        if (Vars.net.client())
+            fcNet.send(packet);
+    }
+
+    public static void setTurretAmmo(mindustry.gen.Unit unit, mindustry.gen.Building building, mindustry.type.Item item, int amount) {
+        setTurretAmmoPacket packet = new setTurretAmmoPacket();
+        packet.unit = unit;
+        packet.building = building;
+        packet.item = item;
+        packet.amount = amount;
+
+        if (!Vars.net.active() || Vars.net.server())
+            packet.handleServer(Vars.player);
+        if (Vars.net.client())
+            fcNet.send(packet);
+    }
+
+    public static void setTurretAmmoOrder(mindustry.gen.Building building, mindustry.type.Item[] order) {
+        setTurretAmmoOrderPacket packet = new setTurretAmmoOrderPacket();
+        packet.building = building;
+        packet.order = order;
 
         if (!Vars.net.active() || Vars.net.server())
             packet.handleServer(Vars.player);
@@ -128,19 +136,9 @@ public class fcCall {
             fcNet.send(packet);
     }
 
-    public static void setCurrentLiquid(mindustry.gen.Building building, mindustry.type.Liquid liquid) {
-        setCurrentLiquidPacket packet = new setCurrentLiquidPacket();
-        packet.building = building;
-        packet.liquid = liquid;
-
-        if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
-        if (Vars.net.client())
-            fcNet.send(packet);
-    }
-
-    public static void setHealth(mindustry.gen.Building building, float amount) {
-        setHealthPacket packet = new setHealthPacket();
+    public static void takePower(mindustry.gen.Unit unit, mindustry.gen.Building building, float amount) {
+        takePowerPacket packet = new takePowerPacket();
+        packet.unit = unit;
         packet.building = building;
         packet.amount = amount;
 
@@ -150,10 +148,12 @@ public class fcCall {
             fcNet.send(packet);
     }
 
-    public static void setTeam(mindustry.gen.Teamc teamc, mindustry.game.Team team) {
-        setTeamPacket packet = new setTeamPacket();
-        packet.teamc = teamc;
-        packet.team = team;
+    public static void takeTurretAmmo(mindustry.gen.Unit unit, mindustry.gen.Building building, mindustry.type.Item item, int amount) {
+        takeTurretAmmoPacket packet = new takeTurretAmmoPacket();
+        packet.unit = unit;
+        packet.building = building;
+        packet.item = item;
+        packet.amount = amount;
 
         if (!Vars.net.active() || Vars.net.server())
             packet.handleServer(Vars.player);
