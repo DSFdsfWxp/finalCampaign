@@ -102,7 +102,7 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
         Runnable findUnitTarget = () -> {
             fcSortf.beforeTargeting();
 
-            target = Units.bestEnemy(team, x, y, range, e -> !e.dead() && (fcFilter.filters.size > 0 ? fcFilter.unitFilter.get(e) : turretBlock.unitFilter.get(e)) && (e.isGrounded() || turretBlock.targetAir) && (!e.isGrounded() || turretBlock.targetGround), fcSortf.sortfs.size > 0 ? fcSortf : turretBlock.unitSort);
+            target = Units.bestEnemy(team, x, y, range, e -> !e.dead() && (fcFilter.filters.size > 0 ? fcFilter.unitFilter.get(e) : turretBlock.unitFilter.get(e)) && (e.isGrounded() || turretBlock.targetAir) && (!e.isGrounded() || turretBlock.targetGround), fcSortf.unitSortfs.size > 0 ? fcSortf : turretBlock.unitSort);
         };
 
         Runnable findBuildingTarget = () -> {

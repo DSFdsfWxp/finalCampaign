@@ -17,8 +17,9 @@ public class fcSortf implements Sortf {
     protected final static ObjectMap<String, Func<TurretBuild, baseSortf<?>>> provs = new ObjectMap<>();
     protected final static Seq<String> lst = new Seq<>();
     
-    public final Seq<baseSortf<?>> sortfs;
-    private final TurretBuild build;
+    public final Seq<baseSortf<?>> buildSortfs;
+    public final Seq<baseSortf<?>> unitSortfs;
+    public final TurretBuild build;
     private final IFcAttractiveEntityType buildType;
 
     public static void register(String name, Func<TurretBuild, baseSortf<?>> prov) {
@@ -30,17 +31,22 @@ public class fcSortf implements Sortf {
         return lst.toArray(String.class);
     }
 
+    public static String localizedName(String name) {
+        return bundle.get("sortf." + name, name);
+    }
+
     public fcSortf(TurretBuild build) {
         this.build = build;
         buildType = (IFcAttractiveEntityType) build.block;
-        sortfs = new Seq<>();
+        unitSortfs = new Seq<>();
+        buildSortfs = new Seq<>();
     }
 
     public float cost(Unit unit, float x, float y) {
         float score = 0f;
         
-        for (int i=0; i<sortfs.size; i++) {
-            float s = Mathf.clamp(sortfs.get(i).calc(unit));
+        for (int i=0; i<unitSortfs.size; i++) {
+            float s = Mathf.clamp(unitSortfs.get(i).calc(unit));
             if (s > 0) score += s + Math.pow(2, i + 1) - 1;
         }
 
@@ -52,8 +58,8 @@ public class fcSortf implements Sortf {
     public float cost(Building building) {
         float score = 0f;
         
-        for (int i=0; i<sortfs.size; i++) {
-            float s = Mathf.clamp(sortfs.get(i).calc(building));
+        for (int i=0; i<buildSortfs.size; i++) {
+            float s = Mathf.clamp(buildSortfs.get(i).calc(building));
             if (s > 0) score += s + Math.pow(2, i + 1) - 1;
         }
 
@@ -63,8 +69,38 @@ public class fcSortf implements Sortf {
     }
 
     public boolean isValid() {
-        for (baseSortf<?> sortf : sortfs) if (!sortf.isValid()) return false;
+        for (baseSortf<?> sortf : unitSortfs) if (!sortf.isValid()) return false;
+        for (baseSortf<?> sortf : buildSortfs) if (!sortf.isValid()) return false;
         return true;
+    }
+
+    public boolean has(String name, boolean unit) {
+        if (unit) {
+            for (baseSortf<?> sortf : unitSortfs) if (sortf.name.equals(name)) return true;
+        } else {
+            for (baseSortf<?> sortf : buildSortfs) if (sortf.name.equals(name)) return true;
+        }
+        return false;
+    }
+
+    public int indexOf(String name, boolean unit) {
+        if (unit) {
+            for (int i=0; i<unitSortfs.size; i++) if (unitSortfs.get(i).name.equals(name)) return i;
+        } else {
+            for (int i=0; i<buildSortfs.size; i++) if (buildSortfs.get(i).name.equals(name)) return i;
+        }
+        return -1;
+    }
+
+    public void add(String name, boolean unit) {
+        var prov = provs.get(name);
+        if (prov == null) return;
+
+        if (unit) {
+            unitSortfs.add(prov.get(build));
+        } else {
+            buildSortfs.add(prov.get(build));
+        }
     }
 
     private float calcAttractive(IFcAttractiveEntityType type, Vec2 targetPos) {
@@ -87,29 +123,67 @@ public class fcSortf implements Sortf {
     }
 
     public void read(Reads reads) {
-        int count = reads.i();
-        for (int i=0; i<count; i++) {
-            baseSortf<?> sortf = provs.get(reads.str()).get(build);
-            sortf.read(reads);
-            sortfs.add(sortf);
+        int uc = reads.i();
+        int bc = reads.i();
+        Seq<String> uReaded = new Seq<>();
+        Seq<String> bReaded = new Seq<>();
+
+        for (int i=0; i<uc; i++) {
+            String name = reads.str();
+
+            int pos = indexOf(name, true);
+            if (pos == -1) {
+                pos = unitSortfs.size;
+                unitSortfs.add(provs.get(name).get(build));
+            }
+
+            unitSortfs.get(pos).read(reads);
+            uReaded.add(name);
         }
+        for (int i=0; i<bc; i++) {
+            String name = reads.str();
+
+            int pos = indexOf(name, false);
+            if (pos == -1) {
+                pos = buildSortfs.size;
+                buildSortfs.add(provs.get(name).get(build));
+            }
+
+            buildSortfs.get(pos).read(reads);
+            bReaded.add(name);
+        }
+
+        Seq<baseSortf<?>> uToRemove = new Seq<>();
+        Seq<baseSortf<?>> bToRemove = new Seq<>();
+        for (baseSortf<?> sortf : unitSortfs) if (!uReaded.contains(sortf.name)) uToRemove.add(sortf);
+        for (baseSortf<?> sortf : buildSortfs) if (!bReaded.contains(sortf.name)) bToRemove.add(sortf);
+        unitSortfs.removeAll(uToRemove);
+        buildSortfs.removeAll(bToRemove);
     }
 
     public void write(Writes writes) {
-        writes.i(sortfs.size);
-        for (baseSortf<?> sortf : sortfs) {
+        writes.i(unitSortfs.size);
+        writes.i(buildSortfs.size);
+
+        for (baseSortf<?> sortf : unitSortfs) {
+            writes.str(sortf.name);
+            sortf.write(writes);
+        }
+        for (baseSortf<?> sortf : buildSortfs) {
             writes.str(sortf.name);
             sortf.write(writes);
         }
     }
 
     public void beforeTargeting() {
-        for (baseSortf<?> sortf : sortfs) sortf.beforeTargeting();
+        for (baseSortf<?> sortf : unitSortfs) sortf.beforeTargeting();
+        for (baseSortf<?> sortf : buildSortfs) sortf.beforeTargeting();
     }
 
     public fcSortf clone(TurretBuild build) {
         fcSortf fcsortf = new fcSortf(build);
-        for (baseSortf<?> sortf : sortfs) fcsortf.sortfs.add(sortf.clone(build));
+        for (baseSortf<?> sortf : unitSortfs) fcsortf.unitSortfs.add(sortf.clone(build));
+        for (baseSortf<?> sortf : buildSortfs) fcsortf.buildSortfs.add(sortf.clone(build));
         return fcsortf;
     }
 

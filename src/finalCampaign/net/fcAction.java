@@ -1,7 +1,10 @@
 package finalCampaign.net;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.lang.reflect.*;
 import arc.util.*;
+import arc.util.io.Reads;
 import finalCampaign.net.fcNet.*;
 import finalCampaign.patch.*;
 import finalCampaign.util.*;
@@ -281,6 +284,44 @@ public class fcAction {
 
         IFcTurretBuild f = (IFcTurretBuild) building;
         f.fcForceDisablePredictTarget(v);
+
+        return true;
+    }
+
+    @CallFrom(PacketSource.both)
+    public static boolean setBuildingSortf(Player player, Building building, byte[] data) {
+        if (player == null || building == null) return false;
+        if (player.dead()) return false;
+        if (!checkTeam(player.unit(), building)) return false;
+
+        IFcTurretBuild f = (IFcTurretBuild) building;
+        Reads reads = new Reads(new DataInputStream(new ByteArrayInputStream(data)));
+        f.fcSortf().read(reads);
+        reads.close();
+
+        return true;
+    }
+
+    @CallFrom(PacketSource.both)
+    public static boolean setTurretPreferBuildingTarget(Player player, Building building, boolean v) {
+        if (player == null || building == null) return false;
+        if (player.dead()) return false;
+        if (!checkTeam(player.unit(), building)) return false;
+
+        IFcTurretBuild f = (IFcTurretBuild) building;
+        f.fcPreferBuildingTarget(v);
+
+        return true;
+    }
+
+    @CallFrom(PacketSource.both)
+    public static boolean setTurretPreferExtinguish(Player player, Building building, boolean v) {
+        if (player == null || building == null) return false;
+        if (player.dead()) return false;
+        if (!checkTeam(player.unit(), building)) return false;
+
+        IFcLiquidTurretBuild f = (IFcLiquidTurretBuild) building;
+        f.fcPreferExtinguish(v);
 
         return true;
     }

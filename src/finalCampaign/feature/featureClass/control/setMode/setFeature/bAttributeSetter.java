@@ -12,6 +12,7 @@ public abstract class bAttributeSetter extends iFeature {
     protected bundleNS bundleNS;
     private String action;
     private boolean sandboxOnly;
+    protected boolean background;
 
     public bAttributeSetter(String name, String action, boolean sandboxOnly) {
         category = "setting";
@@ -19,6 +20,7 @@ public abstract class bAttributeSetter extends iFeature {
         bundleNS = new bundleNS("setMode.feature.setting." + name);
         this.action = action;
         this.sandboxOnly = sandboxOnly;
+        background = true;
     }
 
     public boolean isSupported(Building[] selected) {
@@ -34,7 +36,7 @@ public abstract class bAttributeSetter extends iFeature {
         table.add(button).width(50f).group(group).right().row();
         Collapser col = new Collapser(new Table(t -> {
             t.setWidth(Scl.scl(172f));
-            t.setBackground(Tex.sliderBack);
+            if (background) t.setBackground(Tex.sliderBack);
             buildUI(selected, t);
         }), true);
         button.clicked(() -> col.toggle());

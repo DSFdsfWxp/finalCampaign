@@ -18,6 +18,17 @@ public class fcCall {
             fcNet.send(packet);
     }
 
+    public static void setBuildingSortf(mindustry.gen.Building building, byte[] data) {
+        setBuildingSortfPacket packet = new setBuildingSortfPacket();
+        packet.building = building;
+        packet.data = data;
+
+        if (!Vars.net.active() || Vars.net.server())
+            packet.handleServer(Vars.player);
+        if (Vars.net.client())
+            fcNet.send(packet);
+    }
+
     public static void setCurrentLiquid(mindustry.gen.Building building, mindustry.type.Liquid liquid) {
         setCurrentLiquidPacket packet = new setCurrentLiquidPacket();
         packet.building = building;
@@ -123,6 +134,28 @@ public class fcCall {
             fcNet.send(packet);
     }
 
+    public static void setTurretPreferBuildingTarget(mindustry.gen.Building building, boolean v) {
+        setTurretPreferBuildingTargetPacket packet = new setTurretPreferBuildingTargetPacket();
+        packet.building = building;
+        packet.v = v;
+
+        if (!Vars.net.active() || Vars.net.server())
+            packet.handleServer(Vars.player);
+        if (Vars.net.client())
+            fcNet.send(packet);
+    }
+
+    public static void setTurretPreferExtinguish(mindustry.gen.Building building, boolean v) {
+        setTurretPreferExtinguishPacket packet = new setTurretPreferExtinguishPacket();
+        packet.building = building;
+        packet.v = v;
+
+        if (!Vars.net.active() || Vars.net.server())
+            packet.handleServer(Vars.player);
+        if (Vars.net.client())
+            fcNet.send(packet);
+    }
+
     public static void takeLiquid(mindustry.gen.Unit unit, mindustry.gen.Building building, mindustry.type.Liquid liquid, float amount) {
         takeLiquidPacket packet = new takeLiquidPacket();
         packet.unit = unit;
@@ -163,6 +196,7 @@ public class fcCall {
 
     public static void register() {
         packets.registerPacket(setBuildingForceDisablePredictTargetPacket::new);
+        packets.registerPacket(setBuildingSortfPacket::new);
         packets.registerPacket(setCurrentLiquidPacket::new);
         packets.registerPacket(setForceStatusPacket::new);
         packets.registerPacket(setHealthPacket::new);
@@ -172,6 +206,8 @@ public class fcCall {
         packets.registerPacket(setTeamPacket::new);
         packets.registerPacket(setTurretAmmoOrderPacket::new);
         packets.registerPacket(setTurretAmmoPacket::new);
+        packets.registerPacket(setTurretPreferBuildingTargetPacket::new);
+        packets.registerPacket(setTurretPreferExtinguishPacket::new);
         packets.registerPacket(takeLiquidPacket::new);
         packets.registerPacket(takePowerPacket::new);
         packets.registerPacket(takeTurretAmmoPacket::new);

@@ -4,7 +4,9 @@ import finalCampaign.feature.featureClass.buildTargeting.sortfs.*;
 
 public class fBuildTargeting {
 
-    public static void init() {}
+    public static void init() {
+        buildTargetingPreset.load();
+    }
 
     public static void load() {
         fcSortf.register("highestMaxHp", highestMaxHp::new);
