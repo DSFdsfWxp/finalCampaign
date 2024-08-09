@@ -16,5 +16,7 @@ public class features {
         fSetMode.addFeature(new enabled());
         fSetMode.addFeature(new teamSetter());
         fSetMode.addFeature(new predictTarget());
+        fSetMode.addFeature(new targetingPriority());
+        fSetMode.addFeature(new targetingLimit());
     }
 }

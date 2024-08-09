@@ -27,6 +27,11 @@ public class buildTargetingPreset {
         return id >= dataLst.size ? def : dataLst.get(id);
     }
 
+    public static boolean has(String name) {
+        for (String n : nameLst) if (n.trim().equals(name.trim())) return true;
+        return false;
+    }
+
     public static int add() {
         int id = nameLst.size;
         String name = getName(id);

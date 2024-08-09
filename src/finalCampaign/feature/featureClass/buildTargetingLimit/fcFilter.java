@@ -16,7 +16,7 @@ public class fcFilter {
     public final Boolf<Unit> unitFilter;
     public final Boolf<Building> buildingFilter;
     public final Seq<baseFilter<?>> filters;
-    private final TurretBuild build;
+    public final TurretBuild build;
 
     public static void register(String name, Func<TurretBuild, baseFilter<?>> prov) {
         provs.put(name, prov);
@@ -25,6 +25,10 @@ public class fcFilter {
 
     public static String[] filterLst() {
         return lst.toArray(String.class);
+    }
+
+    public static String localizedName(String name) {
+        return bundle.get("filter." + name, name);
     }
 
     public fcFilter(TurretBuild build) {
@@ -42,13 +46,35 @@ public class fcFilter {
         };
     }
 
+    public boolean has(String name) {
+        for (baseFilter<?> filter : filters) if (filter.name.equals(name)) return true;
+        return false;
+    }
+
+    public baseFilter<?> get(String name) {
+        for (baseFilter<?> filter : filters) if (filter.name.equals(name)) return filter;
+        return null;
+    }
+
+    public void add(String name) {
+        filters.add(provs.get(name).get(build));
+    }
+
     public void read(Reads reads) {
         int c = reads.i();
+        Seq<String> readed = new Seq<>();
+
         for (int i=0; i<c; i++) {
-            baseFilter<?> filter = provs.get(reads.str()).get(build);
+            String name = reads.str();
+            if (!has(name)) add(name);
+            baseFilter<?> filter = get(name);
             filter.read(reads);
-            filters.add(filter);
+            readed.add(name);
         }
+
+        Seq<baseFilter<?>> toRemove = new Seq<>();
+        for (baseFilter<?> filter : filters) if (!readed.contains(filter.name)) toRemove.add(filter);
+        filters.removeAll(toRemove);
     }
 
     public void write(Writes writes) {
@@ -84,6 +110,10 @@ public class fcFilter {
 
         public boolean hasConfig() {
             return !defaultConfig().getClass().equals(NoneConfig.class);
+        }
+
+        public Class<?> configType() {
+            return defaultConfig().getClass();
         }
 
         @SuppressWarnings("unchecked")

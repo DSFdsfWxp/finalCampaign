@@ -36,6 +36,7 @@ public class fcAction {
         if (player.dead() || unit.dead() || building.dead()) return false;
         if (unit.stack.amount > 0 && unit.stack.item != item) return false;
         if (!checkTeam(unit, building) || player.team() != unit.team()) return false;
+        if (!(building instanceof IFcTurretBuild)) return false;
 
         if (building instanceof ItemTurretBuild itb) {
             for (AmmoEntry ae : itb.ammo) {
@@ -59,6 +60,7 @@ public class fcAction {
         if (player == null || unit == null || building == null) return false;
         if (player.team() != unit.team()) return false;
         if (building.dead()) return false;
+        if (!(building instanceof IFcTurretBuild)) return false;
         boolean remove = amount < 0;
 
         if (remove) {
@@ -195,6 +197,7 @@ public class fcAction {
         if (player == null || building == null || order.length == 0) return false;
         if (player.dead() || building.dead()) return false;
         if (!checkTeam(player.unit(), building)) return false;
+        if (!(building instanceof IFcTurretBuild)) return false;
 
         if (building instanceof ItemTurretBuild itb) {
             ItemEntry[] entries = new ItemEntry[order.length];
@@ -281,6 +284,7 @@ public class fcAction {
         if (player == null || building == null) return false;
         if (player.dead()) return false;
         if (!checkTeam(player.unit(), building)) return false;
+        if (!(building instanceof IFcTurretBuild)) return false;
 
         IFcTurretBuild f = (IFcTurretBuild) building;
         f.fcForceDisablePredictTarget(v);
@@ -293,6 +297,7 @@ public class fcAction {
         if (player == null || building == null) return false;
         if (player.dead()) return false;
         if (!checkTeam(player.unit(), building)) return false;
+        if (!(building instanceof IFcTurretBuild)) return false;
 
         IFcTurretBuild f = (IFcTurretBuild) building;
         Reads reads = new Reads(new DataInputStream(new ByteArrayInputStream(data)));
@@ -307,6 +312,7 @@ public class fcAction {
         if (player == null || building == null) return false;
         if (player.dead()) return false;
         if (!checkTeam(player.unit(), building)) return false;
+        if (!(building instanceof IFcTurretBuild)) return false;
 
         IFcTurretBuild f = (IFcTurretBuild) building;
         f.fcPreferBuildingTarget(v);
@@ -319,9 +325,25 @@ public class fcAction {
         if (player == null || building == null) return false;
         if (player.dead()) return false;
         if (!checkTeam(player.unit(), building)) return false;
+        if (!(building instanceof IFcLiquidTurretBuild)) return false;
 
         IFcLiquidTurretBuild f = (IFcLiquidTurretBuild) building;
         f.fcPreferExtinguish(v);
+
+        return true;
+    }
+
+    @CallFrom(PacketSource.both)
+    public static boolean setBuildingFilter(Player player, Building building, byte[] data) {
+        if (player == null || building == null) return false;
+        if (player.dead()) return false;
+        if (!checkTeam(player.unit(), building)) return false;
+        if (!(building instanceof IFcTurretBuild)) return false;
+
+        IFcTurretBuild f = (IFcTurretBuild) building;
+        Reads reads = new Reads(new DataInputStream(new ByteArrayInputStream(data)));
+        f.fcFilter().read(reads);
+        reads.close();
 
         return true;
     }

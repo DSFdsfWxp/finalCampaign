@@ -4,6 +4,7 @@ import java.io.*;
 import arc.graphics.*;
 import arc.input.*;
 import arc.scene.*;
+import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
@@ -22,7 +23,7 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.io.*;
 import mindustry.type.*;
-import mindustry.ui.Styles;
+import mindustry.ui.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 
 public class targetingPriority extends bAttributeSetter {
@@ -437,6 +438,7 @@ public class targetingPriority extends bAttributeSetter {
         presetItem currentItem;
         Runnable applied;
         Building[] targets;
+        boolean added;
 
         public presetsTable(Building[] selected) {
             setBackground(Tex.sliderBack);
@@ -444,6 +446,7 @@ public class targetingPriority extends bAttributeSetter {
             items = new Seq<>();
             targets = selected;
             currentItem = null;
+            added = false;
             applied = () -> {};
             inner.changed(this::rebuild);
             rebuild();
@@ -455,6 +458,7 @@ public class targetingPriority extends bAttributeSetter {
 
         public void rebuild() {
             inner.clear();
+            currentItem = null;
 
             int c = buildTargetingPreset.size();
             for (int i=0; i<c; i++) {
@@ -468,6 +472,12 @@ public class targetingPriority extends bAttributeSetter {
                         item.setSelected(true);
                     }
                 });
+                if (i + 1 == c && added) {
+                    item.fireClick();
+                    item.rename = true;
+                    item.rebuild();
+                    added = false;
+                }
             }
 
             inner.table(butt -> {
@@ -480,6 +490,7 @@ public class targetingPriority extends bAttributeSetter {
                 }).size(46f).scaling(Scaling.fit).padRight(4f).right().disabled(e -> currentItem == null);
                 butt.button(Icon.add, () -> {
                     buildTargetingPreset.add();
+                    added = true;
                     rebuild();
                 }).size(46f).scaling(Scaling.fit).padRight(4f).right();
             }).growX();
@@ -562,14 +573,33 @@ public class targetingPriority extends bAttributeSetter {
             inner.clear();
 
             if (rename) {
-                inner.field(name, this::rename).grow().height(30f).get().keyDown(KeyCode.enter, () -> {
+                TextField field = inner.field(name, t -> {}).grow().height(30f).valid(t -> (!t.isBlank() && !buildTargetingPreset.has(t)) || t.trim().equals(name)).get();
+                field.keyDown(KeyCode.enter, () -> {
+                    if (!field.isValid()) return;
+                    rename(field.getText().trim());
                     rename = false;
                     rebuild();
                 });
+                field.keyDown(KeyCode.escape, () -> {
+                    rename = false;
+                    rebuild();
+                });
+                field.addListener(new FocusListener() {
+                    @Override
+                    public void keyboardFocusChanged(FocusEvent event, Element element, boolean focused) {
+                        if (!focused) {
+                            rename = false;
+                            rebuild();
+                        }
+                    }
+                });
+                field.selectAll();
+                field.requestKeyboard();
             } else {
                 inner.add(name).left().width(100f).wrap().growY().padRight(8f).get().addListener(new forwardEventListener(this));
                 inner.image(Icon.trash).size(32f).scaling(Scaling.fit).padRight(8f).get().clicked(this::delete);
                 inner.image(Icon.pencil).size(32f).scaling(Scaling.fit).get().clicked(() -> {
+                    fireClick();
                     rename = true;
                     rebuild();
                 });

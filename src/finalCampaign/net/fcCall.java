@@ -7,6 +7,17 @@ import finalCampaign.net.packet.*;
 
 @SuppressWarnings("all")
 public class fcCall {
+    public static void setBuildingFilter(mindustry.gen.Building building, byte[] data) {
+        setBuildingFilterPacket packet = new setBuildingFilterPacket();
+        packet.building = building;
+        packet.data = data;
+
+        if (!Vars.net.active() || Vars.net.server())
+            packet.handleServer(Vars.player);
+        if (Vars.net.client())
+            fcNet.send(packet);
+    }
+
     public static void setBuildingForceDisablePredictTarget(mindustry.gen.Building building, boolean v) {
         setBuildingForceDisablePredictTargetPacket packet = new setBuildingForceDisablePredictTargetPacket();
         packet.building = building;
@@ -195,6 +206,7 @@ public class fcCall {
     }
 
     public static void register() {
+        packets.registerPacket(setBuildingFilterPacket::new);
         packets.registerPacket(setBuildingForceDisablePredictTargetPacket::new);
         packets.registerPacket(setBuildingSortfPacket::new);
         packets.registerPacket(setCurrentLiquidPacket::new);
