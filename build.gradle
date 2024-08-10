@@ -127,50 +127,167 @@ configurations.all{
     }
 }
 
-task finalJar(type: Jar) {
-    doFirst {
-        task preMainMixinBootstrapJar(type: Jar) {
-            dependsOn "jar"
+task preMainMixinBootstrapJar(type: Jar) {
+    dependsOn "jar"
 
-            archiveFileName = "preMain.desktop.jar"
-            destinationDirectory = new File("$buildDir/libs/class/")
+    archiveFileName = "preMain.desktop.jar"
+    destinationDirectory = new File("$buildDir/libs/class/")
 
-            duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
 
-            manifest {
-                attributes "Main-Class": "finalCampaign.launch.desktopLauncher"
-            }
+    manifest {
+        attributes "Main-Class": "finalCampaign.launch.desktopLauncher"
+    }
 
-            from { [ "override/", zipTree("$buildDir/libs/${project.archivesBaseName}.desktop.raw.jar") ] }
+    from { [ "override/", zipTree("$buildDir/libs/${project.archivesBaseName}.desktop.raw.jar") ] }
 
-            include("META-INF/services/**")
-            include("org/spongepowered/**")
-            include("org/objectweb/**")
-            include("com/google/**")
-            include("shims/**")
+    include("META-INF/services/**")
+    include("org/spongepowered/**")
+    include("org/objectweb/**")
+    include("com/google/**")
+    include("shims/**")
 
-            include("arc/util/**")
-            include("arc/math/**")
-            include("arc/struct/**")
-            include("arc/func/**")
-            include("arc/Files*")
+    include("arc/util/**")
+    include("arc/math/**")
+    include("arc/struct/**")
+    include("arc/func/**")
+    include("arc/Files*")
 
-            include("finalCampaign/launch/desktop*")
-            include("finalCampaign/launch/share*")
-            include("finalCampaign/launch/both*")
+    include("finalCampaign/launch/desktop*")
+    include("finalCampaign/launch/share*")
+    include("finalCampaign/launch/both*")
 
-            exclude("finalCampaign/com/**")
+    exclude("finalCampaign/com/**")
 
-            include("fcLaunch/**")
-            include("fcMixin/**")
+    include("fcLaunch/**")
+    include("fcMixin/**")
 
-            include("LICENSE.txt")
+    include("LICENSE.txt")
 
+}
+
+task jarAndroid(type: Jar) {
+    dependsOn "preMainMixinBootstrapMixJarAndroid"
+
+    archiveFileName = "${base.archivesBaseName}.android.raw.jar"
+
+    from { zipTree("$buildDir/libs/${project.archivesBaseName}.desktop.raw.jar") }
+
+    exclude("META-INF/**")
+    exclude("org/**")
+    exclude("com/**")
+    exclude("shims/**")
+
+    exclude("finalCampaign/launch/desktop*")
+    exclude("finalCampaign/launch/android*")
+    exclude("finalCampaign/launch/share*")
+    exclude("finalCampaign/launch/sideDesktop*")
+
+    exclude("arc/**")
+
+    exclude("fcLaunch/**")
+    exclude("fcMixin/**")
+    exclude("class/**")
+    exclude("cert/**")
+
+    exclude("LICENSE.txt")
+
+    doLast{
+        r8("${base.archivesBaseName}.android.raw.jar", "${base.archivesBaseName}.android.dex.jar", "$buildDir/libs")
+    }
+        }
+
+        task preMainMixinBootstrapMixJarAndroid(type: Jar) {
+    dependsOn "preMainMixinBootstrapSrcJarAndroid"
+
+    archiveFileName = "preMain.android.jar"
+    destinationDirectory = new File("$buildDir/libs/class/")
+
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+
+    from { ["override/", zipTree("$buildDir/libs/${project.archivesBaseName}.desktop.raw.jar"), zipTree("$buildDir/libs/class/preMain.android.dex.jar")] }
+
+    include("META-INF/services/**")
+    include("LICENSE.txt")
+    include("classes.dex")
+
+    from(".") {
+        include "assets/fcLaunch/**"
+        include "assets/fcMixin/**"
+    }
+
+    doLast {
+        delete {
+            delete "$buildDir/libs/class/preMain.android.dex.jar"
+            delete "$buildDir/libs/class/preMain.android.raw.jar"
+            delete "$buildDir/libs/class/preMain.android.src.raw.jar"
+            delete "$buildDir/libs/class/preMain.android.src.dex.jar"
         }
     }
 
-    dependsOn "preMainMixinBootstrapJar"
+        }
+
+        task preMainMixinBootstrapSrcJarAndroid(type: Jar) {
+    dependsOn "preMainMixinBootstrapJarAndroid"
+
+    archiveFileName = "preMain.android.src.raw.jar"
+    destinationDirectory = new File("$buildDir/libs/class/")
+
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+
+    from { zipTree("$buildDir/libs/${project.archivesBaseName}.desktop.raw.jar") }
+
+    include("finalCampaign/launch/android*")
+    include("finalCampaign/launch/share*")
+    include("finalCampaign/launch/both*")
+
+    include("finalCampaign/patch/**")
+
+    doLast {
+        r8("./class/preMain.android.src.raw.jar", "./class/preMain.android.src.dex.jar", "$buildDir/libs")
+        dex2jar("./build/libs/class/preMain.android.src.dex.jar", "./build/libs/class/preMain.android.src.jar")
+    }
+        }
+
+        task preMainMixinBootstrapJarAndroid(type: Jar) {
+    dependsOn "finalJar"
+
+    archiveFileName = "preMain.android.raw.jar"
+    destinationDirectory = new File("$buildDir/libs/class/")
+
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+
+    from { [ "override/", zipTree("$buildDir/libs/${project.archivesBaseName}.desktop.raw.jar"), zipTree(getJava8Rt()) ] }
+
+    include("META-INF/services/**")
+    include("org/spongepowered/**")
+    include("org/objectweb/**")
+    include("com/google/**")
+
+    include("finalCampaign/launch/android*")
+    include("finalCampaign/launch/share*")
+    include("finalCampaign/launch/both*")
+
+    include("arc/util/**")
+    include("arc/math/**")
+    include("arc/struct/**")
+    include("arc/func/**")
+    include("arc/Files*")
+
+    include("finalCampaign/com/**")
+
+    include("javax/lang/**")
+    include("javax/tools/Diagnostic*")
+    include("javax/annotation/processing/Messager*")
+
+    doLast {
+        r8("./class/preMain.android.raw.jar", "./class/preMain.android.dex.jar", "$buildDir/libs")
+    }
+}
+
+task buildDesktop(type: Jar) {
     dependsOn "jar"
+    dependsOn "preMainMixinBootstrapJar"
 
     archiveFileName = "${base.archivesBaseName}Desktop.jar"
 
@@ -200,128 +317,7 @@ task finalJar(type: Jar) {
     }
 }
 
-task finalJarAndroid(type: Jar) {
-    doFirst {
-        task jarAndroid(type: Jar) {
-            dependsOn "preMainMixinBootstrapMixJarAndroid"
-
-            archiveFileName = "${base.archivesBaseName}.android.raw.jar"
-
-            from { zipTree("$buildDir/libs/${project.archivesBaseName}.desktop.raw.jar") }
-
-            exclude("META-INF/**")
-            exclude("org/**")
-            exclude("com/**")
-            exclude("shims/**")
-
-            exclude("finalCampaign/launch/desktop*")
-            exclude("finalCampaign/launch/android*")
-            exclude("finalCampaign/launch/share*")
-            exclude("finalCampaign/launch/sideDesktop*")
-
-            exclude("arc/**")
-
-            exclude("fcLaunch/**")
-            exclude("fcMixin/**")
-            exclude("class/**")
-            exclude("cert/**")
-
-            exclude("LICENSE.txt")
-
-            doLast{
-                r8("${base.archivesBaseName}.android.raw.jar", "${base.archivesBaseName}.android.dex.jar", "$buildDir/libs")
-            }
-        }
-
-        task preMainMixinBootstrapMixJarAndroid(type: Jar) {
-            dependsOn "preMainMixinBootstrapSrcJarAndroid"
-
-            archiveFileName = "preMain.android.jar"
-            destinationDirectory = new File("$buildDir/libs/class/")
-
-            duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-
-            from { ["override/", zipTree("$buildDir/libs/${project.archivesBaseName}.desktop.raw.jar"), zipTree("$buildDir/libs/class/preMain.android.dex.jar")] }
-
-            include("META-INF/services/**")
-            include("LICENSE.txt")
-            include("classes.dex")
-
-            from(".") {
-                include "assets/fcLaunch/**"
-                include "assets/fcMixin/**"
-            }
-
-            doLast {
-                delete {
-                    delete "$buildDir/libs/class/preMain.android.dex.jar"
-                    delete "$buildDir/libs/class/preMain.android.raw.jar"
-                    delete "$buildDir/libs/class/preMain.android.src.raw.jar"
-                    delete "$buildDir/libs/class/preMain.android.src.dex.jar"
-                }
-            }
-
-        }
-
-        task preMainMixinBootstrapSrcJarAndroid(type: Jar) {
-            dependsOn "preMainMixinBootstrapJarAndroid"
-
-            archiveFileName = "preMain.android.src.raw.jar"
-            destinationDirectory = new File("$buildDir/libs/class/")
-
-            duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-
-            from { zipTree("$buildDir/libs/${project.archivesBaseName}.desktop.raw.jar") }
-
-            include("finalCampaign/launch/android*")
-            include("finalCampaign/launch/share*")
-            include("finalCampaign/launch/both*")
-
-            include("finalCampaign/patch/**")
-
-            doLast {
-                r8("./class/preMain.android.src.raw.jar", "./class/preMain.android.src.dex.jar", "$buildDir/libs")
-                dex2jar("./build/libs/class/preMain.android.src.dex.jar", "./build/libs/class/preMain.android.src.jar")
-            }
-        }
-
-        task preMainMixinBootstrapJarAndroid(type: Jar) {
-            dependsOn "finalJar"
-
-            archiveFileName = "preMain.android.raw.jar"
-            destinationDirectory = new File("$buildDir/libs/class/")
-
-            duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-
-            from { [ "override/", zipTree("$buildDir/libs/${project.archivesBaseName}.desktop.raw.jar"), zipTree(getJava8Rt()) ] }
-
-            include("META-INF/services/**")
-            include("org/spongepowered/**")
-            include("org/objectweb/**")
-            include("com/google/**")
-
-            include("finalCampaign/launch/android*")
-            include("finalCampaign/launch/share*")
-            include("finalCampaign/launch/both*")
-
-            include("arc/util/**")
-            include("arc/math/**")
-            include("arc/struct/**")
-            include("arc/func/**")
-            include("arc/Files*")
-
-            include("finalCampaign/com/**")
-
-            include("javax/lang/**")
-            include("javax/tools/Diagnostic*")
-            include("javax/annotation/processing/Messager*")
-
-            doLast {
-                r8("./class/preMain.android.raw.jar", "./class/preMain.android.dex.jar", "$buildDir/libs")
-            }
-        }
-    }
-    
+task buildAndroid(type: Jar) {
     dependsOn "jarAndroid"
 
     archiveFileName = "${base.archivesBaseName}Android.jar"
@@ -379,8 +375,8 @@ jar {
 }
 
 task deploy(type: Jar) {
-    dependsOn "finalJarAndroid"
-    dependsOn "finalJar"
+    dependsOn "buildAndroid"
+    dependsOn "buildDesktop"
 
     archiveFileName = "${base.archivesBaseName}.jar"
 

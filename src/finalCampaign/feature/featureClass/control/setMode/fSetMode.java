@@ -61,6 +61,7 @@ public class fSetMode {
     }
 
     public static void load() {
+        frag = new setModeFragment();
         uiPatcher.load();
         fTuner.add("setMode", false, v -> enabled = v);
         features.add();
@@ -231,7 +232,6 @@ public class fSetMode {
             }
         });
 
-        frag = new setModeFragment();
         Vars.ui.hudGroup.addChild(frag);
     }
 

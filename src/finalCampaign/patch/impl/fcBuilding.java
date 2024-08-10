@@ -81,7 +81,7 @@ public abstract class fcBuilding implements IFcBuilding{
     }
 
     @Inject(method = "update", at = @At("HEAD"), remap = false)
-    public void fcUpdate() {
+    public void fcUpdate(CallbackInfo ci) {
         if (fcForceDisable || fcForceEnable) enabled = fcForceEnable;
     }
 }

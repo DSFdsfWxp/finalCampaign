@@ -18,5 +18,6 @@ public class features {
         fSetMode.addFeature(new predictTarget());
         fSetMode.addFeature(new targetingPriority());
         fSetMode.addFeature(new targetingLimit());
+        fSetMode.addFeature(new drillPreferItem());
     }
 }

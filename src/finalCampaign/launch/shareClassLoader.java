@@ -27,7 +27,6 @@ public abstract class shareClassLoader extends ClassLoader {
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
         try {
-            if (name.startsWith("arc.")) throw new ClassNotFoundException();
             Class<?> res = findLoadedClass(name);
             if (res == null) throw new ClassNotFoundException();
             return res;
@@ -121,7 +120,12 @@ public abstract class shareClassLoader extends ClassLoader {
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
         try {
-            if (name.startsWith("arc.")) throw new ClassNotFoundException();
+            if (name.startsWith("arc.")) {
+                try {
+                    Class<?> c = parent.loadClass(name);
+                    if (c.getClassLoader().equals(this)) return c;
+                } catch(Exception ignore) {}
+            }
             return super.loadClass(name, resolve);
         } catch(ClassNotFoundException e) {
             if (name.startsWith("java.")) throw new ClassNotFoundException(name);

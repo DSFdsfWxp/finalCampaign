@@ -573,7 +573,7 @@ public class targetingPriority extends bAttributeSetter {
             inner.clear();
 
             if (rename) {
-                TextField field = inner.field(name, t -> {}).grow().height(30f).valid(t -> (!t.isBlank() && !buildTargetingPreset.has(t)) || t.trim().equals(name)).get();
+                TextField field = inner.field(name, t -> {}).grow().height(30f).valid(t -> (!t.trim().isEmpty() && !buildTargetingPreset.has(t)) || t.trim().equals(name)).get();
                 field.keyDown(KeyCode.enter, () -> {
                     if (!field.isValid()) return;
                     rename(field.getText().trim());

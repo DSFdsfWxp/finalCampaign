@@ -90,7 +90,7 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
     }
 
     @Inject(method = "write", at = @At("RETURN"), remap = false)
-    public void fcWrite(Writes write) {
+    public void fcWrite(Writes write, CallbackInfo ci) {
         write.bool(fcForceDisablePredictTarget);
         write.bool(fcPreferBuildingTarget);
         fcSortf.write(write);

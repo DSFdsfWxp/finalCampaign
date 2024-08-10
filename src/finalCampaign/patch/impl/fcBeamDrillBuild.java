@@ -2,6 +2,8 @@ package finalCampaign.patch.impl;
 
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
 import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
@@ -78,17 +80,17 @@ public abstract class fcBeamDrillBuild extends Building implements IFcDrillBuild
     }
 
     @Inject(method = "onProximityUpdate", at = @At("RETURN"), remap = false)
-    public void fcOnProximityUpdate() {
+    public void fcOnProximityUpdate(CallbackInfo ci) {
         fcCheckItem();
     }
 
     @Inject(method = "read", at = @At("RETURN"), remap = false)
-    public void fcRead(Reads read, byte revision) {
+    public void fcRead(Reads read, byte revision, CallbackInfo ci) {
         fcPreferItem = TypeIO.readItem(read);
     }
 
     @Inject(method = "write", at = @At("RETURN"), remap = false)
-    public void fcWrite(Writes write) {
+    public void fcWrite(Writes write, CallbackInfo ci) {
         TypeIO.writeItem(write, fcPreferItem);
     }
 }

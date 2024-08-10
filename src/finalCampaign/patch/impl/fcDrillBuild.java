@@ -74,12 +74,12 @@ public abstract class fcDrillBuild extends Building implements IFcDrillBuild {
     }
 
     @Inject(method = "read", at = @At("RETURN"), remap = false)
-    public void fcRead(Reads read, byte revision) {
+    public void fcRead(Reads read, byte revision, CallbackInfo ci) {
         fcPreferItem = TypeIO.readItem(read);
     }
 
     @Inject(method = "write", at = @At("RETURN"), remap = false)
-    public void fcWrite(Writes write) {
+    public void fcWrite(Writes write, CallbackInfo ci) {
         TypeIO.writeItem(write, fcPreferItem);
     }
 }
