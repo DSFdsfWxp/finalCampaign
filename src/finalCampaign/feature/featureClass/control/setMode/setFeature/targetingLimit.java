@@ -14,6 +14,7 @@ import finalCampaign.feature.featureClass.buildTargetingLimit.*;
 import finalCampaign.feature.featureClass.buildTargetingLimit.fcFilter.*;
 import finalCampaign.net.*;
 import finalCampaign.patch.*;
+import finalCampaign.ui.*;
 import finalCampaign.util.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -199,14 +200,5 @@ public class targetingLimit extends bAttributeSetter {
         }
 
         public abstract void buildUI();
-    }
-
-    public abstract static class pane extends Table {
-        Table inner;
-
-        public pane() {
-            setBackground(Tex.sliderBack);
-            table(t -> inner = t).pad(4f).growX();
-        }
     }
 }

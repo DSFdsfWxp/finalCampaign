@@ -51,6 +51,17 @@ public class fcCall {
             fcNet.send(packet);
     }
 
+    public static void setDrillBuildingPreferItem(mindustry.gen.Building building, mindustry.type.Item v) {
+        setDrillBuildingPreferItemPacket packet = new setDrillBuildingPreferItemPacket();
+        packet.building = building;
+        packet.v = v;
+
+        if (!Vars.net.active() || Vars.net.server())
+            packet.handleServer(Vars.player);
+        if (Vars.net.client())
+            fcNet.send(packet);
+    }
+
     public static void setForceStatus(mindustry.gen.Building building, boolean forceStatus, boolean forceDisable) {
         setForceStatusPacket packet = new setForceStatusPacket();
         packet.building = building;
@@ -210,6 +221,7 @@ public class fcCall {
         packets.registerPacket(setBuildingForceDisablePredictTargetPacket::new);
         packets.registerPacket(setBuildingSortfPacket::new);
         packets.registerPacket(setCurrentLiquidPacket::new);
+        packets.registerPacket(setDrillBuildingPreferItemPacket::new);
         packets.registerPacket(setForceStatusPacket::new);
         packets.registerPacket(setHealthPacket::new);
         packets.registerPacket(setItemPacket::new);

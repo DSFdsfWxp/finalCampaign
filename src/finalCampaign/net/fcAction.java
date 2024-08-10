@@ -347,4 +347,17 @@ public class fcAction {
 
         return true;
     }
+
+    @CallFrom(PacketSource.both)
+    public static boolean setDrillBuildingPreferItem(Player player, Building building, Item v) {
+        if (player == null || building == null) return false;
+        if (player.dead()) return false;
+        if (!checkTeam(player.unit(), building)) return false;
+        if (!(building instanceof IFcDrillBuild)) return false;
+
+        IFcDrillBuild b = (IFcDrillBuild) building;
+        b.fcPreferItem(v);
+
+        return true;
+    }
 }

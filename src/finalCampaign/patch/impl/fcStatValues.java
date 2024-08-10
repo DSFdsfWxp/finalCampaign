@@ -7,7 +7,7 @@ import finalCampaign.patch.*;
 import mindustry.world.meta.*;
 
 @Mixin(StatValues.class)
-public class fcStatValues {
+public abstract class fcStatValues {
     
     @Overwrite(remap = false)
     public static StatValue number(float value, StatUnit unit, boolean merge) {

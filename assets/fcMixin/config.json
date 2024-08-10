@@ -13,7 +13,11 @@
         "fcLiquidModule",
         "fcStatValues",
         "fcTurretBuild",
-        "fcLiquidTurretBuild"
+        "fcLiquidTurretBuild",
+        "fcUnitType",
+        "fcBlock",
+        "fcDrillBuild",
+        "fcBeamDrillBuild"
     ],
     "client": [
 	]

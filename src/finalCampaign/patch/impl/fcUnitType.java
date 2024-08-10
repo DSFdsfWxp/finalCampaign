@@ -5,7 +5,7 @@ import finalCampaign.patch.*;
 import mindustry.type.*;
 
 @Mixin(UnitType.class)
-public class fcUnitType implements IFcUnitType, IFcAttractiveEntityType {
+public abstract class fcUnitType implements IFcUnitType, IFcAttractiveEntityType {
     public float fcAttractiveness = 0f;
     public float fcAntiAttractiveness = 0f;
     public float fcHiddenness = 0f;

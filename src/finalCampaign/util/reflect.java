@@ -35,10 +35,27 @@ public class reflect {
         }
     }
 
+    public static <T> Method getDeclaredMethod(Class<T> c, String name, Class<?> ...args) {
+        try {
+            return c.getDeclaredMethod(name, args);
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public static <T> T get(Field field, Object object) {
         try {
             return (T) field.get(object);
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T invoke(Method method, Object ...args) {
+        try {
+            return (T) method.invoke(method, args);
         } catch(Exception e) {
             throw new RuntimeException(e);
         }
