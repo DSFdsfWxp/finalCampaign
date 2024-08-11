@@ -39,7 +39,7 @@ public class multiItemStack extends iFeature {
                 for (Liquid liquid : Vars.content.liquids()) selecter.add(liquid);
                 selecter.add(Vars.ui.getIcon(Category.power.name()), "power");
 
-                t.add(selecter).width(164f).center().colspan(2);
+                t.add(selecter).width(164f).center().colspan(2).row();
                 fakeFinal<barSetter> setter = new fakeFinal<>();
                 Table setterTable = t.table().width(120f).left().get();
                 t.button("+", () -> {

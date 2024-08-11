@@ -2,15 +2,16 @@ package finalCampaign.patch.impl;
 
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
+import org.spongepowered.asm.mixin.injection.callback.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
+import finalCampaign.feature.featureClass.mapVersion.*;
 import finalCampaign.patch.*;
 import mindustry.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.io.*;
 import mindustry.type.*;
@@ -25,9 +26,15 @@ public abstract class fcBeamDrillBuild extends Building implements IFcDrillBuild
     @Shadow(remap = false)
     public Point2[] lasers;
 
-    private BeamDrill fcDrill = (BeamDrill) this.block;
+    private BeamDrill fcDrill;
     private Item fcPreferItem;
     private ObjectIntMap<Item> fcOutputMap = new ObjectIntMap<>();
+
+    @Override
+    public Building create(Block block, Team team) {
+        fcDrill = (BeamDrill) block;
+        return super.create(block, team);
+    }
 
     public void fcPreferItem(Item v) {
         fcPreferItem = v;
@@ -86,6 +93,7 @@ public abstract class fcBeamDrillBuild extends Building implements IFcDrillBuild
 
     @Inject(method = "read", at = @At("RETURN"), remap = false)
     public void fcRead(Reads read, byte revision, CallbackInfo ci) {
+        if (fMapVersion.currentVersion() < 1) return;
         fcPreferItem = TypeIO.readItem(read);
     }
 

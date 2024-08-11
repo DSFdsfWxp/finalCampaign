@@ -26,7 +26,7 @@ public class setModeFragment extends Table {
         this.name = "fcSetModeFragment";
         setBackground(Tex.pane);
         visible(() -> Vars.ui.hudfrag.shown && !Vars.control.input.commandMode && fSetMode.isOn());
-        setWidth(Scl.scl(362f));
+        setWidth(Scl.scl(295f));
         right().bottom();
         group = new ButtonGroup<>();
         group.setMaxCheckCount(Category.all.length);
@@ -42,7 +42,7 @@ public class setModeFragment extends Table {
         if (fSetMode.selecting || (!fSetMode.selecting && fSetMode.selected.size == 0) || forceSelectOpt) {
             table(t -> {
                 t.add(bundle.get("setMode.title")).center().fillX().color(Pal.accent).labelAlign(Align.center).row();
-                t.image().color(Pal.accent).growX().pad(20f).padTop(0f).padBottom(4f).row();
+                t.image().color(Pal.accent).growX().pad(20f).padTop(0f).padBottom(8f).row();
 
                 t.table(opt -> {
                     opt.add(bundle.get("setMode.selecting.filter")).left().padBottom(4f).colspan(3).row();
@@ -52,14 +52,14 @@ public class setModeFragment extends Table {
                             filter.button(Vars.ui.getIcon(cat.name()), Styles.clearTogglei, () -> {
                                 fSetMode.selectFilter.clear();
                                 for (ImageButton b : group.getAllChecked()) fSetMode.selectFilter.add(Category.valueOf(b.name));
-                            }).name(cat.name()).group(group).size(46f);
+                            }).name(cat.name()).center().group(group).size(46f).checked(fSetMode.selectFilter.contains(cat));
                             count ++;
                             if (count % 5 == 0) filter.row();
                         }
-                    }).center().maxWidth(opt.getWidth() / Scl.scl()).padBottom(8f).colspan(3).row();
+                    }).center().padBottom(8f).colspan(3).growX().row();
 
-                    opt.add(bundle.get("setMode.selecting.selectSameBlockBuilding")).width(opt.getWidth() / Scl.scl() * 0.6f).left().padBottom(4f);
-                    fWiki.setupWikiButton("setMode.selecting.selectSameBlockBuilding", opt.button("?", () -> {}).width(opt.getWidth() / Scl.scl() * 0.1f).padRight(opt.getWidth() / Scl.scl() * 0.1f).padBottom(4f).get());
+                    opt.add(bundle.get("setMode.selecting.selectSameBlockBuilding")).width(100f).left().padBottom(4f);
+                    fWiki.setupWikiButton("setMode.selecting.selectSameBlockBuilding", opt.button("?", () -> {}).width(40f).right().padRight(8f).padBottom(4f).get());
                     {
                         TextButton button = new TextButton("null");
                         Runnable updateButton = () -> button.setText(bundle.get(fSetMode.selectSameBlockBuilding ? "on" : "off"));
@@ -67,12 +67,12 @@ public class setModeFragment extends Table {
                             fSetMode.selectSameBlockBuilding = !fSetMode.selectSameBlockBuilding;
                             updateButton.run();
                         });
-                        opt.add(button).width(opt.getWidth() / Scl.scl() * 0.2f).padBottom(4f);
+                        opt.add(button).width(50f).padBottom(4f).right();
                         updateButton.run();
                     }
                     opt.row();
 
-                    opt.add(bundle.get("setMode.selecting.mode")).width(opt.getWidth() / Scl.scl() * 0.7f).left().padRight(opt.getWidth() / Scl.scl() * 0.1f).padBottom(4f);
+                    opt.add(bundle.get("setMode.selecting.mode")).width(100f).left().padBottom(4f);
                     {
                         TextButton button = new TextButton("null");
                         Runnable updateButton = () -> button.setText(bundle.get(fSetMode.deselect ? "setMode.selecting.mode.deselect" : "setMode.selecting.mode.select"));
@@ -80,11 +80,11 @@ public class setModeFragment extends Table {
                             fSetMode.deselect = !fSetMode.deselect;
                             updateButton.run();
                         });
-                        opt.add(button).width(opt.getWidth() / Scl.scl() * 0.2f).padBottom(4f);
+                        opt.add(button).width(50f).padBottom(4f).colspan(2).right();
                         updateButton.run();
                     }
-                }).fillX();
-            }).margin(9f).fillX();
+                }).width(295f);
+            }).margin(4f).growX();
         } else {
             table(t -> {
                 t.pane(cont -> {
@@ -100,7 +100,7 @@ public class setModeFragment extends Table {
                     }).size(8 * 5).padBottom(4f).right().row();
     
                     cont.image(firstBuilding.block.fullIcon).center().scaling(Scaling.fit).size(128f).row();
-                    if (multiSelect) cont.add("+" + Integer.toString(fSetMode.selected.size - 1)).center().padTop(-5f).padRight(-58f).color(Pal.accent).row();
+                    if (multiSelect) cont.add("+" + Integer.toString(fSetMode.selected.size - 1)).center().padTop(-5f).padRight(-10f).color(Pal.accent).row();
     
                     if (!multiSelect) cont.add(firstBuilding.block.localizedName).center().color(Pal.accent).fontScale(1.2f).padTop(4f).row();
                     
@@ -113,16 +113,16 @@ public class setModeFragment extends Table {
                             if (selected.length > 1 && !feature.supportMultiSelect) continue;
                             if (feature.isSupported(selected)) {
                                 if (!inited) {
-                                    cont.image().color(Pal.accent).growX().pad(20f).padTop(4f).padBottom(4f).row();
+                                    cont.image().color(Pal.accent).growX().pad(20f).padTop(8f).padBottom(4f).row();
                                     cont.add(bundle.get("name")).center().color(Pal.accent).padBottom(8f).row();
                                     inited = true;
                                 }
-                                cont.table(table -> feature.buildUI(selected, table, bundle.appendNS(feature.name))).growX().row();
+                                cont.table(table -> feature.buildUI(selected, table, bundle.appendNS(feature.name))).padBottom(8f).growX().row();
                             }
                         }
                     }
                 }).scrollX(false).fill().grow();
-            }).fill().growY();
+            }).fill().height(Core.graphics.getHeight() / Scl.scl()).width(295f);
         }
     }
 }

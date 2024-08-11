@@ -8,6 +8,7 @@ import arc.scene.ui.layout.*;
 import arc.util.*;
 import finalCampaign.bundle.*;
 import mindustry.ctype.*;
+import mindustry.ui.*;
 
 public class contentSelecter extends Table {
     private ButtonGroup<ImageButton> group;
@@ -60,7 +61,7 @@ public class contentSelecter extends Table {
     }
 
     public Cell<ImageButton> add(Drawable image, @Nullable Runnable clicked, @Nullable UnlockableContent content) {
-        Cell<ImageButton> cell = button(image, () -> {
+        Cell<ImageButton> cell = button(image, Styles.selecti,() -> {
             Core.app.post(() -> {
                 contentSelecter.this.change();
                 if (clicked != null) clicked.run();

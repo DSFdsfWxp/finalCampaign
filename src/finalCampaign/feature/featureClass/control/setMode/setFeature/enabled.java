@@ -11,7 +11,7 @@ public class enabled extends bSelectSetter<enabled.enabledState> {
     private Label warning;
 
     public enabled() {
-        super("name", false);
+        super("enabled", false);
         supportMultiSelect = true;
     }
 

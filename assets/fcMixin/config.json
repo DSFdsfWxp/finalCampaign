@@ -17,7 +17,9 @@
         "fcUnitType",
         "fcBlock",
         "fcDrillBuild",
-        "fcBeamDrillBuild"
+        "fcBeamDrillBuild",
+        "fcVars",
+        "fcSaveFileReader"
     ],
     "client": [
 	]

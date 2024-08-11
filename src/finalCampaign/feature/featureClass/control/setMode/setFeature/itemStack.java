@@ -124,7 +124,7 @@ public class itemStack extends iFeature {
                         fcCall.setCurrentLiquid(building, map.get(layout.getChildren().first()));
                     });
                 }
-            }).center().row();
+            }).growX().center().row();
         }
 
         {
@@ -259,7 +259,7 @@ public class itemStack extends iFeature {
                     });
                     if (++ count % 5 == 0) t.row();
                 }
-            }).center();
+            }).center().growX().row();
 
             col.setTable(new Table(ctc -> {
                 ctc.setWidth(Scl.scl(172f));
@@ -386,7 +386,7 @@ public class itemStack extends iFeature {
                                         float removed = Math.min(current, slider.value());
                                         fcCall.setPower(building, current - removed);
                                     }
-                                }).padLeft(5f).width(50f).right().get().setDisabled(() -> !(selectedContent.get() instanceof Item) || sandbox);
+                                }).padLeft(5f).width(50f).right().get().setDisabled(() -> !(selectedContent.get() instanceof Item) || (!(selectedContent.get() instanceof Item) && !sandbox));
                             }).center().colspan(3).padTop(4f);
                         }
                     }).pad(4f);
@@ -477,8 +477,8 @@ public class itemStack extends iFeature {
                 });
             }));
 
-            table.add(col).center();
-            table.add(addCol).center();
+            table.add(col).center().growX().row();
+            table.add(addCol).growX().center();
         }
     }
 }

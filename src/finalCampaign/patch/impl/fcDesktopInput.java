@@ -13,7 +13,7 @@ import arc.math.geom.*;
 import arc.util.*;
 import finalCampaign.feature.featureClass.binding.*;
 import finalCampaign.feature.featureClass.control.freeVision.*;
-import finalCampaign.feature.featureClass.control.setMode.fSetMode;
+import finalCampaign.feature.featureClass.control.setMode.*;
 import finalCampaign.feature.featureClass.fcDesktopInput.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
@@ -200,7 +200,7 @@ public abstract class fcDesktopInput extends InputHandler {
             }
         }
 
-        shouldShoot = !scene.hasMouse() && !locked;
+        shouldShoot = !scene.hasMouse() && !locked && !fSetMode.isOn();
 
         if(!locked && block == null && !scene.hasField() && !scene.hasDialog() &&
                 //disable command mode when player unit can boost and command mode binding is the same

@@ -8,8 +8,10 @@ import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
+import finalCampaign.feature.featureClass.mapVersion.*;
 import finalCampaign.patch.*;
 import finalCampaign.util.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.io.*;
 import mindustry.type.*;
@@ -25,10 +27,16 @@ public abstract class fcDrillBuild extends Building implements IFcDrillBuild {
     public Item dominantItem;
 
     private Item fcPreferItem;
-    private Drill fcDrill = (Drill) this.block;
+    private Drill fcDrill;
     private boolean fcInited = false;
     private ObjectIntMap<Item> fcOreCount;
     private Method fcCountOre;
+
+    @Override
+    public Building create(Block block, Team team) {
+        fcDrill = (Drill) block;
+        return super.create(block, team);
+    }
 
     public void fcPreferItem(Item v) {
         fcPreferItem = v;
@@ -75,6 +83,7 @@ public abstract class fcDrillBuild extends Building implements IFcDrillBuild {
 
     @Inject(method = "read", at = @At("RETURN"), remap = false)
     public void fcRead(Reads read, byte revision, CallbackInfo ci) {
+        if (fMapVersion.currentVersion() < 1) return;
         fcPreferItem = TypeIO.readItem(read);
     }
 

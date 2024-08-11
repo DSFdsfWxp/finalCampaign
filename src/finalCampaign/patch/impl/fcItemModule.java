@@ -40,19 +40,17 @@ public abstract class fcItemModule extends BlockModule {
         return null;
     }
 
-    @Inject(method = "add", at = @At("HEAD"), remap = false, cancellable = true)
-    private void fcAdd(int item, int amount, CallbackInfo ci){
+    @Inject(method = "add(II)V", at = @At("HEAD"), remap = false, cancellable = true)
+    private void fcAdd(int item, int amount, CallbackInfo ci) {
         if (items[item] == Integer.MAX_VALUE) ci.cancel();
     }
 
-    @Inject(method = {"set", "remove"}, at = @At("HEAD"), remap = false, cancellable = true)
-    public void fcItemChange(Item item, int amount, CallbackInfo ci){
+    @Inject(method = {"set", "remove(Lmindustry/type/Item;I)V"}, at = @At("HEAD"), remap = false, cancellable = true)
+    public void fcItemChange(Item item, int amount, CallbackInfo ci) {
         if (items[item.id] == Integer.MAX_VALUE) ci.cancel();
         if (amount == Integer.MAX_VALUE) {
             items[item.id] = amount;
             ci.cancel();
         }
     }
-
-
 }

@@ -40,7 +40,7 @@ public class tunerPane extends Table {
             TextButton button = t.button("null", () -> {
                 fTuner.set(name, !fTuner.isOn(name));
                 updateOnOff.run();
-            }).right().width(75f).get();
+            }).right().width(75f).padLeft(customizable ? 0f : 83f).get();
             button.setDisabled(automatic);
             map.put(name, button);
             fTuner.load(name);

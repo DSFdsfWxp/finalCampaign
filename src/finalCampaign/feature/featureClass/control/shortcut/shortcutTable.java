@@ -79,7 +79,7 @@ public class shortcutTable extends Table {
                     Building core = Vars.player.core();
                     Color color = (Vars.state.rules.infiniteResources || (core != null && (core.items.has(blocks[pos].requirements, Vars.state.rules.buildCostMultiplier) || Vars.state.rules.infiniteResources))) && Vars.player.isBuilder() ? Color.white : Color.gray;
                     button.forEach(elem -> elem.setColor(color));
-                    if (!group.getChecked().name.equals(button.name)) button.setChecked(Vars.control.input.block == blocks[pos]);
+                    button.setChecked(Vars.control.input.block == blocks[pos]);
 
                     if(invalidBlock(blocks[pos])){
                         button.forEach(elem -> elem.setColor(Color.darkGray));

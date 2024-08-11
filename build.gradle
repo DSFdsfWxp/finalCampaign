@@ -160,7 +160,6 @@ task preMainMixinBootstrapJar(type: Jar) {
     exclude("finalCampaign/com/**")
 
     include("fcLaunch/**")
-    include("fcMixin/**")
 
     include("LICENSE.txt")
 
@@ -186,7 +185,6 @@ task jarAndroid(type: Jar) {
     exclude("arc/**")
 
     exclude("fcLaunch/**")
-    exclude("fcMixin/**")
     exclude("class/**")
     exclude("cert/**")
 
@@ -195,9 +193,9 @@ task jarAndroid(type: Jar) {
     doLast{
         r8("${base.archivesBaseName}.android.raw.jar", "${base.archivesBaseName}.android.dex.jar", "$buildDir/libs")
     }
-        }
+}
 
-        task preMainMixinBootstrapMixJarAndroid(type: Jar) {
+task preMainMixinBootstrapMixJarAndroid(type: Jar) {
     dependsOn "preMainMixinBootstrapSrcJarAndroid"
 
     archiveFileName = "preMain.android.jar"
@@ -225,9 +223,9 @@ task jarAndroid(type: Jar) {
         }
     }
 
-        }
+}
 
-        task preMainMixinBootstrapSrcJarAndroid(type: Jar) {
+task preMainMixinBootstrapSrcJarAndroid(type: Jar) {
     dependsOn "preMainMixinBootstrapJarAndroid"
 
     archiveFileName = "preMain.android.src.raw.jar"
@@ -247,9 +245,9 @@ task jarAndroid(type: Jar) {
         r8("./class/preMain.android.src.raw.jar", "./class/preMain.android.src.dex.jar", "$buildDir/libs")
         dex2jar("./build/libs/class/preMain.android.src.dex.jar", "./build/libs/class/preMain.android.src.jar")
     }
-        }
+}
 
-        task preMainMixinBootstrapJarAndroid(type: Jar) {
+task preMainMixinBootstrapJarAndroid(type: Jar) {
     dependsOn "finalJar"
 
     archiveFileName = "preMain.android.raw.jar"
@@ -308,7 +306,6 @@ task buildDesktop(type: Jar) {
     exclude("arc/**")
 
     exclude("fcLaunch/**")
-    exclude("fcMixin/**")
 
     exclude("LICENSE.txt")
 

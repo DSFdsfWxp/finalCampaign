@@ -9,9 +9,9 @@ import mindustry.world.modules.*;
 public abstract class fcPowerModule extends BlockModule {
 
     @Shadow(remap = false)
-    public float status = 0.0f;
+    public float status;
     @Shadow(remap = false)
-    public IntSeq links = new IntSeq();
+    public IntSeq links;
 
     @Override
     public void read(Reads read){

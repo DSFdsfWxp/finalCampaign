@@ -3,7 +3,7 @@ package finalCampaign.launch;
 public class bothLauncherVersion {
     public final static int majorD = 0;
     public final static int minorD = 0;
-    public final static int debugD = 13;
+    public final static int debugD = 14;
 
     public final static int majorA = 0;
     public final static int minorA = 0;

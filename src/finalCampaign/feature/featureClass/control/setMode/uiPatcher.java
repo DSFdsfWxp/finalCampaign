@@ -34,6 +34,7 @@ public class uiPatcher {
         for (Element e : Vars.ui.hudGroup.getChildren()) {
             if (!whiteList.contains(e.name) && !patched.contains(e.getClass().getName() + " @ " + Integer.toHexString(System.identityHashCode(e)))) {
                 Boolp original = e.visibility;
+                if (original == null) continue;
                 e.visibility = () -> original.get() && !fSetMode.isOn();
                 patched.add(e.getClass().getName() + " @ " + Integer.toHexString(System.identityHashCode(e)));
             }

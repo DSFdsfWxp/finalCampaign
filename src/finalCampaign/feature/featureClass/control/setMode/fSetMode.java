@@ -5,12 +5,14 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.input.*;
 import arc.struct.*;
+import arc.util.*;
 import finalCampaign.feature.featureClass.binding.*;
 import finalCampaign.feature.featureClass.fcDesktopInput.*;
 import finalCampaign.feature.featureClass.tuner.*;
 import finalCampaign.patch.*;
 import mindustry.*;
 import mindustry.game.*;
+import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
@@ -18,19 +20,6 @@ import mindustry.type.*;
 import mindustry.world.*;
 
 public class fSetMode {
-    // reloadTurret -> Turret => TurretBuild.updateTile() -> TurretBuild.findTarget()
-    // Turret -> LiquidTurret => TurretBuild.updateTile() -> LiquidTurretBuild.findTarget()
-
-    // Building.control(LAccess type, Object p1, double p2, double p3, double p4)
-    // add a field in Building : @Nullable Block fcCurrentLinkedLogicBlock
-    // Plan A : mixin constructor LogicBlock() : config(int)
-    // Plan B : mixin LogicBlock.getLinkName(...) and LogicBuild.findLinkName(...)
-
-    // Building.updateConsumption()
-    // TurretBuild.updateEfficiencyMultiplier()
-    // add a field in Building : fcCheating
-    // Building.cheating()
-
     private static boolean enabled;
     private static boolean isOn;
     private static setModeFragment frag;
@@ -38,6 +27,7 @@ public class fSetMode {
     protected static boolean selecting;
     protected static boolean deselect;
     private static float x, y, w, h;
+    private static float dx, dy, dw, dh;
     private static Color selectRectColor;
     private static Color deselectRectColor;
 
@@ -45,6 +35,8 @@ public class fSetMode {
     protected static Seq<Category> selectFilter;
     protected static boolean selectSameBlockBuilding;
     private static int selectedNumDelta;
+    private static Seq<Team> activeTeams;
+    private static Seq<Building> tmp;
 
     public static void init() {
         enabled = false;
@@ -52,19 +44,25 @@ public class fSetMode {
         selecting = false;
         deselect = false;
         x = y = w = h = 0;
+        dx = dy = dw = dh = 0;
         selected = new Seq<>();
         selectFilter = new Seq<>();
         selectSameBlockBuilding = false;
         selectRectColor = Pal.accent.cpy().a(0.3f);
         deselectRectColor = Pal.health.cpy().a(0.3f);
         selectedNumDelta = 0;
+        tmp = new Seq<>();
     }
 
     public static void load() {
         frag = new setModeFragment();
         uiPatcher.load();
-        fTuner.add("setMode", false, v -> enabled = v);
+        enabled = fTuner.add("setMode", false, v -> enabled = v);
         features.add();
+
+        Events.on(WorldLoadEvent.class, e -> {
+            activeTeams = Reflect.get(Vars.indexer, "activeTeams");
+        });
 
         fFcDesktopInput.addBindingHandle(() -> {
             if (!enabled) return;
@@ -74,25 +72,20 @@ public class fSetMode {
             }
 
             if (Vars.control.input.commandMode) isOn = false;
-            if (Core.input.keyDown(Binding.break_block) || Core.input.keyDown(Binding.select) || Core.input.keyDown(Binding.deselect) || Core.input.keyDown(Binding.pick) || Core.input.keyDown(Binding.pickupCargo)) isOn = false;
+            if (Core.input.keyDown(Binding.break_block) || Core.input.keyDown(Binding.schematic_select) || Core.input.keyDown(Binding.deselect) || Core.input.keyDown(Binding.pick) || Core.input.keyDown(Binding.pickupCargo)) isOn = false;
 
             if (!isOn) selecting = false;
 
-            if (Core.input.keyDown(KeyCode.mouseLeft) && !selecting && isOn) {
+            if (Core.input.keyDown(KeyCode.mouseLeft) && isOn && !Core.scene.hasMouse()) {
                 if (!selecting) {
                     selecting = true;
                     x = Core.input.mouseWorldX();
                     y = Core.input.mouseWorldY();
                     selectedNumDelta = 0;
+                    tmp.clear();
                 } else {
-                    float ox, oy, ow, oh;
-                    ox = fSetMode.x;
-                    oy = fSetMode.y;
-                    ow = fSetMode.w;
-                    oh = fSetMode.h;
-                    
                     w = Core.input.mouseWorldX();
-                    y = Core.input.mouseWorldY();
+                    h = Core.input.mouseWorldY();
     
                     float x, y, w, h;
                     x = Math.min(fSetMode.x, fSetMode.w);
@@ -100,34 +93,18 @@ public class fSetMode {
                     w = Math.max(fSetMode.x, fSetMode.w) - x;
                     h = Math.max(fSetMode.y, fSetMode.h) - y;
 
-                    fSetMode.x = x;
-                    fSetMode.y = y;
-                    fSetMode.w = w;
-                    fSetMode.h = h;
+                    fSetMode.dx = x;
+                    fSetMode.dy = y;
+                    fSetMode.dw = w;
+                    fSetMode.dh = h;
 
                     if (w <= 0) w = Vars.tilesize;
                     if (h <= 0) h = Vars.tilesize;
-                    if (ow <=0) ow = Vars.tilesize;
-                    if (oh <=0) oh = Vars.tilesize;
 
-                    int wx, wy, ww, wh;
-                    wx = (int)(x / Vars.tilesize);
-                    wy = (int)(y / Vars.tilesize);
-                    ww = (int)(w / Vars.tilesize);
-                    wh = (int)(h / Vars.tilesize);
-
-                    int owx, owy, oww, owh;
-                    owx = (int)(ox / Vars.tilesize);
-                    owy = (int)(oy / Vars.tilesize);
-                    oww = (int)(ow / Vars.tilesize);
-                    owh = (int)(oh / Vars.tilesize);
-
-                    if (wx == owx && wy == owy && ww == oww && wh == owh) return;
-                    
-                    for (int py=0; py<wh; py++) {
-                        for (int px=0; px<ww; px++) {
-                            Building b = Vars.world.build(px + wx, py + wy);
-                            if (b == null) continue;
+                    for (Team team : activeTeams) {
+                        tmp.clear();
+                        team.data().buildingTree.intersect(x, y, w, h, tmp);
+                        for (Building b :tmp) {
                             if (!selectFilter.contains(b.block.category) && selectFilter.size > 0) continue;
                             IFcBuilding fb = (IFcBuilding) b;
                             if (deselect) {
@@ -150,6 +127,8 @@ public class fSetMode {
 
             if (Core.input.keyRelease(KeyCode.mouseLeft) && selecting && isOn) {
                 selecting = false;
+                x = y = w = h = 0f;
+                dx = dy = dw = dh = 0;
 
                 if (selectSameBlockBuilding && selected.size >= 1 && selectedNumDelta == 1 && !deselect) {
                     Seq<Building> stack = new Seq<>();
@@ -161,12 +140,14 @@ public class fSetMode {
                             IFcBuilding fb = (IFcBuilding) b;
                             Tile t = b.tile();
                             if (!fb.fcSetModeSelected()) fb.fcSetModeSelected(true);
+                            int da = (int) (Math.ceil(b.block.size / 2f - 1f)) + 1;
+                            int db = b.block.size % 2 == 0 ? da + 1 : da;
 
                             Building[] lst = new Building[4];
-                            lst[0] = Vars.world.build(t.x, t.y - 1);
-                            lst[1] = Vars.world.build(t.x, t.y + 1);
-                            lst[2] = Vars.world.build(t.x - 1, t.y);
-                            lst[3] = Vars.world.build(t.x + 1, t.y);
+                            lst[0] = Vars.world.build(t.x, t.y - da);
+                            lst[1] = Vars.world.build(t.x, t.y + db);
+                            lst[2] = Vars.world.build(t.x - da, t.y);
+                            lst[3] = Vars.world.build(t.x + db, t.y);
 
                             for (Building s : lst) if (s != null) if (s.block == b.block && s.team == b.team) toAdd.add(s);
                         }
@@ -196,7 +177,7 @@ public class fSetMode {
                 Tile t = b.tile();
                 int size = b.block.size;
                 if (!b.block.isMultiblock()) size = 1;
-                float offset = size % 2 == 0 ? Vars.tilesize : Vars.tilesize / 2f;
+                float offset = size % 2 == 0 ? Vars.tilesize / 2f : 0f;
 
                 float cx = t.x * Vars.tilesize + offset;
                 float cy = t.y * Vars.tilesize + offset;
@@ -205,9 +186,10 @@ public class fSetMode {
                 float ta = s / 2f;
                 float tb = s / 6f;
 
-                Drawf.circles(cx, cy, 1.44f, Pal.accent);
-
                 Draw.color(Pal.accent);
+                Lines.stroke(1f);
+                Lines.circle(cx, cy, 1.44f);
+
                 Lines.stroke(1.28f);
 
                 Lines.line(cx - ta, cy - ta, cx - tb, cy - ta);
@@ -227,12 +209,15 @@ public class fSetMode {
 
             if (selecting) {
                 Draw.color(deselect ? deselectRectColor : selectRectColor);
-                Fill.crect(x, y, w, h);
+                Fill.crect(dx, dy, dw, dh);
                 Draw.color();
             }
         });
 
-        Vars.ui.hudGroup.addChild(frag);
+        Vars.ui.hudGroup.fill(full -> {
+            full.bottom().right();
+            full.add(frag).right().bottom();
+        });
     }
 
     public static boolean isOn() {

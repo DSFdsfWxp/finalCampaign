@@ -12,14 +12,14 @@ public class fWiki {
     public static void load() {}
 
     public static void setupWikiButton(String name, Button button) {
-        button.addListener(new Tooltip(t -> t.background(Tex.button).add("[accent]" + bundle.get("wiki." + name + ".name") + "[]\n" + bundle.get("wiki." + name + ".short"))));
+        button.addListener(new Tooltip(t -> t.background(Tex.button).add("[accent]" + bundle.get("wiki." + name + ".name", name) + "[]\n" + bundle.get("wiki." + name + ".short", bundle.get("wiki.noDetail")))));
         button.clicked(() -> {
             show(name);
         });
     }
 
     public static void show(String name) {
-        Fi file = finalCampaign.thisModFi.child("fcWiki").child(name + ".md");
+        Fi file = finalCampaign.thisModFi.child("fcWiki").child(name.replace('.', '/') + ".md");
         wikiDialog dialog = new wikiDialog(name);
         dialog.show(file.readString());
     }

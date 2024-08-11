@@ -10,7 +10,7 @@ import finalCampaign.bundle.*;
 import finalCampaign.feature.featureClass.control.setMode.*;
 import finalCampaign.net.*;
 import finalCampaign.patch.*;
-import finalCampaign.ui.barSetter;
+import finalCampaign.ui.*;
 import mindustry.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -33,16 +33,16 @@ public class basicInfo extends iFeature {
 
     public void buildUI(Building[] selected, Table table, bundleNS bundleNS) {
         Building building = selected[0];
+        IFcBlock block = (IFcBlock) building.block;
 
         table.table(bars -> {
             bars.defaults().growX().height(18f).pad(4);
 
-            building.displayBars(bars);
-            OrderedMap<String, Func<Building, Bar>> map = Reflect.get(building.block, "barMap");
+            OrderedMap<String, Func<Building, Bar>> map = block.fcBarMap();
             for (String key : map.keys()) {
                 Bar bar = map.get(key).get(building);
                 if (bar == null) continue;
-                table.add(bar).growX();
+                table.add(bar).growX().padBottom(4f);
 
                 boolean consHeat = false;
                 building.block.checkStats();
@@ -53,10 +53,10 @@ public class basicInfo extends iFeature {
                 }
                 
                 if (key.equals("health")) {
-                    barSetter setter = new barSetter(bundleNS.get("health"), 164f, building.maxHealth, 0, building.health, false, consHeat, false, true, true);
+                    barSetter setter = new barSetter(bundleNS.get("health"), 272f, building.maxHealth, 0, building.health, false, consHeat, false, true, true);
                     Collapser col = new Collapser(new Table(ct -> {
                         ct.setBackground(Tex.sliderBack);
-                        ct.setWidth(172f);
+                        ct.setWidth(280f);
                         ct.add(setter).pad(4f);
                     }), true);
 
@@ -68,7 +68,7 @@ public class basicInfo extends iFeature {
                     bar.exited(() -> bar.outline(Pal.accent, 0));
                     bar.clicked(() -> col.toggle());
                     table.row();
-                    table.add(col).center();
+                    table.add(col).growX().center();
                 } else if (key.equals("heat") && (building instanceof HeatConsumer || (building.block instanceof Turret tb &&  tb.heatRequirement > 0f) || consHeat)) {
 
                     // wait for design

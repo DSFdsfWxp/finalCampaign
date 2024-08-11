@@ -56,11 +56,18 @@ public class shareMixinService extends MixinServiceAbstract implements ITransfor
     }
 
     public InputStream getResourceAsStream(String name) {
+        if (name.startsWith("fcMixin/") && mod != null) {
+            shareFi current = new shareZipFi(mod);
+            for (String fn : name.split("/")) current = current.child(fn);
+            return current.read();
+        }
+
         if (classLoader == null) {
             InputStream stream = shareMixinService.class.getClassLoader().getResourceAsStream(name);
             if (stream == null) stream = shareIOUtil.readFileInternalAsStream(name);
             return stream;
         }
+
         return classLoader.getResourceAsStream(name);
     }
 

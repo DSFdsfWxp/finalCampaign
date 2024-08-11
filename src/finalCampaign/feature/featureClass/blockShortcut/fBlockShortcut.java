@@ -69,7 +69,7 @@ public class fBlockShortcut {
         fTuner.add("blockShortcut", config);
 
         fFcDesktopInput.addBindingHandle(() -> {
-            for (int i=0; i<keyLst.size; i++) if (Core.input.keyTap(keyLst.get(i))) checkAndSave(i);
+            for (int i=0; i<keyLst.size; i++) if (Core.input.keyTap(keyLst.get(i))) checkAndSaveOrSwitchTo(i);
         });
 
         Events.on(StateChangeEvent.class, e -> {
@@ -79,8 +79,9 @@ public class fBlockShortcut {
         });
     }
 
-    private static void checkAndSave(int id) {
+    private static void checkAndSaveOrSwitchTo(int id) {
         if (forceIgnoreCheck) return;
+        if (Core.scene.hasField() || Core.scene.hasDialog()) return;
         
         Block block = Reflect.get(Vars.ui.hudfrag.blockfrag, "menuHoverBlock");
         if (block != null) {
@@ -88,13 +89,14 @@ public class fBlockShortcut {
                 blockLst[id] = null;
                 setting.put("blockShortcut.lst." + Integer.toString(id), "");
             } else {
+                for (int i=0; i<blockLst.length; i++) if (blockLst[i] == block) clearBlockSlot(i);
                 blockLst[id] = block;
                 setting.put("blockShortcut.lst." + Integer.toString(id), block.name);
             }
             
             Events.fire(new shortcutChangeEvent(blockLst[id], id));
         } else {
-            if (blockLst[id] != null) Vars.control.input.block = blockLst[id];
+            if (blockLst[id] != null) Vars.control.input.block = Vars.control.input.block == blockLst[id] ? null : blockLst[id];
         }
     }
 

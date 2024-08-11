@@ -11,14 +11,15 @@ import finalCampaign.feature.featureClass.control.setMode.*;
 import finalCampaign.feature.featureClass.control.shortcut.*;
 import finalCampaign.feature.featureClass.crosshair.*;
 import finalCampaign.feature.featureClass.fcDesktopInput.*;
+import finalCampaign.feature.featureClass.mapVersion.*;
 import finalCampaign.feature.featureClass.spritePacker.*;
 import finalCampaign.feature.featureClass.tuner.*;
 import finalCampaign.feature.featureClass.wiki.*;
 
 public class features {
     public static void add() {
-
         featureLoader.add(fFcDesktopInput.class);
+        featureLoader.add(fMapVersion.class);
         
         featureLoader.add(fFreeVision.class);
         featureLoader.add(fTuner.class);

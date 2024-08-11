@@ -8,6 +8,7 @@ import arc.util.*;
 import arc.util.io.*;
 import finalCampaign.feature.featureClass.buildTargeting.*;
 import finalCampaign.feature.featureClass.buildTargetingLimit.*;
+import finalCampaign.feature.featureClass.mapVersion.*;
 import finalCampaign.patch.*;
 import mindustry.*;
 import mindustry.entities.*;
@@ -32,7 +33,7 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
     @Shadow(remap = false)
     protected abstract boolean canHeal();
 
-    private Turret turretBlock = (Turret) this.block;
+    private Turret turretBlock;
     private boolean fcForceDisablePredictTarget = false;
     private boolean fcPreferBuildingTarget = false;
     private fcSortf fcSortf = new fcSortf((TurretBuild)(Object) this);
@@ -64,7 +65,7 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
 
     @Override
     public Building create(Block block, Team team) {
-
+        turretBlock = (Turret) block;
         return super.create(block, team);
     }
 
@@ -84,6 +85,7 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
 
     @Inject(method = "read", at = @At("RETURN"), remap = false)
     public void fcRead(Reads read, byte revision, CallbackInfo ci) {
+        if (fMapVersion.currentVersion() < 1) return;
         fcForceDisablePredictTarget = read.bool();
         fcPreferBuildingTarget = read.bool();
         fcSortf.read(read);
