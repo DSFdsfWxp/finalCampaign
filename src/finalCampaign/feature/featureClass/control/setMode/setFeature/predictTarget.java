@@ -30,6 +30,7 @@ public class predictTarget extends bSelectSetter<predictTarget.predictTargetStat
     }
 
     public predictTargetState currentValue(Building building) {
+        if (!(building instanceof IFcTurretBuild)) return predictTargetState.def;
         IFcTurretBuild tb = (IFcTurretBuild) building;
         return tb.fcForceDisablePredictTarget() ? predictTargetState.off : predictTargetState.def;
     }

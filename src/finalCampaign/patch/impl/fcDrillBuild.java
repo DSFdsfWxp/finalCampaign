@@ -44,7 +44,7 @@ public abstract class fcDrillBuild extends Building implements IFcDrillBuild {
     }
 
     public ObjectIntMap<Item> fcScanOutput() {
-        reflect.invoke(fcCountOre, tile);
+        reflect.invoke(fcCountOre, fcDrill, tile);
         return new ObjectIntMap<>(fcOreCount);
     }
 
@@ -59,7 +59,7 @@ public abstract class fcDrillBuild extends Building implements IFcDrillBuild {
 
     public void fcInit() {
         if (fcInited) return;
-        fcOreCount = Reflect.get(fcDrill, "oreCount");
+        fcOreCount = Reflect.get(Drill.class, fcDrill, "oreCount");
         fcCountOre = reflect.getDeclaredMethod(Drill.class, "countOre", Tile.class);
         reflect.setAccessible(fcCountOre, true);
         fcInited = true;

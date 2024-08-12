@@ -11,10 +11,15 @@ public class limitedTextSlider extends textSlider {
     public limitedTextSlider(String title, float value, float min, float max, float step, float width) {
         super(title, value, min, max, step, width);
         limits = new Seq<>();
-        addListener(new InputListener() {
+        slider.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button) {
+                return true;
+            }
+
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, KeyCode button) {
-                if (button == KeyCode.mouseLeft) for (limit l : limits) l.check();
+                for (limit l : limits) l.check();
             }
         });
     }
@@ -28,9 +33,9 @@ public class limitedTextSlider extends textSlider {
     }
 
     @Override
-    public void change() {
+    public void modify() {
         for (limit l : limits) l.check();
-        super.change();
+        super.modify();
     }
 
     public static enum limitSide {
@@ -56,10 +61,11 @@ public class limitedTextSlider extends textSlider {
             if (current > from && current < to) {
                 if (hard || !Core.input.keyDown(KeyCode.mouseLeft)) {
                     limitedTextSlider.this.rawValue(side == limitSide.left ? from : to);
+                    limitedTextSlider.this.modify();
                 }
-                limitedTextSlider.this.ignoreChange = true;
+                limitedTextSlider.this.ignoreModify = true;
             } else {
-                limitedTextSlider.this.ignoreChange = false;
+                limitedTextSlider.this.ignoreModify = false;
             }
         }
     }

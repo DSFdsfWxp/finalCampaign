@@ -11,6 +11,14 @@ public class reflect {
         }
     }
 
+    public static <T> Constructor<?>[] getDeclaredConstructors(Class<T> c) {
+        try {
+            return c.getDeclaredConstructors();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void setAccessible(AccessibleObject object, boolean accessible) {
         try {
             object.setAccessible(accessible);
@@ -53,9 +61,9 @@ public class reflect {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T invoke(Method method, Object ...args) {
+    public static <T> T invoke(Method method, Object thisArg, Object ...args) {
         try {
-            return (T) method.invoke(method, args);
+            return (T) method.invoke(thisArg, args);
         } catch(Exception e) {
             throw new RuntimeException(e);
         }

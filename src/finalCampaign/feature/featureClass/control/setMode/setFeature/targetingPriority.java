@@ -40,7 +40,8 @@ public class targetingPriority extends bAttributeSetter {
 
     public void buildUI(Building[] selected, Table table) {
         Building first = selected[0];
-        IFcTurretBuild fcFirst = (IFcTurretBuild) first;
+        IFcTurretBuild fcFirst = null;
+        for (Building b : selected) if (b instanceof IFcTurretBuild itb) fcFirst = itb;
         IFcLiquidTurretBuild fcLiquidFirst = first instanceof IFcLiquidTurretBuild b ? b : null;
 
         presetsTable presetsTable = new presetsTable(selected);

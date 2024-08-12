@@ -63,12 +63,12 @@ public class itemStack extends iFeature {
                 if (building instanceof ItemTurretBuild itb) {
                     float totalAmount = 0;
                     ObjectMap<Element, ItemEntry> map = new ObjectMap<>();
-                    for (AmmoEntry ae : itb.ammo) totalAmount += ae.amount == Integer.MAX_VALUE ? 1 : (ae.amount < 0 ? 0 : ae.amount);
+                    for (AmmoEntry ae : itb.ammo) totalAmount += ae.amount == Short.MAX_VALUE ? 1 : (ae.amount < 0 ? 0 : ae.amount);
                     for (int i=itb.ammo.size - 1; i>=0; i--) {
                         ItemEntry ie = (ItemEntry) itb.ammo.get(i);
                         if (ie.amount <= 0) continue;
                         Table it = new Table();
-                        it.setWidth(t.getWidth() * ((ie.amount == Integer.MAX_VALUE ? totalAmount * 0.1f : ie.amount) / totalAmount));
+                        it.setWidth(t.getWidth() * ((ie.amount == Short.MAX_VALUE ? totalAmount * 0.1f : ie.amount) / totalAmount));
                         it.setBackground(Tex.whiteui);
                         it.color.set(ie.item.color);
                         it.image(ie.item.uiIcon).size(32f).scaling(Scaling.fit).center().get().addListener(new forwardEventListener(it));
@@ -132,7 +132,7 @@ public class itemStack extends iFeature {
             fakeFinal<Item> currentItem = new fakeFinal<>();
             fakeFinal<Item> currentItemAmmo = new fakeFinal<>();
             fakeFinal<Liquid> currentLiquid = new fakeFinal<>();
-            fakeFinal<Boolean> currentPower = new fakeFinal<>();
+            fakeFinal<Boolean> currentPower = new fakeFinal<>(false);
             Collapser col = new Collapser(new Table(), true);
             Collapser addCol = new Collapser(new Table(), true);
             fakeFinal<Runnable> rebuildCol = new fakeFinal<>();
@@ -152,6 +152,7 @@ public class itemStack extends iFeature {
                         int num = building.items.get(i);
                         Item item = Vars.content.item(i);
                         t.add(new ItemImage(item.uiIcon, num)).padRight(8).tooltip(tt -> {
+                            tt.setBackground(Tex.button);
                             tt.add(item.localizedName).left().row();
                             tt.add(num == Integer.MAX_VALUE ? "∞" : Integer.toString(num)).color(Color.lightGray).left();
                         }).get().clicked(() -> {
@@ -176,8 +177,9 @@ public class itemStack extends iFeature {
                     for (AmmoEntry ae : itb.ammo) {
                         ItemEntry ie = (ItemEntry) ae;
                         t.add(new ItemImage(ie.item.uiIcon, ie.amount)).padRight(8).tooltip(tt -> {
+                            tt.setBackground(Tex.button);
                             tt.add(ie.item.localizedName).left().row();
-                            tt.add(ie.amount == Integer.MAX_VALUE ? "∞" : Integer.toString(ie.amount)).color(Color.lightGray).left();
+                            tt.add(ie.amount == Short.MAX_VALUE ? "∞" : Integer.toString(ie.amount)).color(Color.lightGray).left();
                         }).get().clicked(() -> {
                             if (currentItem.get() == ie.item) {
                                 col.setCollapsed(true);
@@ -201,6 +203,7 @@ public class itemStack extends iFeature {
                         float amount = building.liquids.get(liquid);
                         if (amount <= 0f) continue;
                         t.add(new ItemImage(liquid.uiIcon, amount == Float.POSITIVE_INFINITY ? Integer.MAX_VALUE : (int) amount)).padRight(8f).tooltip(tt -> {
+                            tt.setBackground(Tex.button);
                             tt.add(liquid.localizedName).left().row();
                             tt.add(amount == Float.POSITIVE_INFINITY ? "∞" : Float.toString(amount)).color(Color.lightGray).left();
                         }).get().clicked(() -> {
@@ -225,6 +228,7 @@ public class itemStack extends iFeature {
                     float amount = fcBuilding.fcInfinityPower() ? Float.POSITIVE_INFINITY : building.power.status * building.block.consPower.capacity;
                     if (amount != Float.NaN && amount > 0) {
                         t.add(new ItemImage(Vars.ui.getIcon(Category.power.name()).getRegion(), amount == Float.POSITIVE_INFINITY ? Integer.MAX_VALUE : (int) amount)).padRight(8f).color(Pal.accent).tooltip(tt -> {
+                            tt.setBackground(Tex.button);
                             tt.add(Core.bundle.get("unit.powerunits")).row();
                             tt.add(amount == Float.POSITIVE_INFINITY ? "∞" : Float.toString(amount)).color(Color.lightGray).left();
                         }).get().clicked(() -> {
@@ -289,7 +293,7 @@ public class itemStack extends iFeature {
                                     for (AmmoEntry ae : itb.ammo) {
                                         ItemEntry ie = (ItemEntry) ae;
                                         if (ie.item != current) continue;
-                                        txt = ie.amount == Integer.MAX_VALUE ? "∞" : Integer.toString(ie.amount);
+                                        txt = ie.amount == Short.MAX_VALUE ? "∞" : Integer.toString(ie.amount);
                                         break;
                                     }
                                 }
@@ -320,12 +324,12 @@ public class itemStack extends iFeature {
                         if (capacity <= 0) {
                             tc.add(bundleNS.get("invalidPlayerUnit")).color(Color.lightGray).colspan(3).padTop(8f).center();
                         } else {
-                            textSlider slider = tc.add(new textSlider("", 0, 0, capacity, 1f, 164f)).width(164f).padTop(8f).center().colspan(3).get();
+                            textSlider slider = tc.add(new textSlider("", 0, 0, capacity, 1f, 256f)).width(256f).padTop(8f).center().colspan(3).get();
                             slider.showNum = false;
                             tc.row();
                             tc.table(butt -> {
                                 TextField field = butt.field("0", txt -> slider.rawValue(Integer.parseInt(txt))).valid(value -> Strings.canParsePositiveInt(value)).width(50f).left().get();
-                                slider.changed(() -> field.setText(Float.toString(slider.value())));
+                                slider.modified(() -> field.setText(selectedContent.get() instanceof Item ? Integer.toString((int) slider.value()) : Float.toString(slider.value())));
                                 butt.button(bundleNS.get("take"), () -> {
                                     if (selectedContent.get() instanceof Item item) {
                                         if (building instanceof ItemTurretBuild itb) {
@@ -406,8 +410,8 @@ public class itemStack extends iFeature {
                         for (Item item : Vars.content.items()) if (building.block.consumesItem(item)) selecter.add(item);
                         for (Liquid liquid : Vars.content.liquids()) if (building.block.consumesLiquid(liquid)) selecter.add(liquid);
                         if (building.power != null && building.block.consPower != null) selecter.add(Vars.ui.getIcon(Category.power.name()), "power").color(Pal.accent);
-                        t.add(selecter).center().colspan(2).width(164f).row();
-                        Table setterTable = t.table().left().width(120f).get();
+                        t.add(selecter).center().colspan(2).width(256f).row();
+                        Table setterTable = t.table().left().width(256f).get();
                         t.button("+", () -> {
                             Player player = Vars.player;
                             if (player.dead()) return;
@@ -431,10 +435,10 @@ public class itemStack extends iFeature {
                                             amount = ie.amount;
                                             break;
                                         }
-                                        if (amount == Integer.MAX_VALUE) return;
+                                        if (amount == Short.MAX_VALUE) return;
                                         int add = (int) setter.get().value();
-                                        amount = add == Integer.MAX_VALUE ? add : amount + add;
-                                        if (amount != Integer.MAX_VALUE) amount = Math.min(amount, building.block.itemCapacity);
+                                        amount = add == Integer.MAX_VALUE ? Short.MAX_VALUE : amount + add;
+                                        if (amount != Short.MAX_VALUE) amount = Math.min(amount, building.block.itemCapacity);
                                         fcCall.setTurretAmmo(unit, building, item, amount);
                                     } else {
                                         int amount = building.items.get(item);
@@ -457,16 +461,16 @@ public class itemStack extends iFeature {
                                 String name = selecter.getSelectedName();
                                 if (name == null) name = "";
                                 if (name.equals("power")) {
-                                    setter.set(new barSetter("", 112f, building.block.consPower.capacity, 0, 0, false, true, true, true, true));
+                                    setter.set(new barSetter("", 256f, building.block.consPower.capacity, 0, 0, false, true, true, true, true));
                                 } else {
-                                    setter.set(new barSetter("", 112f, 100f, 0, 0, false, true, true, true, true));
+                                    setter.set(new barSetter("", 256f, 100f, 0, 0, false, true, true, true, true));
                                     setter.get().setDisabled(true);
                                 }
                             } else {
                                 if (content instanceof Item) {
-                                    setter.set(new barSetter("", 112f, building.block.itemCapacity, 0, 0, true, true, true, true, true));
+                                    setter.set(new barSetter("", 256f, building.block.itemCapacity, 0, 0, true, true, true, true, true));
                                 } else if (content instanceof Liquid) {
-                                    setter.set(new barSetter("", 112f, building.block.liquidCapacity, 0, 0, false, true, true, true, true));
+                                    setter.set(new barSetter("", 256f, building.block.liquidCapacity, 0, 0, false, true, true, true, true));
                                 }
                             }
 

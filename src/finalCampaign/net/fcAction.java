@@ -46,7 +46,10 @@ public class fcAction {
                 int capacity = unit.type.itemCapacity - unit.stack.amount;
                 amount = Math.min(capacity, amount);
                 amount = Math.min(amount, ie.amount);
-                ie.amount -= amount;
+                if (ie.amount < Short.MAX_VALUE) {
+                    ie.amount -= amount;
+                    itb.totalAmmo -= amount;
+                }
                 unit.addItem(item, amount);
                 return true;
             }
@@ -86,19 +89,27 @@ public class fcAction {
             if (!sandbox()) return false;
 
             if (building instanceof ItemTurretBuild itb) {
+                ItemTurret it = (ItemTurret) itb.block;
+                itb.noSleep();
+
                 for (AmmoEntry ae : itb.ammo) {
                     ItemEntry ie = (ItemEntry) ae;
                     if (ie.item != item) continue;
     
+                    int d = amount - ie.amount;
                     ie.amount = amount;
+                    itb.totalAmmo += amount == Short.MAX_VALUE ? 1 : d;
+                    itb.totalAmmo = Math.min(amount, it.maxAmmo);
                     return true;
                 }
                 
                 ItemTurret turret = (ItemTurret) itb.block;
                 if (turret.ammoTypes.get(item) == null) return false;
-                Constructor<ItemEntry> constructor = reflect.getDeclaredConstructor(ItemEntry.class, Item.class, int.class);
+                Constructor<?> constructor = reflect.getDeclaredConstructors(ItemEntry.class)[0];
                 reflect.setAccessible(constructor, true);
-                itb.ammo.add(reflect.newInstance(constructor, item, amount));
+                itb.ammo.add((ItemEntry) reflect.newInstance(constructor, building.block, item, amount));
+                itb.totalAmmo += amount == Short.MAX_VALUE ? 1 : amount;
+                itb.totalAmmo = Math.min(amount, it.maxAmmo);
                 return true;
             }
     

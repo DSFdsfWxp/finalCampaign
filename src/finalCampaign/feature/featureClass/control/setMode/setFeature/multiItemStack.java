@@ -30,6 +30,7 @@ public class multiItemStack extends iFeature {
         ButtonGroup<TextButton> group = new ButtonGroup<>();
         group.setMinCheckCount(0);
         Collapser col = new Collapser(new Table(ct -> {
+            ct.fillParent = true;
             ct.setBackground(Tex.sliderBack);
             ct.setWidth(Scl.scl(172f));
 
@@ -71,10 +72,10 @@ public class multiItemStack extends iFeature {
                                         amount = ie.amount;
                                         break;
                                     }
-                                    if (amount == Integer.MAX_VALUE) continue;
+                                    if (amount == Short.MAX_VALUE) continue;
                                     int add = (int) setter.get().value();
-                                    amount = add == Integer.MAX_VALUE ? add : amount + add;
-                                    if (amount != Integer.MAX_VALUE) amount = Math.min(amount, building.block.itemCapacity);
+                                    amount = add == Integer.MAX_VALUE ? Short.MAX_VALUE : amount + add;
+                                    if (amount != Short.MAX_VALUE) amount = Math.min(amount, building.block.itemCapacity);
                                     fcCall.setTurretAmmo(unit, building, item, amount);
                                 } else {
                                     if (building.items == null) continue;
@@ -105,16 +106,16 @@ public class multiItemStack extends iFeature {
                         String name = selecter.getSelectedName();
                         if (name == null) name = "";
                         if (name.equals("power")) {
-                            setter.set(new barSetter("", 112f, 1e7f, 0, 0, false, true, true, true, true));
+                            setter.set(new barSetter("", 256f, 1e7f, 0, 0, false, true, true, true, true));
                         } else {
-                            setter.set(new barSetter("", 112f, 100f, 0, 0, false, true, true, true, true));
+                            setter.set(new barSetter("", 256f, 100f, 0, 0, false, true, true, true, true));
                             setter.get().setDisabled(true);
                         }
                     } else {
                         if (content instanceof Item) {
-                            setter.set(new barSetter("", 112f, 1e7f, 0, 0, true, true, true, true, true));
+                            setter.set(new barSetter("", 256f, 1e7f, 0, 0, true, true, true, true, true));
                         } else if (content instanceof Liquid) {
-                            setter.set(new barSetter("", 112f, 1e7f, 0, 0, false, true, true, true, true));
+                            setter.set(new barSetter("", 256f, 1e7f, 0, 0, false, true, true, true, true));
                         }
                     }
 
@@ -124,7 +125,8 @@ public class multiItemStack extends iFeature {
             }).pad(4f);
         }), true);
 
-        table.add(bundleNS.get("removeAll")).width(100f).left();
+        table.left();
+        table.add(bundleNS.get("removeAll")).width(100f).left().wrap().growY();
         table.button(bundleNS.get("remove"), () -> {
             Player player = Vars.player;
             if (player.dead()) return;
@@ -152,11 +154,11 @@ public class multiItemStack extends iFeature {
                     fcCall.setPower(building, 0);
                 }
             }
-        }).width(50f).right().row();
-        table.add(bundleNS.get("addToAll")).width(100f).left();
+        }).width(50f).growX().right().row();
+        table.add(bundleNS.get("addToAll")).width(100f).left().wrap().growY();
         table.button(bundleNS.get("add"), () -> {
             col.toggle();
-        }).width(50f).group(group).right().row();
-        table.add(col).center().colspan(2);
+        }).width(50f).group(group).right().growX().row();
+        table.add(col).center().colspan(2).growX();
     }
 }

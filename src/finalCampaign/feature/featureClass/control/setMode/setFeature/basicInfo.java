@@ -51,20 +51,25 @@ public class basicInfo extends iFeature {
                 }
                 
                 if (key.equals("health")) {
-                    barSetter setter = new barSetter(bundleNS.get("health"), 272f, building.maxHealth, 0, building.health, false, consHeat, false, true, true);
+                    barSetter setter = new barSetter(bundleNS.get("health"), 256f, building.maxHealth, 0, building.health, false, true, false, true, true);
                     Collapser col = new Collapser(new Table(ct -> {
                         ct.setBackground(Tex.sliderBack);
-                        ct.setWidth(280f);
+                        ct.fillParent = true;
                         ct.add(setter).pad(4f);
                     }), true);
 
-                    setter.changed(() -> {
+                    setter.modified(() -> {
                         fcCall.setHealth(building, setter.value());
                     });
 
                     bar.hovered(() -> bar.outline(Pal.accent, 2f));
-                    bar.exited(() -> bar.outline(Pal.accent, 0));
-                    bar.clicked(() -> col.toggle());
+                    bar.exited(() -> {
+                        if (col.isCollapsed()) bar.outline(Pal.accent, 0);
+                    });
+                    bar.clicked(() -> {
+                        col.toggle();
+                        bar.outline(Pal.accent, col.isCollapsed() ? 0f : 2f);
+                    });
                     bars.row();
                     bars.add(col).growX().center();
                 } else if (key.equals("heat") && (building instanceof HeatConsumer || (building.block instanceof Turret tb &&  tb.heatRequirement > 0f) || consHeat)) {

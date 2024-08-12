@@ -22,7 +22,7 @@ public class wikiDialog extends BaseDialog {
     };
 
     public wikiDialog(String name) {
-        super(bundle.get("wiki.title") + " - " + bundle.get("wiki." + name + ".name"));
+        super(bundle.get("wiki.title") + " - " + bundle.get("wiki." + name + ".name", name));
         addCloseButton();
         addCloseListener();
     }

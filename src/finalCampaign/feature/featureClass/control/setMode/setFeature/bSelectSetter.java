@@ -36,7 +36,8 @@ public abstract class bSelectSetter<T> extends iFeature {
         fakeFinal<String> current = new fakeFinal<>(transformer(currentValue(selected[0])));
         TextButton button = new TextButton(ambiguous ? "..." : current.get());
 
-        table.add(bundleNS.get("name")).width(100f).left();
+        table.left();
+        table.add(bundleNS.get("name")).width(100f).left().wrap().growY();
         button.clicked(() -> {
             selectTable.showSelect(button, strLst.toArray(String.class), current.get(), s -> {
                 button.setText(s);
@@ -45,7 +46,7 @@ public abstract class bSelectSetter<T> extends iFeature {
                 selected(selected, val);
             });
         });
-        table.add(button).width(50f).right();
+        table.add(button).minWidth(75f).maxWidth(100f).expandX().right();
     }
 
     public abstract void selected(Building[] selected, T value);

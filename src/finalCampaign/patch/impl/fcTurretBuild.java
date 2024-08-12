@@ -4,6 +4,7 @@ import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
 import arc.math.geom.*;
+import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
 import finalCampaign.feature.featureClass.buildTargeting.*;
@@ -12,6 +13,7 @@ import finalCampaign.feature.featureClass.mapVersion.*;
 import finalCampaign.patch.*;
 import mindustry.*;
 import mindustry.entities.*;
+import mindustry.entities.bullet.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.world.*;
@@ -27,11 +29,17 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
     public Vec2 targetPos;
     @Shadow(remap = false)
     public @Nullable Posc target;
+    @Shadow(remap = false)
+    public Seq<Turret.AmmoEntry> ammo;
+    @Shadow(remap = false)
+    public int totalAmmo;
 
     @Shadow(remap = false)
     public abstract float range();
     @Shadow(remap = false)
     protected abstract boolean canHeal();
+    @Shadow(remap = false)
+    public abstract BulletType peekAmmo();
 
     private Turret turretBlock;
     private boolean fcForceDisablePredictTarget = false;
@@ -101,6 +109,18 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
         write.bool(fcPreferBuildingTarget);
         fcSortf.write(write);
         fcFilter.write(write);
+    }
+
+    public BulletType useAmmo() {
+      if (cheating())
+        return peekAmmo(); 
+      Turret.AmmoEntry entry = (Turret.AmmoEntry)this.ammo.peek();
+      if (entry.amount < Short.MAX_VALUE) entry.amount -= turretBlock.ammoPerShot;
+      if (entry.amount <= 0)
+        this.ammo.pop(); 
+        if (entry.amount < Short.MAX_VALUE) this.totalAmmo -= turretBlock.ammoPerShot;
+      this.totalAmmo = Math.max(this.totalAmmo, 0);
+      return entry.type();
     }
 
     public void fcFindTarget() {

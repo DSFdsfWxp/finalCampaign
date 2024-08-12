@@ -90,6 +90,7 @@ public class setModeFragment extends Table {
         } else {
             table(t -> {
                 t.pane(cont -> {
+                    cont.fillParent = true;
                     cont.margin(5f);
 
                     boolean multiSelect = fSetMode.selected.size > 1;
@@ -115,11 +116,11 @@ public class setModeFragment extends Table {
                             if (selected.length > 1 && !feature.supportMultiSelect) continue;
                             if (feature.isSupported(selected)) {
                                 if (!inited) {
-                                    cont.image().color(Pal.accent).growX().pad(20f).padTop(8f).padBottom(4f).row();
+                                    cont.image().color(Pal.accent).growX().padTop(8f).padBottom(4f).row();
                                     cont.add(bundle.get("name")).center().color(Pal.accent).padBottom(8f).row();
                                     inited = true;
                                 }
-                                cont.table(table -> feature.buildUI(selected, table, bundle.appendNS(feature.name))).padBottom(8f).left().growX().row();
+                                cont.table(table -> feature.buildUI(selected, table, bundle.appendNS(feature.name))).padBottom(8f).growX().row();
                             }
                         }
                     }

@@ -1,6 +1,5 @@
 package finalCampaign.feature.featureClass.control.setMode.setFeature;
 
-import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import finalCampaign.bundle.*;
 import finalCampaign.net.*;
@@ -8,7 +7,7 @@ import finalCampaign.patch.*;
 import mindustry.gen.*;
 
 public class enabled extends bSelectSetter<enabled.enabledState> {
-    private Label warning;
+    private Table warning;
 
     public enabled() {
         super("enabled", false);
@@ -19,7 +18,7 @@ public class enabled extends bSelectSetter<enabled.enabledState> {
     public void buildUI(Building[] selected, Table table, bundleNS bundleNS) {
         super.buildUI(selected, table, bundleNS);
         table.row();
-        warning = table.add(bundleNS.get("warning")).colspan(2).wrap().grow().pad(4f).center().visible(false).get();
+        warning = table.table().growX().colspan(2).get();
     }
 
     public void selected(Building[] selected, enabledState state) {
@@ -31,6 +30,8 @@ public class enabled extends bSelectSetter<enabled.enabledState> {
         }
 
         warning.visible = status;
+        warning.clear();
+        if (status) warning.add(bundleNS.get("warning")).wrap().grow().pad(4f).left().get();
     }
 
     public enabledState[] valuesProvider() {

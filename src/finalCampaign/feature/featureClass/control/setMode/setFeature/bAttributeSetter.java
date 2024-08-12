@@ -29,18 +29,20 @@ public abstract class bAttributeSetter extends iFeature {
     }
 
     public void buildUI(Building[] selected, Table table, bundleNS bundleNS) {
+        table.left();
         table.add(this.bundleNS.get("name")).left().width(100f).wrap().growY();
         ButtonGroup<TextButton> group = new ButtonGroup<>();
         group.setMinCheckCount(0);
         TextButton button = new TextButton(bundleNS.get(action));
-        table.add(button).width(50f).group(group).right().row();
+        table.add(button).minWidth(75f).maxWidth(100f).group(group).right().row();
         Collapser col = new Collapser(new Table(t -> {
-            t.setWidth(Scl.scl(280f));
+            //t.setWidth(Scl.scl(280f));
+            t.fillParent = true;
             if (background) t.setBackground(Tex.sliderBack);
             buildUI(selected, t);
         }), true);
         button.clicked(() -> col.toggle());
-        table.add(col).center().growX();
+        table.add(col).center().growX().colspan(2);
     }
 
     public abstract void buildUI(Building[] selected, Table table);

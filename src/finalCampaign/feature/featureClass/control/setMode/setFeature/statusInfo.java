@@ -34,6 +34,7 @@ public class statusInfo extends iFeature{
         Building building = selected[0];
         IFcBuilding fcBuilding = (IFcBuilding) building;
 
+        table.left();
         table.add(new Table() {
             @Override
             public void draw() {
@@ -48,7 +49,7 @@ public class statusInfo extends iFeature{
                 Fill.square(cx, cy, width / 1.414f * 0.6f, 45);
                 Draw.color();
             }
-        }).left().size(16f).padRight(16f);
+        }).left().size(16f).padRight(16f).padLeft(16f);
 
         Label label = new Label("null");
 

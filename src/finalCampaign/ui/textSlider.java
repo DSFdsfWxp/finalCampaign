@@ -13,64 +13,81 @@ public class textSlider extends Table {
     protected Slider slider;
     protected Label label;
     protected Table flow;
-    protected boolean ignoreChange = false;
+    protected boolean ignoreModify = false;
     protected Floatf<Float> transformer = f -> f;
     protected Seq<line> lines;
+    protected Seq<Runnable> modifiedListener;
     protected float maxRawValue, minRawValue, rawValueStep;
     
     public boolean showNum;
     public String numUnit;
-    public boolean changeImmediately;
+    public boolean modifyImmediately;
 
     public textSlider(String title, float value, float min, float max, float step, float width) {
         slider = new Slider(min, max, step, false);
         flow = new Table() {
             @Override
             public void draw() {
+                applyTransform(computeTransform());
                 for (line l : lines) l.draw();
+                resetTransform();
                 super.draw();
             }
         };
         lines = new Seq<>();
+        modifiedListener = new Seq<>();
 
         setWidth(Scl.scl(width));
         slider.setWidth(Scl.scl(width));
+        slider.setValue(value);
+        slider.change();
         flow.setWidth(Scl.scl(width));
+        flow.touchable = Touchable.disabled;
         maxRawValue = max;
         minRawValue = min;
         rawValueStep = step;
         showNum = true;
-        changeImmediately = true;
+        modifyImmediately = true;
         numUnit = "";
 
-        flow.add(title).width(width * 0.6f).wrap().growY().left();
-        label = flow.add(Float.toString(value)).width(width * 0.3f).wrap().growY().right().visible(() -> showNum).get();
+        flow.left();
+        flow.add(title).colspan(6).expandX().left();
+        label = flow.add(Float.toString(value)).colspan(4).expandX().right().visible(() -> showNum).get();
 
         slider.changed(() -> {
-            if (changeImmediately) this.change();
+            if (modifyImmediately) modify();
 
             float dv = transformer.get(slider.getValue());
             String placeholder = "";
             if (dv == Float.POSITIVE_INFINITY) placeholder = "∞";
             if (dv == Float.NEGATIVE_INFINITY) placeholder = "-∞";
 
-            label.setText(placeholder.length() > 0 ? placeholder + numUnit : Float.toString(dv) + numUnit);
+            if (showNum) label.setText(placeholder.length() > 0 ? placeholder + numUnit : Float.toString(dv) + numUnit);
         });
 
-        if (!changeImmediately) slider.addListener(new InputListener() {
+        slider.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button) {
+                return true;
+            }
+            
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, KeyCode button) {
-                if (button == KeyCode.mouseLeft) textSlider.this.change();
+                if (modifyImmediately) return;
+                textSlider.this.modify();
             }
         });
 
         stack(slider, flow).width(width);
     }
 
-    @Override
-    public void change() {
+    public void modify() {
         if (slider.isDisabled()) return;
-        if (!ignoreChange) super.change();
+        if (!ignoreModify) for (Runnable run : modifiedListener) run.run();
+    }
+
+    public void modified(Runnable run) {
+        if (!modifiedListener.contains(run)) modifiedListener.add(run);
     }
 
     public void transformer(Floatf<Float> trs) {
@@ -90,10 +107,10 @@ public class textSlider extends Table {
     }
 
     public void rawValue(float v) {
+        ignoreModify = true;
         slider.setValue(v);
-        ignoreChange = true;
         slider.change();
-        ignoreChange = false;
+        ignoreModify = false;
     }
 
     public void setDisabled(boolean disabled) {
@@ -108,10 +125,10 @@ public class textSlider extends Table {
         }
 
         public void draw() {
-            float x = textSlider.this.x + textSlider.this.width * (v / textSlider.this.maxRawValue);
+            float x = textSlider.this.width * (v / textSlider.this.maxRawValue);
             Draw.color(Pal.lightishGray);
-            Lines.stroke(Scl.scl(4f));
-            Lines.line(x, textSlider.this.y, x, textSlider.this.y + textSlider.this.height);
+            Lines.stroke(4f);
+            Lines.line(x, 6f, x, textSlider.this.height - 6f);
             Draw.reset();
         }
     }

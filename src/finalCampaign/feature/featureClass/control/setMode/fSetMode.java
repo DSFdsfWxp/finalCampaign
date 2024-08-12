@@ -83,12 +83,14 @@ public class fSetMode {
 
             if (Core.input.keyDown(KeyCode.mouseLeft) && isOn && !Core.scene.hasMouse()) {
                 if (!selecting) {
-                    selecting = true;
-                    x = Core.input.mouseWorldX();
-                    y = Core.input.mouseWorldY();
-                    selectedNumDelta = 0;
-                    tmp.clear();
-                    selectingBuilding.clear();
+                    if (frag.forceSelectOpt || selected.size == 0 || Core.input.mouseX() < frag.x) {
+                        selecting = true;
+                        x = Core.input.mouseWorldX();
+                        y = Core.input.mouseWorldY();
+                        selectedNumDelta = 0;
+                        tmp.clear();
+                        selectingBuilding.clear();
+                    }
                 } else {
                     w = Core.input.mouseWorldX();
                     h = Core.input.mouseWorldY();
