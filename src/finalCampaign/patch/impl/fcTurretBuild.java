@@ -36,8 +36,8 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
     private Turret turretBlock;
     private boolean fcForceDisablePredictTarget = false;
     private boolean fcPreferBuildingTarget = false;
-    private fcSortf fcSortf = new fcSortf((TurretBuild)(Object) this);
-    private fcFilter fcFilter = new fcFilter((TurretBuild)(Object) this);
+    private fcSortf fcSortf;
+    private fcFilter fcFilter;
 
     public boolean fcForceDisablePredictTarget() {
         return fcForceDisablePredictTarget;
@@ -66,7 +66,10 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
     @Override
     public Building create(Block block, Team team) {
         turretBlock = (Turret) block;
-        return super.create(block, team);
+        Building res =  super.create(block, team);
+        fcSortf = new fcSortf((TurretBuild)(Object) this);
+        fcFilter = new fcFilter((TurretBuild)(Object) this);
+        return res;
     }
 
     @Inject(method = "targetPosition", at = @At("HEAD"), remap = false, cancellable = true)
@@ -89,6 +92,7 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
         fcForceDisablePredictTarget = read.bool();
         fcPreferBuildingTarget = read.bool();
         fcSortf.read(read);
+        fcFilter.read(read);
     }
 
     @Inject(method = "write", at = @At("RETURN"), remap = false)
@@ -96,6 +100,7 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
         write.bool(fcForceDisablePredictTarget);
         write.bool(fcPreferBuildingTarget);
         fcSortf.write(write);
+        fcFilter.write(write);
     }
 
     public void fcFindTarget() {

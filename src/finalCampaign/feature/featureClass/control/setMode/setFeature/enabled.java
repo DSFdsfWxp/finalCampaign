@@ -19,13 +19,12 @@ public class enabled extends bSelectSetter<enabled.enabledState> {
     public void buildUI(Building[] selected, Table table, bundleNS bundleNS) {
         super.buildUI(selected, table, bundleNS);
         table.row();
-        warning = table.add(bundleNS.get("warning")).colspan(2).center().visible(false).get();
+        warning = table.add(bundleNS.get("warning")).colspan(2).wrap().grow().pad(4f).center().visible(false).get();
     }
 
     public void selected(Building[] selected, enabledState state) {
         boolean forceDisable = state == enabledState.off;
-        boolean forceEnable = state == enabledState.on;
-        boolean status = forceDisable || forceEnable;
+        boolean status = state != enabledState.def;
 
         for (Building b : selected) {
             fcCall.setForceStatus(b, status, forceDisable);
@@ -40,7 +39,7 @@ public class enabled extends bSelectSetter<enabled.enabledState> {
 
     public enabledState currentValue(Building building) {
         IFcBuilding f = (IFcBuilding) building;
-        if (!f.fcForceDisable() || !f.fcForceEnable()) return enabledState.def;
+        if (!f.fcForceDisable() && !f.fcForceEnable()) return enabledState.def;
         if (f.fcForceDisable()) return enabledState.off;
         if (f.fcForceEnable()) return enabledState.on;
         return enabledState.def;

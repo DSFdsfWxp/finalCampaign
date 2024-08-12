@@ -50,16 +50,18 @@ public class setModeFragment extends Table {
                         int count = 0;
                         for (Category cat : Category.all) {
                             filter.button(Vars.ui.getIcon(cat.name()), Styles.clearTogglei, () -> {
-                                fSetMode.selectFilter.clear();
-                                for (ImageButton b : group.getAllChecked()) fSetMode.selectFilter.add(Category.valueOf(b.name));
-                            }).name(cat.name()).center().group(group).size(46f).checked(fSetMode.selectFilter.contains(cat));
+                                Core.app.post(() -> {
+                                    fSetMode.selectFilter.clear();
+                                    for (ImageButton b : group.getAllChecked()) fSetMode.selectFilter.add(Category.valueOf(b.name));
+                                });
+                            }).name(cat.name()).center().group(group).size(46f).update(f -> f.setChecked(fSetMode.selectFilter.contains(cat)));
                             count ++;
                             if (count % 5 == 0) filter.row();
                         }
                     }).center().padBottom(8f).colspan(3).growX().row();
 
                     opt.add(bundle.get("setMode.selecting.selectSameBlockBuilding")).width(100f).left().padBottom(4f);
-                    fWiki.setupWikiButton("setMode.selecting.selectSameBlockBuilding", opt.button("?", () -> {}).width(40f).right().padRight(8f).padBottom(4f).get());
+                    fWiki.setupWikiButton("setMode.selecting.selectSameBlockBuilding", opt.button("?", () -> {}).width(40f).right().padRight(4f).padBottom(4f).get());
                     {
                         TextButton button = new TextButton("null");
                         Runnable updateButton = () -> button.setText(bundle.get(fSetMode.selectSameBlockBuilding ? "on" : "off"));
@@ -100,7 +102,7 @@ public class setModeFragment extends Table {
                     }).size(8 * 5).padBottom(4f).right().row();
     
                     cont.image(firstBuilding.block.fullIcon).center().scaling(Scaling.fit).size(128f).row();
-                    if (multiSelect) cont.add("+" + Integer.toString(fSetMode.selected.size - 1)).center().padTop(-5f).padRight(-10f).color(Pal.accent).row();
+                    if (multiSelect) cont.add("+" + Integer.toString(fSetMode.selected.size - 1)).center().padTop(-5f).padRight(-118f).color(Pal.accent).row();
     
                     if (!multiSelect) cont.add(firstBuilding.block.localizedName).center().color(Pal.accent).fontScale(1.2f).padTop(4f).row();
                     
@@ -117,12 +119,12 @@ public class setModeFragment extends Table {
                                     cont.add(bundle.get("name")).center().color(Pal.accent).padBottom(8f).row();
                                     inited = true;
                                 }
-                                cont.table(table -> feature.buildUI(selected, table, bundle.appendNS(feature.name))).padBottom(8f).growX().row();
+                                cont.table(table -> feature.buildUI(selected, table, bundle.appendNS(feature.name))).padBottom(8f).left().growX().row();
                             }
                         }
                     }
-                }).scrollX(false).fill().grow();
-            }).fill().height(Core.graphics.getHeight() / Scl.scl()).width(295f);
+                }).scrollX(false).grow();
+            }).fill().height(Core.graphics.getHeight() / Scl.scl() - 10f).width(285f);
         }
     }
 }

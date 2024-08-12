@@ -55,7 +55,7 @@ public abstract class bSelectSetter<T> extends iFeature {
 
     public boolean isAmbiguous(Building[] selected) {
         T value = currentValue(selected[0]);
-        for (Building building : selected) if (!currentValue(building).equals(value)) return false;
-        return true;
+        for (Building building : selected) if (!currentValue(building).equals(value)) return true;
+        return false;
     }
 }

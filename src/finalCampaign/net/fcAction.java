@@ -1,10 +1,10 @@
 package finalCampaign.net;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
+import java.io.*;
 import java.lang.reflect.*;
 import arc.util.*;
-import arc.util.io.Reads;
+import arc.util.io.*;
+import finalCampaign.feature.featureClass.control.setMode.*;
 import finalCampaign.net.fcNet.*;
 import finalCampaign.patch.*;
 import finalCampaign.util.*;
@@ -12,7 +12,7 @@ import mindustry.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.type.*;
-import mindustry.world.Tile;
+import mindustry.world.*;
 import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.ItemTurret.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
@@ -147,7 +147,7 @@ public class fcAction {
         amount = Math.min(amount, capacity);
         
         building.power.status = (current - amount) / building.block.consPower.capacity;
-        unit.apply(Vars.content.statusEffect("electrified"), amount / 60f);
+        unit.apply(Vars.content.statusEffect("shocked"), amount / 60f);
         return true;
     }
 
@@ -238,13 +238,14 @@ public class fcAction {
         if (!checkTeam(player.unit(), building)) return false;
 
         IFcBuilding f = (IFcBuilding) building;
-        if (forceStatus) {
+        if (!forceStatus) {
             f.fcForceDisable(false);
             f.fcForceEnable(false);
         } else {
             f.fcForceDisable(forceDisable);
             f.fcForceEnable(!forceDisable);
         }
+        building.noSleep();
 
         return true;
     }
@@ -268,6 +269,7 @@ public class fcAction {
         if (player.dead()) return false;
 
         teamc.team(team);
+        fSetMode.addActiveTeam(team);
         if (teamc instanceof Building building) {
             Tile tile = building.tile();
             if (tile != null) {

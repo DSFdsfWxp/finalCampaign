@@ -45,7 +45,7 @@ public class statusInfo extends iFeature{
                 Draw.color(Pal.gray);
                 Fill.square(cx, cy, width / 1.414f, 45);
                 Draw.color(building.status().color);
-                Fill.square(cx, cy, 1.5f * width / 1.414f * 0.6f, 45);
+                Fill.square(cx, cy, width / 1.414f * 0.6f, 45);
                 Draw.color();
             }
         }).left().size(16f).padRight(16f);
@@ -81,10 +81,8 @@ public class statusInfo extends iFeature{
 
             if (status.length() == 0) status = building.status().name();
 
-            if (!fcBuilding.fcStatus().equals(status)) {
-                label.setText(bundleNS.get(status));
-                fcBuilding.fcStatus(status);
-            }
+            if (!fcBuilding.fcStatus().equals(status)) fcBuilding.fcStatus(status);
+            label.setText(bundleNS.get(status));
         };
 
         table.add(label).update(l -> update.run());

@@ -36,13 +36,11 @@ public class basicInfo extends iFeature {
         IFcBlock block = (IFcBlock) building.block;
 
         table.table(bars -> {
-            bars.defaults().growX().height(18f).pad(4);
-
             OrderedMap<String, Func<Building, Bar>> map = block.fcBarMap();
             for (String key : map.keys()) {
                 Bar bar = map.get(key).get(building);
                 if (bar == null) continue;
-                table.add(bar).growX().padBottom(4f);
+                bars.add(bar).growX().height(18f).pad(4);
 
                 boolean consHeat = false;
                 building.block.checkStats();
@@ -67,8 +65,8 @@ public class basicInfo extends iFeature {
                     bar.hovered(() -> bar.outline(Pal.accent, 2f));
                     bar.exited(() -> bar.outline(Pal.accent, 0));
                     bar.clicked(() -> col.toggle());
-                    table.row();
-                    table.add(col).growX().center();
+                    bars.row();
+                    bars.add(col).growX().center();
                 } else if (key.equals("heat") && (building instanceof HeatConsumer || (building.block instanceof Turret tb &&  tb.heatRequirement > 0f) || consHeat)) {
 
                     // wait for design
@@ -76,10 +74,10 @@ public class basicInfo extends iFeature {
                     bar.hovered(() -> bar.outline(Pal.accent, 2f));
                     bar.exited(() -> bar.outline(Pal.accent, 0));
 
-                    table.row();
+                    bars.row();
                 }
                 
-                table.row();
+                bars.row();
             }
         }).growX();
         table.row();

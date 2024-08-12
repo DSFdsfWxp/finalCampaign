@@ -35,12 +35,12 @@ public abstract class bAttributeSetter extends iFeature {
         TextButton button = new TextButton(bundleNS.get(action));
         table.add(button).width(50f).group(group).right().row();
         Collapser col = new Collapser(new Table(t -> {
-            t.setWidth(Scl.scl(172f));
+            t.setWidth(Scl.scl(280f));
             if (background) t.setBackground(Tex.sliderBack);
             buildUI(selected, t);
         }), true);
         button.clicked(() -> col.toggle());
-        table.add(col).center();
+        table.add(col).center().growX();
     }
 
     public abstract void buildUI(Building[] selected, Table table);
