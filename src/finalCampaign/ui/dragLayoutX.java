@@ -53,7 +53,7 @@ public class dragLayoutX extends dragLayout {
             for(int i = 0; i < seq.size; i++){
                 Element cur = seq.get(i);
                 //find fit point
-                if(realX > cur.x && (i == 0 || realX < seq.get(i - 1).x)) {
+                if(realX > cur.x && (i == seq.size - 1 || realX < seq.get(i + 1).x)) {
                     insertPosition = i + 1;
                     break;
                 }

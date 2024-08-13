@@ -51,7 +51,7 @@ public class targetingPriority extends bAttributeSetter {
         Collapser priorityAddTableCol = new Collapser(priorityAddTable, true);
         priorityTable priorityTable = new priorityTable(fcFirst.fcSortf(), priorityAddTableCol);
         checkSettingTable preferBuildingTargetCheck = new checkSettingTable(bundleNS.get("preferBuildingTarget"));
-        checkSettingTable preferExthinguishCheck = new checkSettingTable(bundleNS.get("preferExthinguish"));
+        checkSettingTable preferExthinguishCheck = new checkSettingTable(bundleNS.get("preferExtinguish"));
         sideSelectTable sideSelectTable = new sideSelectTable(bundleNS);
 
         preferBuildingTargetCheck.setChecked(fcFirst.fcPreferBuildingTarget());

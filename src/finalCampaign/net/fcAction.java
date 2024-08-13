@@ -72,6 +72,7 @@ public class fcAction {
             if (!checkTeam(unit, building)) return false;
 
             if (building instanceof ItemTurretBuild itb) {
+                itb.noSleep();
                 for (AmmoEntry ae : itb.ammo) {
                     ItemEntry ie = (ItemEntry) ae;
                     if (ie.item != item) continue;
@@ -137,7 +138,7 @@ public class fcAction {
 
     @CallFrom(PacketSource.both)
     public static boolean setLiquid(Player player, Building building, Liquid liquid, float amount) {
-        if (player == null || building == null || amount <= 0f) return false;
+        if (player == null || building == null || amount < 0f) return false;
         if (building.liquids == null) return false;
         if (player.dead() || building.dead()) return false;
         if (!sandbox()) return false;
@@ -166,7 +167,7 @@ public class fcAction {
 
     @CallFrom(PacketSource.both)
     public static boolean setPower(Player player, Building building, float amount) {
-        if (player == null || building == null || amount <= 0f) return false;
+        if (player == null || building == null || amount < 0f) return false;
         if (player.dead() || building.dead()) return false;
         if (building.power == null || building.block.consPower == null) return false;
         if (!sandbox()) return false;
@@ -179,7 +180,7 @@ public class fcAction {
 
     @CallFrom(PacketSource.both)
     public static boolean setItem(Player player, Unit unit, Building building, Item item, int amount) {
-        if (player == null || unit == null || building == null || amount <= 0) return false;
+        if (player == null || unit == null || building == null) return false;
         if (building.items == null) return false;
         if (building.dead()) return false;
         if (player.team() != unit.team()) return false;
@@ -198,7 +199,7 @@ public class fcAction {
             return true;
         } else {
             if (!sandbox()) return false;
-            if (!building.block.consumesItem(item)) return false;
+            if (!building.block.consumesItem(item) && !building.acceptItem(building, item)) return false;
 
             building.items.set(item, amount);
             return true;
