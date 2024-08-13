@@ -1,5 +1,6 @@
 package finalCampaign.ui;
 
+import arc.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
@@ -26,7 +27,7 @@ public class barSetter extends Table {
         if (infinitable) {
             slider.softLimit(100f, 124.99f, limitSide.left);
             slider.line(100f);
-            slider.transformer(f -> f == 112.5f ? value : (f == 125f ? Float.POSITIVE_INFINITY : f / 100f * max));
+            slider.transformer(f -> f == 125f ? Float.POSITIVE_INFINITY : f / 100f * max);
         }
 
         slider.modified(() -> modify(isInt ? (int) slider.value() : slider.value()));
@@ -35,7 +36,7 @@ public class barSetter extends Table {
 
         numField = field(slider.value() == Float.POSITIVE_INFINITY ? "∞" : (isInt ? Integer.toString((int) slider.value()) : Float.toString(slider.value())), txt -> {
             if (txt.equals("∞")) {
-                slider.rawValue(112.5f);
+                slider.rawValue(125f);
                 value = Float.POSITIVE_INFINITY;
             } else {
                 value = Float.parseFloat(txt);
@@ -45,11 +46,11 @@ public class barSetter extends Table {
                 percentField.setText(infinity ? "∞" : Float.toString(value / max * 100f));
             }
             modify(isInt ? Integer.MAX_VALUE : value);
-        }).width(75f).left().padLeft(4f).padBottom(4f).valid(txt -> txt.equals("∞") || ((isInt ? Strings.canParseInt(txt) : Strings.canParseFloat(txt)) && Float.parseFloat(txt) >= min && Float.parseFloat(txt) <= max)).visible(numSettable).get();
+        }).minWidth(50f).growX().left().padLeft(4f).padBottom(4f).valid(txt -> txt.equals("∞") || ((isInt ? Strings.canParseInt(txt) : Strings.canParseFloat(txt)) && Float.parseFloat(txt) >= min && Float.parseFloat(txt) <= max)).visible(numSettable).get();
         
         percentField = field(slider.value() == Float.POSITIVE_INFINITY ? "∞" : Float.toString(slider.value() / max * 100f), txt -> {
             if (txt.equals("∞")) {
-                slider.rawValue(112.5f);
+                slider.rawValue(125f);
                 value = Float.POSITIVE_INFINITY;
             } else {
                 value = Float.parseFloat(txt) / 100f * max;
@@ -59,14 +60,22 @@ public class barSetter extends Table {
                 numField.setText(infinity ? "∞" : (isInt ? Integer.toString((int) value) : Float.toString(value)));
             }
             modify(isInt ? Integer.MAX_VALUE : value);
-        }).width(75f).expandX().right().padBottom(4f).valid(txt -> txt.equals("∞") || (Strings.canParseFloat(txt) && Float.parseFloat(txt) >= 0f && Float.parseFloat(txt) <= 100f)).visible(percentSettable).get();
+        }).growX().minWidth(50f).padLeft(4f).expandX().right().padBottom(4f).valid(txt -> txt.equals("∞") || (Strings.canParseFloat(txt) && Float.parseFloat(txt) >= 0f && Float.parseFloat(txt) <= 100f)).visible(percentSettable).get();
         add("%").right().padRight(4f).padBottom(4f).visible(percentSettable);
 
-        slider.modified(() -> {
-            boolean infinity = slider.value() == Float.POSITIVE_INFINITY;
-            value = isInt ? (infinity ? Integer.MAX_VALUE : (int) slider.value()) : slider.value();
-            numField.setText(infinity ? "∞" : (isInt ? Integer.toString((int) value) : Float.toString(value)));
-            percentField.setText(infinity ? "∞" : Float.toString(value / max * 100f));
+        slider.immediatelyModified(() -> {
+            if (Core.scene.hasField()) return;
+
+            if (infinitable && slider.rawValue() > 100f && slider.rawValue() < 125f) {
+                value = isInt ? (int) max : max;
+                numField.setText(isInt ? Integer.toString((int) value) : Float.toString(value));
+                percentField.setText("100.0");
+            } else {
+                boolean infinity = slider.value() == Float.POSITIVE_INFINITY;
+                value = isInt ? (infinity ? Integer.MAX_VALUE : (int) slider.value()) : slider.value();
+                numField.setText(infinity ? "∞" : (isInt ? Integer.toString((int) value) : Float.toString(value)));
+                percentField.setText(infinity ? "∞" : Float.toString(value / max * 100f));
+            }
         });
     }
 

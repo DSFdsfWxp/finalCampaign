@@ -77,7 +77,7 @@ public class targetingPriority extends bAttributeSetter {
         presetsGroup.setMinCheckCount(0);
         table.button(bundleNS.get("preset"), () -> {
             presetsTableCol.toggle();
-        }).group(presetsGroup).growX().row();
+        }).group(presetsGroup).growX().with(t -> t.setStyle(Styles.togglet)).row();
 
         table.add(presetsTableCol).center().growX().row();
 

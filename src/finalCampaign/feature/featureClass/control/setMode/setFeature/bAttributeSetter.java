@@ -7,6 +7,7 @@ import finalCampaign.feature.featureClass.control.setMode.*;
 import mindustry.*;
 import mindustry.game.*;
 import mindustry.gen.*;
+import mindustry.ui.*;
 
 public abstract class bAttributeSetter extends iFeature {
     protected bundleNS bundleNS;
@@ -34,6 +35,7 @@ public abstract class bAttributeSetter extends iFeature {
         ButtonGroup<TextButton> group = new ButtonGroup<>();
         group.setMinCheckCount(0);
         TextButton button = new TextButton(bundleNS.get(action));
+        button.setStyle(Styles.togglet);
         table.add(button).minWidth(75f).maxWidth(100f).group(group).right().row();
         Collapser col = new Collapser(new Table(t -> {
             //t.setWidth(Scl.scl(280f));

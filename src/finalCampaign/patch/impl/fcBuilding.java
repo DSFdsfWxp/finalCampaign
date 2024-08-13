@@ -19,11 +19,9 @@ public abstract class fcBuilding implements IFcBuilding{
     private boolean fcInfinityPower = false;
 
     @Shadow(remap = false)
-    boolean enabled;
-
-    public byte version() {
-        return 2;
-    }
+    public boolean enabled;
+    @Shadow(remap = false)
+    public float health;
 
     public boolean fcSetModeSelected() {
         return fcSetModeSelected;
@@ -70,6 +68,7 @@ public abstract class fcBuilding implements IFcBuilding{
         write.bool(fcForceDisable);
         write.bool(fcForceEnable);
         write.bool(fcInfinityPower);
+        write.bool(health == Float.POSITIVE_INFINITY);
     }
 
     @Inject(method = "readBase", at = @At("RETURN"), remap = false)
@@ -78,6 +77,7 @@ public abstract class fcBuilding implements IFcBuilding{
         fcForceDisable = read.bool();
         fcForceEnable = read.bool();
         fcInfinityPower = read.bool();
+        if (read.bool()) health = Float.POSITIVE_INFINITY;
     }
 
     public void control(LAccess type, double p1, double p2, double p3, double p4){

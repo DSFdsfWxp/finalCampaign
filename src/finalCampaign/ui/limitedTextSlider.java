@@ -33,9 +33,9 @@ public class limitedTextSlider extends textSlider {
     }
 
     @Override
-    public void modify() {
+    public void immediatelyModify() {
         for (limit l : limits) l.check();
-        super.modify();
+        super.immediatelyModify();
     }
 
     public static enum limitSide {

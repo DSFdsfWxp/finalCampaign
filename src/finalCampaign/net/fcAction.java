@@ -4,7 +4,6 @@ import java.io.*;
 import java.lang.reflect.*;
 import arc.util.*;
 import arc.util.io.*;
-import finalCampaign.feature.featureClass.control.setMode.*;
 import finalCampaign.net.fcNet.*;
 import finalCampaign.patch.*;
 import finalCampaign.util.*;
@@ -280,7 +279,6 @@ public class fcAction {
         if (player.dead()) return false;
 
         teamc.team(team);
-        fSetMode.addActiveTeam(team);
         if (teamc instanceof Building building) {
             Tile tile = building.tile();
             if (tile != null) {

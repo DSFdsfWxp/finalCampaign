@@ -1,6 +1,7 @@
 package finalCampaign.feature.featureClass.control.setMode;
 
 import arc.*;
+import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
@@ -18,20 +19,22 @@ import mindustry.ui.*;
 public class setModeFragment extends Table {
 
     private ButtonGroup<ImageButton> group;
+    private ScrollPane pane;
+    private boolean extandedSettingTable;
     protected boolean forceSelectOpt;
     protected Seq<iFeature> features;
     protected Seq<String> categories;
 
     public setModeFragment() {
         this.name = "fcSetModeFragment";
-        setBackground(Tex.pane);
+        touchable = Touchable.childrenOnly;
         visible(() -> Vars.ui.hudfrag.shown && !Vars.control.input.commandMode && fSetMode.isOn());
-        setWidth(Scl.scl(295f));
         right().bottom();
         group = new ButtonGroup<>();
-        group.setMaxCheckCount(Category.all.length);
+        group.setMaxCheckCount(-1);
         group.setMinCheckCount(0);
         forceSelectOpt = false;
+        extandedSettingTable = false;
         features = new Seq<>();
         categories = new Seq<>();
     }
@@ -41,27 +44,29 @@ public class setModeFragment extends Table {
 
         if (fSetMode.selecting || (!fSetMode.selecting && fSetMode.selected.size == 0) || forceSelectOpt) {
             table(t -> {
+                t.setBackground(Tex.pane);
                 t.add(bundle.get("setMode.title")).center().fillX().color(Pal.accent).labelAlign(Align.center).row();
-                t.image().color(Pal.accent).growX().pad(20f).padTop(0f).padBottom(8f).row();
+                t.image().color(Pal.accent).growX().padTop(0f).padBottom(8f).row();
 
                 t.table(opt -> {
                     opt.add(bundle.get("setMode.selecting.filter")).left().padBottom(4f).colspan(3).row();
                     opt.table(filter -> {
                         int count = 0;
+                        group.uncheckAll();
                         for (Category cat : Category.all) {
                             filter.button(Vars.ui.getIcon(cat.name()), Styles.clearTogglei, () -> {
                                 Core.app.post(() -> {
                                     fSetMode.selectFilter.clear();
                                     for (ImageButton b : group.getAllChecked()) fSetMode.selectFilter.add(Category.valueOf(b.name));
                                 });
-                            }).name(cat.name()).center().group(group).size(46f).update(f -> f.setChecked(fSetMode.selectFilter.contains(cat)));
+                            }).name(cat.name()).center().group(group).size(46f).get().setChecked(fSetMode.selectFilter.contains(cat));
                             count ++;
                             if (count % 5 == 0) filter.row();
                         }
                     }).center().padBottom(8f).colspan(3).growX().row();
 
-                    opt.add(bundle.get("setMode.selecting.selectSameBlockBuilding")).width(100f).left().padBottom(4f);
-                    fWiki.setupWikiButton("setMode.selecting.selectSameBlockBuilding", opt.button("?", () -> {}).width(40f).right().padRight(4f).padBottom(4f).get());
+                    opt.add(bundle.get("setMode.selecting.selectSameBlockBuilding")).grow().wrap().left().padBottom(4f).padRight(4f);
+                    fWiki.setupWikiButton("setMode.selecting.selectSameBlockBuilding", opt.button("?", () -> {}).width(45f).expandX().right().padRight(4f).padBottom(4f).get());
                     {
                         TextButton button = new TextButton("null");
                         Runnable updateButton = () -> button.setText(bundle.get(fSetMode.selectSameBlockBuilding ? "on" : "off"));
@@ -69,12 +74,12 @@ public class setModeFragment extends Table {
                             fSetMode.selectSameBlockBuilding = !fSetMode.selectSameBlockBuilding;
                             updateButton.run();
                         });
-                        opt.add(button).width(50f).padBottom(4f).right();
+                        opt.add(button).width(75f).padBottom(4f).right();
                         updateButton.run();
                     }
                     opt.row();
 
-                    opt.add(bundle.get("setMode.selecting.mode")).width(100f).left().padBottom(4f);
+                    opt.add(bundle.get("setMode.selecting.mode")).grow().wrap().left().padBottom(4f).padRight(4f);
                     {
                         TextButton button = new TextButton("null");
                         Runnable updateButton = () -> button.setText(bundle.get(fSetMode.deselect ? "setMode.selecting.mode.deselect" : "setMode.selecting.mode.select"));
@@ -82,15 +87,17 @@ public class setModeFragment extends Table {
                             fSetMode.deselect = !fSetMode.deselect;
                             updateButton.run();
                         });
-                        opt.add(button).width(50f).padBottom(4f).colspan(2).right();
+                        opt.add(button).width(75f).padBottom(4f).colspan(2).right();
                         updateButton.run();
                     }
                 }).width(295f);
-            }).margin(4f).growX();
+            }).margin(16f).growX();
         } else {
             table(t -> {
-                t.pane(cont -> {
-                    cont.fillParent = true;
+                t.setBackground(Tex.pane);
+
+                pane = t.pane(cont -> {
+                    setWidth(327f);
                     cont.margin(5f);
 
                     boolean multiSelect = fSetMode.selected.size > 1;
@@ -124,8 +131,22 @@ public class setModeFragment extends Table {
                             }
                         }
                     }
-                }).scrollX(false).grow();
-            }).fill().height(Core.graphics.getHeight() / Scl.scl() - 10f).width(285f);
+                }).scrollX(false).grow().get();
+            }).growY().width(327f).update(t -> {
+                if (pane == null) return;
+                if (pane.isScrollY()) {
+                    if (!extandedSettingTable) {
+                        extandedSettingTable = true;
+                        float w = 327f + pane.getScrollBarWidth() + Scl.scl(4f);
+                        getCell(t).width(w);
+                    }
+                } else {
+                    if (extandedSettingTable) {
+                        extandedSettingTable = false;
+                        getCell(t).width(327f);
+                    }
+                }
+            });
         }
     }
 }

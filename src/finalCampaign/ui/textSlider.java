@@ -17,6 +17,7 @@ public class textSlider extends Table {
     protected Floatf<Float> transformer = f -> f;
     protected Seq<line> lines;
     protected Seq<Runnable> modifiedListener;
+    protected Seq<Runnable> immediatelyModifiedListener;
     protected float maxRawValue, minRawValue, rawValueStep;
     
     public boolean showNum;
@@ -36,6 +37,7 @@ public class textSlider extends Table {
         };
         lines = new Seq<>();
         modifiedListener = new Seq<>();
+        immediatelyModifiedListener = new Seq<>();
 
         setWidth(Scl.scl(width));
         slider.setWidth(Scl.scl(width));
@@ -56,6 +58,7 @@ public class textSlider extends Table {
 
         slider.changed(() -> {
             if (modifyImmediately) modify();
+            immediatelyModify();
 
             float dv = transformer.get(slider.getValue());
             String placeholder = "";
@@ -86,8 +89,16 @@ public class textSlider extends Table {
         if (!ignoreModify) for (Runnable run : modifiedListener) run.run();
     }
 
+    public void immediatelyModify() {
+        for (Runnable run : immediatelyModifiedListener) run.run();
+    }
+
     public void modified(Runnable run) {
         if (!modifiedListener.contains(run)) modifiedListener.add(run);
+    }
+
+    public void immediatelyModified(Runnable run) {
+        if (!immediatelyModifiedListener.contains(run)) immediatelyModifiedListener.add(run);
     }
 
     public void transformer(Floatf<Float> trs) {

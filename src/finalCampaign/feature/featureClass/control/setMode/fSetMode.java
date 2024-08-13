@@ -6,12 +6,12 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.input.*;
 import arc.struct.*;
-import arc.util.*;
 import finalCampaign.feature.featureClass.binding.*;
 import finalCampaign.feature.featureClass.fcDesktopInput.*;
 import finalCampaign.feature.featureClass.tuner.*;
 import finalCampaign.patch.*;
 import mindustry.*;
+import mindustry.core.GameState.State;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -37,7 +37,6 @@ public class fSetMode {
     protected static Seq<Category> selectFilter;
     protected static boolean selectSameBlockBuilding;
     private static int selectedNumDelta;
-    private static Seq<Team> activeTeams;
     private static Seq<Building> tmp;
 
     public static void init() {
@@ -63,8 +62,16 @@ public class fSetMode {
         enabled = fTuner.add("setMode", false, v -> enabled = v);
         features.add();
 
-        Events.on(WorldLoadEvent.class, e -> {
-            activeTeams = Reflect.get(Vars.indexer, "activeTeams");
+        Events.on(StateChangeEvent.class, e -> {
+            if (e.to == State.menu) {
+                selected.clear();
+                selectingBuilding.clear();
+                tmp.clear();
+                selecting = false;
+                isOn = false;
+                x = y = w = h = 0;
+                dx = dy = dw = dh = 0;
+            }
         });
 
         fFcDesktopInput.addBindingHandle(() -> {
@@ -82,7 +89,7 @@ public class fSetMode {
             if (!isOn) selecting = false;
 
             if (Core.input.keyDown(KeyCode.mouseLeft) && isOn && !Core.scene.hasMouse()) {
-                if (!selecting) {
+                if (!selecting && !Vars.player.dead()) {
                     if (frag.forceSelectOpt || selected.size == 0 || Core.input.mouseX() < frag.x) {
                         selecting = true;
                         x = Core.input.mouseWorldX();
@@ -109,7 +116,9 @@ public class fSetMode {
                     if (w <= 0) w = 1f;
                     if (h <= 0) h = 1f;
 
-                    for (Team team : activeTeams) {
+                    for (Team team : Team.all) {
+                        if (team.data().buildingTree == null) continue;
+                        if (!team.equals(Vars.player.team()) && Vars.state.rules.mode() != Gamemode.sandbox) continue;
                         tmp.clear();
                         selectingBuilding.clear();
 
@@ -118,7 +127,6 @@ public class fSetMode {
                             if (!selectFilter.contains(b.block.category) && selectFilter.size > 0) continue;
                             if (!deselect) {
                                 if (b.block.privileged && !Vars.state.isEditor() && Vars.state.rules.mode() != Gamemode.sandbox) continue;
-                                if (b.team != Vars.player.team() && !Vars.state.isEditor() && Vars.state.rules.mode() != Gamemode.sandbox) continue;
                             }
                             selectingBuilding.add(b);
                         }
@@ -251,7 +259,7 @@ public class fSetMode {
 
         Vars.ui.hudGroup.fill(full -> {
             full.bottom().right();
-            full.add(frag).right().bottom();
+            full.add(frag).right().bottom().growY();
         });
     }
 
@@ -262,9 +270,5 @@ public class fSetMode {
     public static void addFeature(iFeature feature) {
         if (!frag.categories.contains(feature.category)) frag.categories.add(feature.category);
         if (!frag.features.contains(feature)) frag.features.add(feature);
-    }
-
-    public static void addActiveTeam(Team team) {
-        if (!activeTeams.contains(team)) activeTeams.add(team);
     }
 }

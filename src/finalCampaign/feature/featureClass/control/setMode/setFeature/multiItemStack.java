@@ -12,6 +12,7 @@ import mindustry.ctype.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.type.*;
+import mindustry.ui.*;
 import mindustry.world.blocks.defense.turrets.ItemTurret.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 
@@ -32,7 +33,6 @@ public class multiItemStack extends iFeature {
         Collapser col = new Collapser(new Table(ct -> {
             ct.fillParent = true;
             ct.setBackground(Tex.sliderBack);
-            ct.setWidth(Scl.scl(172f));
 
             ct.table(t -> {
                 contentSelecter selecter = new contentSelecter();
@@ -40,9 +40,9 @@ public class multiItemStack extends iFeature {
                 for (Liquid liquid : Vars.content.liquids()) selecter.add(liquid);
                 selecter.add(Vars.ui.getIcon(Category.power.name()), "power");
 
-                t.add(selecter).width(164f).center().colspan(2).row();
+                t.add(selecter).width(248f).center().colspan(2).row();
                 fakeFinal<barSetter> setter = new fakeFinal<>();
-                Table setterTable = t.table().width(120f).left().get();
+                Table setterTable = t.table().growX().padLeft(4f).left().get();
                 t.button("+", () -> {
                     Player player = Vars.player;
                     if (player.dead()) return;
@@ -97,7 +97,7 @@ public class multiItemStack extends iFeature {
                             }
                         }
                     }
-                }).width(44f).right();
+                }).width(44f).padLeft(4f).padRight(4f).right().growY();
                 selecter.changed(() -> {
                     setterTable.clear();
 
@@ -106,27 +106,27 @@ public class multiItemStack extends iFeature {
                         String name = selecter.getSelectedName();
                         if (name == null) name = "";
                         if (name.equals("power")) {
-                            setter.set(new barSetter("", 256f, 1e7f, 0, 0, false, true, true, true, true));
+                            setter.set(new barSetter("", 210f, 1e7f, 0, 0, false, true, true, true, false));
                         } else {
-                            setter.set(new barSetter("", 256f, 100f, 0, 0, false, true, true, true, true));
+                            setter.set(new barSetter("", 210f, 100f, 0, 0, false, true, true, true, false));
                             setter.get().setDisabled(true);
                         }
                     } else {
                         if (content instanceof Item) {
-                            setter.set(new barSetter("", 256f, 1e7f, 0, 0, true, true, true, true, true));
+                            setter.set(new barSetter("", 210f, 1e7f, 0, 0, true, true, true, true, false));
                         } else if (content instanceof Liquid) {
-                            setter.set(new barSetter("", 256f, 1e7f, 0, 0, false, true, true, true, true));
+                            setter.set(new barSetter("", 210f, 1e7f, 0, 0, false, true, true, true, false));
                         }
                     }
 
-                    setterTable.add(setter.get()).center();
+                    setterTable.add(setter.get()).left().width(210f);
                 });
                 selecter.change();
-            }).pad(4f);
+            }).pad(8f).growX();
         }), true);
 
         table.left();
-        table.add(bundleNS.get("removeAll")).width(100f).left().wrap().growY();
+        table.add(bundleNS.get("removeAll")).grow().left().wrap().growY().padBottom(4f);
         table.button(bundleNS.get("remove"), () -> {
             Player player = Vars.player;
             if (player.dead()) return;
@@ -154,11 +154,11 @@ public class multiItemStack extends iFeature {
                     fcCall.setPower(building, 0);
                 }
             }
-        }).width(50f).growX().right().row();
-        table.add(bundleNS.get("addToAll")).width(100f).left().wrap().growY();
+        }).minWidth(75f).maxWidth(100f).right().padBottom(4f).row();
+        table.add(bundleNS.get("addToAll")).grow().left().wrap().growY();
         table.button(bundleNS.get("add"), () -> {
             col.toggle();
-        }).width(50f).group(group).right().growX().row();
-        table.add(col).center().colspan(2).growX();
+        }).minWidth(75f).maxWidth(100f).group(group).right().with(t -> t.setStyle(Styles.togglet)).row();
+        table.add(col).center().colspan(2).growX().padTop(4f);
     }
 }
