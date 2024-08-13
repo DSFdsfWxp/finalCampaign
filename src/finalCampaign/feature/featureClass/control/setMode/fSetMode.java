@@ -27,6 +27,9 @@ public class fSetMode {
 
     protected static boolean selecting;
     protected static boolean deselect;
+    private static boolean mouseDown;
+    @SuppressWarnings("unused")
+    private static float mx, my;
     private static float x, y, w, h;
     private static float dx, dy, dw, dh;
     private static Color selectRectColor;
@@ -44,7 +47,9 @@ public class fSetMode {
         isOn = false;
         selecting = false;
         deselect = false;
+        mouseDown = false;
         x = y = w = h = 0;
+        mx = my = 0;
         dx = dy = dw = dh = 0;
         selected = new Seq<>();
         selectFilter = new Seq<>();
@@ -88,9 +93,17 @@ public class fSetMode {
 
             if (!isOn) selecting = false;
 
+            if (Core.input.keyDown(KeyCode.mouseLeft) && isOn) {
+                if (!mouseDown) {
+                    mx = Core.input.mouseX();
+                    my = Core.input.mouseY();
+                    mouseDown = true;
+                }
+            }
+
             if (Core.input.keyDown(KeyCode.mouseLeft) && isOn && !Core.scene.hasMouse()) {
                 if (!selecting && !Vars.player.dead()) {
-                    if (frag.forceSelectOpt || selected.size == 0 || Core.input.mouseX() < frag.x) {
+                    if (frag.forceSelectOpt || selected.size == 0 || (mouseDown && mx < frag.x)) {
                         selecting = true;
                         x = Core.input.mouseWorldX();
                         y = Core.input.mouseWorldY();
@@ -132,6 +145,11 @@ public class fSetMode {
                         }
                     }
                 }
+            }
+
+            if (Core.input.keyRelease(KeyCode.mouseLeft) && mouseDown) {
+                mx = my = 0;
+                mouseDown = false;
             }
 
             if (Core.input.keyRelease(KeyCode.mouseLeft) && selecting && isOn) {
@@ -265,6 +283,10 @@ public class fSetMode {
 
     public static boolean isOn() {
         return isOn && enabled;
+    }
+
+    public static void setFlickScrollEnabled(boolean v) {
+        if (frag.pane != null) frag.pane.setFlickScroll(v);
     }
 
     public static void addFeature(iFeature feature) {

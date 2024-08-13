@@ -9,6 +9,7 @@ import finalCampaign.patch.*;
 import mindustry.*;
 import mindustry.core.*;
 import mindustry.entities.*;
+import mindustry.entities.bullet.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.world.*;
@@ -71,6 +72,12 @@ public abstract class fcLiquidTurretBuild extends Building implements IFcLiquidT
             findTarget.run();
             if (turretBuild.target == null) extinguish.run();
         }
+    }
+
+    @Inject(method = "useAmmo", at = @At("RETURN"), remap = false)
+    public void fcUseAmmo(CallbackInfoReturnable<BulletType> ci) {
+        IFcLiquidModule fcLiquidModule = (IFcLiquidModule) liquids;
+        if (liquids.currentAmount() <= 0f) fcLiquidModule.fcFindNextAvailable();
     }
 
     @Inject(method = "read", at = @At("RETURN"), remap = false)

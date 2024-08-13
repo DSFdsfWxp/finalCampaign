@@ -19,8 +19,8 @@ import mindustry.ui.*;
 public class setModeFragment extends Table {
 
     private ButtonGroup<ImageButton> group;
-    private ScrollPane pane;
     private boolean extandedSettingTable;
+    protected ScrollPane pane;
     protected boolean forceSelectOpt;
     protected Seq<iFeature> features;
     protected Seq<String> categories;

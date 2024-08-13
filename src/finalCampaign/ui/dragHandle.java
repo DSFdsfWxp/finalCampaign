@@ -10,14 +10,19 @@ public class dragHandle extends InputListener {
     float lastx, lasty;
     Element elem;
     dragLayout layout;
+    int draggingPointer;
     
     public dragHandle(Element e, dragLayout layout) {
         elem = e;
         this.layout = layout;
+        draggingPointer = -1;
     }
     
     @Override
     public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button){
+        if (draggingPointer != -1) return false;
+        if (layout.dragging()) return false;
+        draggingPointer = pointer;
         Vec2 v = elem.localToParentCoordinates(Tmp.v1.set(x, y));
         lastx = v.x;
         lasty = v.y;
@@ -40,6 +45,8 @@ public class dragHandle extends InputListener {
 
     @Override
     public void touchUp(InputEvent event, float x, float y, int pointer, KeyCode button){
+        if (pointer != draggingPointer) return;
+        draggingPointer = -1;
         layout.drag();
     }
 }

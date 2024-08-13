@@ -50,6 +50,7 @@ public class fcAction {
                     itb.totalAmmo -= amount;
                 }
                 unit.addItem(item, amount);
+                if (ie.amount <= 0f) itb.ammo.remove(ie);
                 return true;
             }
         }
@@ -79,6 +80,7 @@ public class fcAction {
                     amount = Math.min(capacity, amount);
                     amount = Math.min(amount, ie.amount);
                     ie.amount -= amount;
+                    if (ie.amount <= 0f) itb.ammo.remove(ie);
                     return true;
                 }
             }
@@ -99,6 +101,7 @@ public class fcAction {
                     ie.amount = amount;
                     itb.totalAmmo += amount == Short.MAX_VALUE ? 1 : d;
                     itb.totalAmmo = Math.min(amount, it.maxAmmo);
+                    if (ie.amount <= 0f) itb.ammo.remove(ie);
                     return true;
                 }
                 

@@ -4,7 +4,6 @@ import arc.graphics.g2d.*;
 import arc.scene.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
-import arc.util.*;
 import mindustry.gen.*;
 
 public class dragLayoutX extends dragLayout {
@@ -37,8 +36,8 @@ public class dragLayoutX extends dragLayout {
             //ignore the dragged element
             if(dragging == e) continue;
 
-            e.setSize(e.getPrefHeight(), width);
-            e.setPosition(width - cx, 0, Align.topLeft);
+            e.setSize(e.getPrefWidth(), height);
+            e.setPosition(cx, 0);
 
             cx += e.getPrefWidth() + space;
             seq.add(e);
@@ -47,14 +46,14 @@ public class dragLayoutX extends dragLayout {
         //insert the dragged element if necessary
         if(dragging != null){
             //find real position of dragged element top
-            float realX = dragging.getX(Align.left) + dragging.translation.x;
+            float realX = dragging.x + dragging.translation.x;
 
             insertPosition = 0;
 
             for(int i = 0; i < seq.size; i++){
                 Element cur = seq.get(i);
                 //find fit point
-                if(realX < cur.x && (i == seq.size - 1 || realX > seq.get(i + 1).x)){
+                if(realX > cur.x && (i == 0 || realX < seq.get(i - 1).x)) {
                     insertPosition = i + 1;
                     break;
                 }
@@ -64,7 +63,7 @@ public class dragLayoutX extends dragLayout {
 
             //shift elements below insertion point down
             for(int i = insertPosition; i < seq.size; i++){
-                seq.get(i).x -= shiftAmount;
+                seq.get(i).x += shiftAmount;
             }
         }
 
@@ -92,7 +91,7 @@ public class dragLayoutX extends dragLayout {
         //draw selection box indicating placement position
         if(dragging != null && insertPosition <= seq.size){
             float shiftAmount = dragging.getWidth();
-            float lastX = insertPosition == 0 ? width + x : seq.get(insertPosition - 1).x + x - space;
+            float lastX = insertPosition == seq.size ? x + width : seq.get(insertPosition).x + x - space;
             float lastY = y;
 
             Tex.pane.draw(lastX - shiftAmount, lastY, dragging.getWidth(), height);

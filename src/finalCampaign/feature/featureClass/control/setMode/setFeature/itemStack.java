@@ -2,6 +2,7 @@ package finalCampaign.feature.featureClass.control.setMode.setFeature;
 
 import arc.*;
 import arc.graphics.*;
+import arc.input.*;
 import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
@@ -55,11 +56,22 @@ public class itemStack extends iFeature {
 
                 t.clear();
                 t.setBackground(Tex.pane);
-                t.left();
 
-                dragLayout layout = new dragLayoutX(0f, 22f);
+                dragLayout layout = new dragLayoutX(0f, 32f);
                 rebuildTimer.customObject = layout;
-                t.add(layout).center().row();
+                t.add(layout).expandX().left().padLeft(-9f);
+                t.addListener(new InputListener() {
+                    @Override
+                    public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button) {
+                        fSetMode.setFlickScrollEnabled(false);
+                        return true;
+                    }
+
+                    @Override
+                    public void touchUp(InputEvent event, float x, float y, int pointer, KeyCode button) {
+                        fSetMode.setFlickScrollEnabled(true);
+                    }
+                });
 
                 if (building instanceof ItemTurretBuild itb) {
                     float totalAmount = 0;
@@ -69,12 +81,11 @@ public class itemStack extends iFeature {
                         ItemEntry ie = (ItemEntry) itb.ammo.get(i);
                         if (ie.amount <= 0) continue;
                         Table it = new Table();
-                        it.setWidth(256f * ((ie.amount == Short.MAX_VALUE ? totalAmount * 0.1f : ie.amount) / totalAmount));
                         it.setBackground(Tex.whiteui);
                         it.color.set(ie.item.color);
-                        it.image(ie.item.uiIcon).size(32f).scaling(Scaling.fit).center().get();
-                        it.touchable = Touchable.disabled;
+                        it.table(iit -> iit.image(ie.item.uiIcon).size(32f).minWidth(0f).scaling(Scaling.fit).center()).width(248f * ((ie.amount == Short.MAX_VALUE ? 1 : ie.amount) / totalAmount));
                         it.addListener(new dragHandle(it, layout));
+                        it.addListener(new HandCursorListener());
                         layout.addChild(it);
                         map.put(it, ie);
                     }
@@ -112,13 +123,13 @@ public class itemStack extends iFeature {
                     for (Liquid liquid : lst) {
                         Table lt = new Table();
                         float amount = ilb.liquids.get(liquid);
+                        if (amount <= 0f) continue;
                         if (amount == Float.POSITIVE_INFINITY) amount = building.block.liquidCapacity * 0.1f;
-                        lt.setWidth(256f * (amount / building.block.liquidCapacity));
                         lt.setBackground(Tex.whiteui);
                         lt.color.set(liquid.color);
-                        lt.image(liquid.uiIcon).size(32f).scaling(Scaling.fit).center().get();
-                        lt.touchable = Touchable.disabled;
+                        lt.table(lit -> lit.image(liquid.uiIcon).size(32f).minWidth(0f).scaling(Scaling.fit).center()).width(248f * (amount / (building.block.liquidCapacity * Vars.content.liquids().size)));
                         lt.addListener(new dragHandle(lt, layout));
+                        lt.addListener(new HandCursorListener());
                         layout.addChild(lt);
                         map.put(lt, liquid);
                     }
@@ -127,7 +138,7 @@ public class itemStack extends iFeature {
                         fcCall.setCurrentLiquid(building, map.get(layout.getChildren().first()));
                     });
                 }
-            }).width(256f).center().row();
+            }).width(256f).height(40f).center().padBottom(8f).row();
         }
 
         {
