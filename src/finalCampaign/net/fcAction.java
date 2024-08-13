@@ -142,7 +142,7 @@ public class fcAction {
         if (building.liquids == null) return false;
         if (player.dead() || building.dead()) return false;
         if (!sandbox()) return false;
-        if (!building.block.consumesLiquid(liquid)) return false;
+        if (!building.block.consumesLiquid(liquid) && !building.acceptLiquid(building, liquid) && building.liquids.get(liquid) < amount) return false;
 
         building.liquids.set(liquid, amount);
         return true;
@@ -155,13 +155,11 @@ public class fcAction {
         if (building.power == null || building.block.consPower == null) return false;
         if (!checkTeam(unit, building) || unit.team() != player.team()) return false;
 
-        float capacity = unit.type.itemCapacity;
         float current = building.power.status * building.block.consPower.capacity;
         amount = Math.min(current, amount);
-        amount = Math.min(amount, capacity);
         
         building.power.status = (current - amount) / building.block.consPower.capacity;
-        unit.apply(Vars.content.statusEffect("shocked"), amount / 60f);
+        unit.apply(Vars.content.statusEffect("shocked"), amount);
         return true;
     }
 
@@ -199,7 +197,7 @@ public class fcAction {
             return true;
         } else {
             if (!sandbox()) return false;
-            if (!building.block.consumesItem(item) && !building.acceptItem(building, item)) return false;
+            if (!building.block.consumesItem(item) && !building.acceptItem(building, item) && building.items.get(item) < amount) return false;
 
             building.items.set(item, amount);
             return true;

@@ -452,28 +452,30 @@ public class itemStack extends iFeature {
                                             }
                                             int removed = (int) Math.min(amount, slider.value());
                                             if (sandbox) {
-                                                fcCall.setTurretAmmo(unit, building, item, amount - removed);
+                                                fcCall.setTurretAmmo(unit, building, item, amount == Short.MAX_VALUE ? 0 : amount - removed);
                                             } else {
                                                 removed = Math.min(removed, unit.stack.amount);
                                                 fcCall.setTurretAmmo(unit, building, item, -removed);
                                             }
                                             ammoPriorityForceUpdate.set(true);
                                         } else {
-                                            int removed = (int) Math.min(building.items.get(item), slider.value());
+                                            int currentNum = building.items.get(item);
+                                            int removed = (int) Math.min(currentNum, slider.value());
                                             if (sandbox) {
-                                                fcCall.setItem(unit, building, item, building.items.get(item) - removed);
+                                                fcCall.setItem(unit, building, item, currentNum == Integer.MAX_VALUE ? 0 : currentNum - removed);
                                             } else {
                                                 removed = Math.min(removed, unit.stack.amount);
                                                 fcCall.setItem(unit, building, item, -removed);
                                             }
                                         }
                                     } else if (selectedContent.get() instanceof Liquid liquid && !currentAmountInfinity.get()) {
-                                        float removed = Math.min(building.liquids.get(liquid), slider.value());
-                                        fcCall.setLiquid(building, liquid, building.liquids.get(liquid) - removed);
+                                        float currentNum = building.liquids.get(liquid);
+                                        float removed = Math.min(currentNum, slider.value());
+                                        fcCall.setLiquid(building, liquid, currentNum == Float.POSITIVE_INFINITY ? 0 : currentNum - removed);
                                     } else if (currentPower.get() && building.block.consPower != null && !currentAmountInfinity.get()) {
                                         float current = building.power.status * Math.max(building.block.consPower.capacity, building.block.consPower.usage);
                                         float removed = Math.min(current, slider.value());
-                                        fcCall.setPower(building, current - removed);
+                                        fcCall.setPower(building, current == Float.POSITIVE_INFINITY ? 0 : current - removed);
                                     }
                                 }).width(75f).right().padRight(16f).get().setDisabled(() -> !(selectedContent.get() instanceof Item) && !sandbox);
                             }).center().colspan(3).padTop(4f).growX();
@@ -491,8 +493,8 @@ public class itemStack extends iFeature {
                     ctc.table(t -> {
                         contentSelecter selecter = new contentSelecter();
                         fakeFinal<barSetter> setter = new fakeFinal<>();
-                        for (Item item : Vars.content.items()) if (building.block.consumesItem(item)) selecter.add(item);
-                        for (Liquid liquid : Vars.content.liquids()) if (building.block.consumesLiquid(liquid)) selecter.add(liquid);
+                        for (Item item : Vars.content.items()) if (building.block.consumesItem(item) || building.acceptItem(building, item)) selecter.add(item);
+                        for (Liquid liquid : Vars.content.liquids()) if (building.block.consumesLiquid(liquid) || building.acceptLiquid(building, liquid)) selecter.add(liquid);
                         if (building.power != null && building.block.consPower != null) selecter.add(Vars.ui.getIcon(Category.power.name()), "power");
                         t.add(selecter).center().colspan(2).width(240f).row();
                         Table setterTable = t.table().left().padLeft(8f).growX().get();
