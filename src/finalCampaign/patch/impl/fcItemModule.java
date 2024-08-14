@@ -47,7 +47,7 @@ public abstract class fcItemModule extends BlockModule {
 
     @Inject(method = {"set", "remove(Lmindustry/type/Item;I)V"}, at = @At("HEAD"), remap = false, cancellable = true)
     public void fcItemChange(Item item, int amount, CallbackInfo ci) {
-        if (items[item.id] == Integer.MAX_VALUE) ci.cancel();
+        if (items[item.id] == Integer.MAX_VALUE && amount != 0) ci.cancel();
         if (amount == Integer.MAX_VALUE) {
             items[item.id] = amount;
             ci.cancel();

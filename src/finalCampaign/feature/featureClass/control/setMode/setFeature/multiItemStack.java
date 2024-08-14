@@ -13,6 +13,7 @@ import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.ui.*;
+import mindustry.world.blocks.defense.turrets.ItemTurret;
 import mindustry.world.blocks.defense.turrets.ItemTurret.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 
@@ -63,7 +64,7 @@ public class multiItemStack extends iFeature {
                     } else {
                         if (content instanceof Item item) {
                             for (Building building : selected) {
-                                if (!building.block.consumesItem(item)) continue;
+                                if (!building.block.consumesItem(item) && !building.acceptItem(building, item)) continue;
                                 if (building instanceof ItemTurretBuild itb) {
                                     int amount = 0;
                                     for (AmmoEntry ae : itb.ammo) {
@@ -75,7 +76,7 @@ public class multiItemStack extends iFeature {
                                     if (amount == Short.MAX_VALUE) continue;
                                     int add = (int) setter.get().value();
                                     amount = add == Integer.MAX_VALUE ? Short.MAX_VALUE : amount + add;
-                                    if (amount != Short.MAX_VALUE) amount = Math.min(amount, building.block.itemCapacity);
+                                    if (amount != Short.MAX_VALUE) amount = Math.min(amount, ((ItemTurret) building.block).maxAmmo);
                                     fcCall.setTurretAmmo(unit, building, item, amount);
                                 } else {
                                     if (building.items == null) continue;
@@ -83,13 +84,13 @@ public class multiItemStack extends iFeature {
                                     if (amount == Integer.MAX_VALUE) continue;
                                     int add = (int) setter.get().value();
                                     amount = add == Integer.MAX_VALUE ? add : amount + add;
-                                    if (amount != Integer.MAX_VALUE) amount = Math.min(amount, amount);
-                                    fcCall.setItem(unit, building, item, amount + (int) setter.get().value());
+                                    if (amount != Integer.MAX_VALUE) amount = Math.min(amount, building.block.itemCapacity);
+                                    fcCall.setItem(unit, building, item, amount);
                                 }
                             }
                         } else if (content instanceof Liquid liquid) {
                             for (Building building : selected) {
-                                if (!building.block.consumesLiquid(liquid)) continue;
+                                if (!building.block.consumesLiquid(liquid) && !building.acceptLiquid(building, liquid) && building.liquids.get(liquid) <= 0f) continue;
                                 if (building.liquids == null) continue;
                                 float amount = building.liquids.get(liquid) + setter.get().value();
                                 if (amount != Float.POSITIVE_INFINITY) amount = Float.min(amount, building.block.liquidCapacity);

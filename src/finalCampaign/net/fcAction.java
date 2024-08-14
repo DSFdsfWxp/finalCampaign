@@ -94,14 +94,25 @@ public class fcAction {
                 ItemTurret it = (ItemTurret) itb.block;
                 itb.noSleep();
 
+                int capacity = it.maxAmmo;
+                int currentAmount = 0;
+
+                for (AmmoEntry ae : itb.ammo) {
+                    ItemEntry ie = (ItemEntry) ae;
+                    currentAmount += ie.amount > 0 ? ie.amount : 0;
+                }
+                currentAmount = Math.min(capacity, currentAmount);
+
                 for (AmmoEntry ae : itb.ammo) {
                     ItemEntry ie = (ItemEntry) ae;
                     if (ie.item != item) continue;
     
+                    if (amount != Short.MAX_VALUE) amount = Math.min(currentAmount - ie.amount + amount, capacity) - (currentAmount - ie.amount);
                     int d = amount - ie.amount;
                     ie.amount = amount;
                     itb.totalAmmo += amount == Short.MAX_VALUE ? 1 : d;
-                    itb.totalAmmo = Math.min(amount, it.maxAmmo);
+                    itb.totalAmmo = Math.min(itb.totalAmmo, it.maxAmmo);
+                    if (itb.totalAmmo < 0) itb.totalAmmo = 0;
                     if (ie.amount <= 0f) itb.ammo.remove(ie);
                     return true;
                 }
@@ -110,9 +121,11 @@ public class fcAction {
                 if (turret.ammoTypes.get(item) == null) return false;
                 Constructor<?> constructor = reflect.getDeclaredConstructors(ItemEntry.class)[0];
                 reflect.setAccessible(constructor, true);
+                if (amount != Short.MAX_VALUE) amount = Math.min(amount, capacity - currentAmount);
+                if (amount <= 0) return false;
                 itb.ammo.add((ItemEntry) reflect.newInstance(constructor, building.block, item, amount));
                 itb.totalAmmo += amount == Short.MAX_VALUE ? 1 : amount;
-                itb.totalAmmo = Math.min(amount, it.maxAmmo);
+                itb.totalAmmo = Math.min(itb.totalAmmo, it.maxAmmo);
                 return true;
             }
     
@@ -132,7 +145,7 @@ public class fcAction {
         amount = Math.min(amount, building.liquids.get(liquid));
         amount = Math.min(capacity, amount);
         building.liquids.remove(liquid, amount);
-        unit.apply(liquid.effect, amount / 60f);
+        unit.apply(liquid.effect, amount);
         return true;
     }
 
@@ -143,7 +156,9 @@ public class fcAction {
         if (player.dead() || building.dead()) return false;
         if (!sandbox()) return false;
         if (!building.block.consumesLiquid(liquid) && !building.acceptLiquid(building, liquid) && building.liquids.get(liquid) < amount) return false;
-
+        
+        if (amount != Float.POSITIVE_INFINITY) amount = Math.min(amount, building.block.liquidCapacity);
+        if (amount < 0) amount = 0;
         building.liquids.set(liquid, amount);
         return true;
     }
@@ -155,11 +170,11 @@ public class fcAction {
         if (building.power == null || building.block.consPower == null) return false;
         if (!checkTeam(unit, building) || unit.team() != player.team()) return false;
 
-        float current = building.power.status * building.block.consPower.capacity;
+        float current = building.power.status * Math.max(building.block.consPower.capacity, building.block.consPower.usage);
         amount = Math.min(current, amount);
         
-        building.power.status = (current - amount) / building.block.consPower.capacity;
-        unit.apply(Vars.content.statusEffect("shocked"), amount);
+        building.power.status = (current - amount) / Math.max(building.block.consPower.capacity, building.block.consPower.usage);
+        unit.damage(amount);
         return true;
     }
 
@@ -171,7 +186,10 @@ public class fcAction {
         if (!sandbox()) return false;
         
         IFcBuilding f = (IFcBuilding) building;
-        building.power.status = amount / building.block.consPower.capacity;
+        float capacity = Math.max(building.block.consPower.capacity, building.block.consPower.usage);
+        if (amount != Float.POSITIVE_INFINITY) amount = Math.min(capacity, amount);
+        if (amount < 0) amount = 0;
+        building.power.status = amount / capacity;
         f.fcInfinityPower(amount == Float.POSITIVE_INFINITY);
         return true;
     }
@@ -199,6 +217,9 @@ public class fcAction {
             if (!sandbox()) return false;
             if (!building.block.consumesItem(item) && !building.acceptItem(building, item) && building.items.get(item) < amount) return false;
 
+            int capacity = building.block.itemCapacity;
+            if (amount != Integer.MAX_VALUE) amount = Math.min(amount, capacity);
+            if (amount < 0) amount = 0;
             building.items.set(item, amount);
             return true;
         }

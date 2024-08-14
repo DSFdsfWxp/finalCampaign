@@ -11,7 +11,7 @@ import finalCampaign.feature.featureClass.fcDesktopInput.*;
 import finalCampaign.feature.featureClass.tuner.*;
 import finalCampaign.patch.*;
 import mindustry.*;
-import mindustry.core.GameState.State;
+import mindustry.core.GameState.*;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -92,6 +92,12 @@ public class fSetMode {
             if ((Core.input.keyDown(Binding.break_block) || Core.input.keyDown(Binding.schematic_select) || Core.input.keyDown(Binding.deselect) || Core.input.keyDown(Binding.pick) || Core.input.keyDown(Binding.pickupCargo)) && !Core.scene.hasMouse()) isOn = false;
 
             if (!isOn) selecting = false;
+            if (Vars.control.input.isDroppingItem() || Vars.control.input.config.isShown()) selecting = false;
+
+            if (isOn) {
+                Vars.control.input.block = null;
+                Vars.control.input.selectPlans.clear();
+            }
 
             if (Core.input.keyDown(KeyCode.mouseLeft) && isOn) {
                 if (!mouseDown) {
@@ -103,7 +109,7 @@ public class fSetMode {
 
             if (Core.input.keyDown(KeyCode.mouseLeft) && isOn && !Core.scene.hasMouse()) {
                 if (!selecting && !Vars.player.dead()) {
-                    if (frag.forceSelectOpt || selected.size == 0 || (mouseDown && mx < frag.x)) {
+                    if ((frag.forceSelectOpt || selected.size == 0 || (mouseDown && mx < frag.x)) && !Vars.control.input.isDroppingItem() && !Vars.control.input.config.isShown()) {
                         selecting = true;
                         x = Core.input.mouseWorldX();
                         y = Core.input.mouseWorldY();
@@ -129,11 +135,11 @@ public class fSetMode {
                     if (w <= 0) w = 1f;
                     if (h <= 0) h = 1f;
 
+                    selectingBuilding.clear();
                     for (Team team : Team.all) {
                         if (team.data().buildingTree == null) continue;
                         if (!team.equals(Vars.player.team()) && Vars.state.rules.mode() != Gamemode.sandbox) continue;
                         tmp.clear();
-                        selectingBuilding.clear();
 
                         team.data().buildingTree.intersect(x, y, w, h, tmp);
                         for (Building b :tmp) {
@@ -203,7 +209,7 @@ public class fSetMode {
                     }
 
                     if (!deselect) {
-                        selected.addAll(tmp);
+                        for (Building b : tmp) if (!selected.contains(b)) selected.add(b);
                     } else {
                         selected.removeAll(tmp);
                     }

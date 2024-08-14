@@ -21,6 +21,7 @@ import mindustry.ctype.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.type.*;
+import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.BaseTurret.*;
 import mindustry.world.blocks.defense.turrets.ItemTurret.*;
 import mindustry.world.blocks.defense.turrets.LiquidTurret.*;
@@ -173,10 +174,18 @@ public class itemStack extends iFeature {
                 }
 
                 if (!needRebuild && building instanceof ItemTurretBuild itb) {
+                    Seq<Item> checkLst = Vars.content.items().copy();
                     for (AmmoEntry ae : itb.ammo) {
                         ItemEntry ie = (ItemEntry) ae;
                         boolean has = contentLst.contains(ie.item);
                         if (!has || (has && ie.amount <= 0)) {
+                            needRebuild = true;
+                            break;
+                        }
+                        checkLst.remove(ie.item);
+                    }
+                    for (Item item : checkLst) {
+                        if (contentLst.contains(item)) {
                             needRebuild = true;
                             break;
                         }
@@ -301,7 +310,7 @@ public class itemStack extends iFeature {
                     }
                 }
 
-                if (building.power != null) {
+                if (building.power != null && building.block.consPower != null) {
                     Floatp amount = () -> fcBuilding.fcInfinityPower() ? Float.POSITIVE_INFINITY : building.power.status * Math.max(building.block.consPower.capacity, building.block.consPower.usage);
                     if (amount.get() > 0) {
                         t.add(new itemImage(Vars.ui.getIcon(Category.power.name()).getRegion(), () -> (int)(amount.get()), () -> amount.get() == Float.POSITIVE_INFINITY)).padRight(8f).tooltip(tt -> {
@@ -441,7 +450,7 @@ public class itemStack extends iFeature {
                                     }
                                 }).right().width(75f).padRight(4f);
                                 butt.button(bundleNS.get("remove"), () -> {
-                                    if (selectedContent.get() instanceof Item item && !currentAmountInfinity.get()) {
+                                    if (selectedContent.get() instanceof Item item) {
                                         if (building instanceof ItemTurretBuild itb) {
                                             int amount = 0;
                                             for (AmmoEntry ae : itb.ammo) {
@@ -468,11 +477,11 @@ public class itemStack extends iFeature {
                                                 fcCall.setItem(unit, building, item, -removed);
                                             }
                                         }
-                                    } else if (selectedContent.get() instanceof Liquid liquid && !currentAmountInfinity.get()) {
+                                    } else if (selectedContent.get() instanceof Liquid liquid) {
                                         float currentNum = building.liquids.get(liquid);
                                         float removed = Math.min(currentNum, slider.value());
                                         fcCall.setLiquid(building, liquid, currentNum == Float.POSITIVE_INFINITY ? 0 : currentNum - removed);
-                                    } else if (currentPower.get() && building.block.consPower != null && !currentAmountInfinity.get()) {
+                                    } else if (currentPower.get() && building.block.consPower != null) {
                                         float current = building.power.status * Math.max(building.block.consPower.capacity, building.block.consPower.usage);
                                         float removed = Math.min(current, slider.value());
                                         fcCall.setPower(building, current == Float.POSITIVE_INFINITY ? 0 : current - removed);
@@ -524,7 +533,7 @@ public class itemStack extends iFeature {
                                         if (amount == Short.MAX_VALUE) return;
                                         int add = (int) setter.get().value();
                                         amount = add == Integer.MAX_VALUE ? Short.MAX_VALUE : amount + add;
-                                        if (amount != Short.MAX_VALUE) amount = Math.min(amount, building.block.itemCapacity);
+                                        if (amount != Short.MAX_VALUE) amount = Math.min(amount, ((ItemTurret) building.block).maxAmmo);
                                         fcCall.setTurretAmmo(unit, building, item, amount);
                                         ammoPriorityForceUpdate.set(true);
                                     } else {
@@ -555,7 +564,7 @@ public class itemStack extends iFeature {
                                 }
                             } else {
                                 if (content instanceof Item) {
-                                    setter.set(new barSetter("", 218f, building.block.itemCapacity, 0, 0, true, true, true, true, true));
+                                    setter.set(new barSetter("", 218f, building instanceof ItemTurretBuild ? ((ItemTurret) building.block).maxAmmo : building.block.itemCapacity, 0, 0, true, true, true, true, true));
                                 } else if (content instanceof Liquid) {
                                     setter.set(new barSetter("", 218f, building.block.liquidCapacity, 0, 0, false, true, true, true, true));
                                 }

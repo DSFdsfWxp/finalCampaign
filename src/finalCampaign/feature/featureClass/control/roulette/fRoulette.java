@@ -4,6 +4,7 @@ import arc.*;
 import arc.math.geom.*;
 import arc.util.Reflect;
 import finalCampaign.feature.featureClass.binding.*;
+import finalCampaign.feature.featureClass.control.setMode.*;
 import finalCampaign.feature.featureClass.fcDesktopInput.*;
 import finalCampaign.feature.featureClass.tuner.*;
 import finalCampaign.feature.featureClass.tuner.fTuner.*;
@@ -28,7 +29,7 @@ public class fRoulette {
     }
 
     public static boolean isOn() {
-        return inited && on && enabled && !Vars.control.input.commandMode;
+        return inited && on && enabled && !Vars.control.input.commandMode && fSetMode.isOn();
     }
 
     public static void load() {
