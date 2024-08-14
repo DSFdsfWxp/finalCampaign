@@ -528,7 +528,7 @@ public class targetingPriority extends bAttributeSetter {
                 butt.right();
                 butt.button(Icon.save, () -> {
                     currentItem.save(targets[0]);
-                }).size(46f).scaling(Scaling.fit).padRight(4f).right().disabled(e -> currentItem == null || targets.length > 0);
+                }).size(46f).scaling(Scaling.fit).padRight(4f).right().disabled(e -> currentItem == null || targets.length > 1);
                 butt.button(Icon.ok, () -> {
                     if (currentItem == null) return;
                     for (Building building : targets) currentItem.apply(building);
@@ -604,6 +604,11 @@ public class targetingPriority extends bAttributeSetter {
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 Writes writes = new Writes(new DataOutputStream(stream));
                 fcTurretBuild.fcSortf().write(writes);
+                writes.close();
+                byte[] data = stream.toByteArray();
+                stream = new ByteArrayOutputStream();
+                writes = new Writes(new DataOutputStream(stream));
+                writes.b(data);
                 writes.bool(fcTurretBuild.fcPreferBuildingTarget());
                 writes.bool(building instanceof IFcLiquidTurretBuild fcLiquidTurretBuild ? fcLiquidTurretBuild.fcPreferExtinguish() : true);
                 writes.close();

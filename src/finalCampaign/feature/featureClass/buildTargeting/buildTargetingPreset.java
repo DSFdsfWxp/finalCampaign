@@ -23,7 +23,13 @@ public class buildTargetingPreset {
     }
 
     public static byte[] getData(int id) {
-        byte[] def = new byte[4];
+        byte[] def = {
+            0, 8,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0,
+            1
+        };
         return id >= dataLst.size ? def : dataLst.get(id);
     }
 
@@ -57,6 +63,7 @@ public class buildTargetingPreset {
         dataLst.remove(id);
         setting.remove("buildTargetingPreset." + id + ".name");
         setting.remove("buildTargetingPreset." + id + ".data");
+        setting.put("buildTargetingPreset.num", nameLst.size);
     }
 
     public static void put(int id, String name, byte[] data) {
@@ -64,5 +71,6 @@ public class buildTargetingPreset {
         dataLst.set(id, data);
         setting.put("buildTargetingPreset." + id + ".name", name);
         setting.put("buildTargetingPreset." + id + ".data", data);
+        setting.put("buildTargetingPreset.num", nameLst.size);
     }
 }
