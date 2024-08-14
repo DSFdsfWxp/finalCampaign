@@ -19,7 +19,8 @@
         "fcDrillBuild",
         "fcBeamDrillBuild",
         "fcVars",
-        "fcSaveFileReader"
+        "fcSaveFileReader",
+        "fcConsumePower"
     ],
     "client": [
 	]

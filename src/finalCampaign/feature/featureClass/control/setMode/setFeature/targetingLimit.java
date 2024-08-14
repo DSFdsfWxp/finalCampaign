@@ -16,7 +16,6 @@ import finalCampaign.feature.featureClass.buildTargetingLimit.fcFilter.*;
 import finalCampaign.net.*;
 import finalCampaign.patch.*;
 import finalCampaign.ui.*;
-import finalCampaign.util.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
@@ -75,7 +74,6 @@ public class targetingLimit extends bAttributeSetter {
 
             inner.add(fcFilter.localizedName(name)).wrap().grow().left().get();
             check = new CheckBox("");
-            check.addListener(new notBubblesInputListener());
             inner.add(check).padLeft(4f).right().row();
             inner.add(col).colspan(2).growX();
 
@@ -94,8 +92,6 @@ public class targetingLimit extends bAttributeSetter {
             addListener(new ClickListener() {
                 @Override
                 public void clicked(InputEvent event, float x, float y){
-                    Log.debug(event.targetActor);
-                    Log.debug(event.targetActor.parent);
                     if (event.targetActor.isDescendantOf(col) || event.targetActor.isAscendantOf(check)) return;
                     limitItem.this.toggleConfig();
                 }
@@ -207,7 +203,6 @@ public class targetingLimit extends bAttributeSetter {
             this.filter = filter;
             fillParent = true;
 
-            addListener(new notBubblesInputListener());
             add(bundle.get("setMode.feature.setting.targetingLimit.config." + name, name)).wrap().grow().left().padTop(8f).padBottom(8f).row();
             buildUI();
         }
