@@ -157,13 +157,13 @@ public class itemStack extends iFeature {
             fakeFinal<Boolean> currentAmountInfinity = new fakeFinal<>(false);
             Seq<UnlockableContent> contentLst = new Seq<>();
             fakeFinal<Boolean> hasPower = new fakeFinal<>(false);
-            fakeFinal<Boolean> firstBuild = new fakeFinal<>(true);
+            fakeFinal<Boolean> forceRebuild = new fakeFinal<>(true);
 
             table.table().update(t -> {
                 if (rebuildTimer.sTime() < 1f) return;
                 rebuildTimer.mark();
 
-                boolean needRebuild = firstBuild.get();
+                boolean needRebuild = forceRebuild.get();
                 if (building.items != null && !(building instanceof ItemTurretBuild)) {
                     for (Item item : Vars.content.items()) {
                         if (building.items.has(item) != contentLst.contains(item)) {
@@ -207,7 +207,7 @@ public class itemStack extends iFeature {
                 }
 
                 if (!needRebuild) return;
-                firstBuild.set(false);
+                forceRebuild.set(false);
 
                 contentLst.clear();
                 hasPower.set(false);
@@ -536,6 +536,7 @@ public class itemStack extends iFeature {
                                         if (amount != Short.MAX_VALUE) amount = Math.min(amount, ((ItemTurret) building.block).maxAmmo);
                                         fcCall.setTurretAmmo(unit, building, item, amount);
                                         ammoPriorityForceUpdate.set(true);
+                                        forceRebuild.set(true);
                                     } else {
                                         int amount = building.items.get(item);
                                         if (amount == Integer.MAX_VALUE) return;

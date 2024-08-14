@@ -1,6 +1,7 @@
 package finalCampaign.feature.featureClass.control.setMode.setFeature;
 
 import java.io.*;
+import arc.*;
 import arc.graphics.*;
 import arc.input.*;
 import arc.scene.*;
@@ -32,20 +33,20 @@ public class targetingLimit extends bAttributeSetter {
 
     public void buildUI(Building[] selected, Table table) {
         IFcTurretBuild fcTurretBuild = (IFcTurretBuild) selected[0];
-        table.add(new limitTable(fcTurretBuild.fcFilter()));
+        table.add(new limitTable(fcTurretBuild.fcFilter())).growX().pad(8f);
     }
 
-    public static class limitTable extends pane {
+    public static class limitTable extends Table {
         fcFilter filter;
 
         public limitTable(fcFilter filter) {
             this.filter = filter;
 
             for (String name : fcFilter.filterLst()) {
-                inner.add(new limitItem(name, filter)).growX().row();
+                add(new limitItem(name, filter)).growX().padBottom(4f).row();
             }
 
-            inner.changed(this::updateFilter);
+            changed(this::updateFilter);
         }
 
         public void updateFilter() {
@@ -69,10 +70,14 @@ public class targetingLimit extends bAttributeSetter {
             this.name = name;
             config = false;
             fFilter = filter;
+            touchable = Touchable.enabled;
+            col = new Collapser(new Table(), true);
 
-            inner.add(fcFilter.localizedName(name)).width(100f).wrap().growY().left().get().addListener(new forwardEventListener(this));
+            inner.add(fcFilter.localizedName(name)).wrap().grow().left().get();
             check = new CheckBox("");
-            inner.add(check).right();
+            check.addListener(new notBubblesInputListener());
+            inner.add(check).padLeft(4f).right().row();
+            inner.add(col).colspan(2).growX();
 
             hovered(this::hovered);
             exited(this::exited);
@@ -81,28 +86,38 @@ public class targetingLimit extends bAttributeSetter {
                     fFilter.add(name);
                 } else {
                     fFilter.filters.remove(this.filter);
+                    config = false;
                 }
                 update();
                 parent.change();
             });
-            clicked(this::toggleConfig);
+            addListener(new ClickListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y){
+                    Log.debug(event.targetActor);
+                    Log.debug(event.targetActor.parent);
+                    if (event.targetActor.isDescendantOf(col) || event.targetActor.isAscendantOf(check)) return;
+                    limitItem.this.toggleConfig();
+                }
+            });
+            
             update();
         }
 
         public void toggleConfig() {
+            setColor(Pal.accent);
             if (col == null || filter == null) return;
             if (!filter.hasConfig()) return;
             col.toggle();
-            config = !config;
-            setColor(config ? Pal.accent : Color.white);
+            config = !col.isCollapsed();
         }
 
         public void hovered() {
-            if (!config) setColor(Pal.accent.cpy().a(0.7f));
+            setColor(Pal.accent);
         }
 
         public void exited() {
-            if (!config) setColor(Color.white);
+            if (!config) setColor(Color.darkGray);
         }
 
         @SuppressWarnings("unchecked")
@@ -120,11 +135,7 @@ public class targetingLimit extends bAttributeSetter {
                     }
 
                     if (c != null) {
-                        if (col == null) {
-                            col = new Collapser(c, true);
-                        } else {
-                            col.setTable(c);
-                        }
+                        col.setTable(c);
                         c.changed(this::change);
                     }
                 }
@@ -173,7 +184,7 @@ public class targetingLimit extends bAttributeSetter {
                     public void keyboardFocusChanged(FocusEvent event, Element element, boolean focused) {
                         if (!focused) {
                             editing = false;
-                            rebuild();
+                            Core.app.post(cNum.this::rebuild);
                         }
                     }
                 });
@@ -183,8 +194,8 @@ public class targetingLimit extends bAttributeSetter {
                 inner.add(Integer.toString(filter.config)).colspan(7).growX();
                 inner.button(bundle.get("edit"), () -> {
                     editing = true;
-                    rebuild();
-                }).colspan(3).growX();
+                    Core.app.post(this::rebuild);
+                }).colspan(3).growX().get();
             }
         }
     }
@@ -194,7 +205,9 @@ public class targetingLimit extends bAttributeSetter {
 
         public limitConfig(baseFilter<T> filter, String name) {
             this.filter = filter;
+            fillParent = true;
 
+            addListener(new notBubblesInputListener());
             add(bundle.get("setMode.feature.setting.targetingLimit.config." + name, name)).wrap().grow().left().padTop(8f).padBottom(8f).row();
             buildUI();
         }

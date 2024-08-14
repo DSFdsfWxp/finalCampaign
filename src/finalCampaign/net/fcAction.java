@@ -103,14 +103,17 @@ public class fcAction {
                 }
                 currentAmount = Math.min(capacity, currentAmount);
 
+                if (amount == Short.MAX_VALUE) itb.ammo.clear();
+
                 for (AmmoEntry ae : itb.ammo) {
                     ItemEntry ie = (ItemEntry) ae;
                     if (ie.item != item) continue;
     
-                    if (amount != Short.MAX_VALUE) amount = Math.min(currentAmount - ie.amount + amount, capacity) - (currentAmount - ie.amount);
+                    amount = Math.min(currentAmount - ie.amount + amount, capacity) - (currentAmount - ie.amount);
+                    if (amount < 0) amount = 0;
                     int d = amount - ie.amount;
                     ie.amount = amount;
-                    itb.totalAmmo += amount == Short.MAX_VALUE ? 1 : d;
+                    itb.totalAmmo += d;
                     itb.totalAmmo = Math.min(itb.totalAmmo, it.maxAmmo);
                     if (itb.totalAmmo < 0) itb.totalAmmo = 0;
                     if (ie.amount <= 0f) itb.ammo.remove(ie);
@@ -124,7 +127,7 @@ public class fcAction {
                 if (amount != Short.MAX_VALUE) amount = Math.min(amount, capacity - currentAmount);
                 if (amount <= 0) return false;
                 itb.ammo.add((ItemEntry) reflect.newInstance(constructor, building.block, item, amount));
-                itb.totalAmmo += amount == Short.MAX_VALUE ? 1 : amount;
+                itb.totalAmmo = amount == Short.MAX_VALUE ? it.maxAmmo : itb.totalAmmo + amount;
                 itb.totalAmmo = Math.min(itb.totalAmmo, it.maxAmmo);
                 return true;
             }

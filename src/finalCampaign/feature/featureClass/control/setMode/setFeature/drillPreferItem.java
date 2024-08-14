@@ -26,7 +26,7 @@ public class drillPreferItem extends bAttributeSetter {
     public void buildUI(Building[] selected, Table table) {
         IFcDrillBuild target = (IFcDrillBuild) selected[0];
         choicesTable choicesTable = new choicesTable(target);
-        table.add(choicesTable).growX().pad(8f);
+        table.add(choicesTable).growX().pad(4f);
     }
 
     public static class choicesTable extends Table {
@@ -54,7 +54,7 @@ public class drillPreferItem extends bAttributeSetter {
                     fcCall.setDrillBuildingPreferItem((Building) target, item);
                 });
 
-                add(cItem).growX().maxWidth(128f).left();
+                add(cItem).growX().maxWidth(140f).left();
                 if (++ count % 2 == 0) row();
             }
         }
@@ -72,7 +72,7 @@ public class drillPreferItem extends bAttributeSetter {
             Block block = Vars.content.block("ore-" + item.name);
             ItemImage image = new ItemImage(block == null ? item.uiIcon : block.uiIcon, amount);
             inner.add(image).left();
-            inner.add(Double.toString(Math.floor(speed / 60f * 100f) / 100f) + "/s").padLeft(8f).wrap().grow().right().labelAlign(Align.right);
+            inner.add(Double.toString(Math.floor(speed / 60f * 100f) / 100f) + "/s").padLeft(4f).wrap().grow().right().labelAlign(Align.right);
         }
     }
 }
