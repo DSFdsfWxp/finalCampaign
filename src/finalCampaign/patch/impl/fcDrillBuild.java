@@ -4,7 +4,6 @@ import java.lang.reflect.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
-import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
@@ -53,8 +52,8 @@ public abstract class fcDrillBuild extends Building implements IFcDrillBuild {
     }
 
     public float fcCalcDrillSpeed(Item item, int amount) {
-        float speed = Mathf.lerp(1f, fcDrill.liquidBoostIntensity, optionalEfficiency) * efficiency;
-        return (speed * amount * speed) / fcDrill.getDrillTime(item);
+        float speed = optionalEfficiency > 0f ? fcDrill.liquidBoostIntensity : 1f;
+        return speed * speed * amount / fcDrill.getDrillTime(item) * Math.max(1f, timeScale) * 3600f;
     }
 
     public void fcInit() {

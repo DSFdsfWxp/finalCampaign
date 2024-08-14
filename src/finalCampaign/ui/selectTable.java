@@ -69,6 +69,7 @@ public class selectTable extends Table {
     public static <T> void showSelect(Button b, T[] values, T current, Cons<T> getter, int cols, Cons<Cell<?>> sizer){
         new selectTable(b, (t, hide) -> {
             ButtonGroup<Button> group = new ButtonGroup<>();
+            group.setMinCheckCount(0);
             int i = 0;
             t.defaults().size(60f, 38f);
 

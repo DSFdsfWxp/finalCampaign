@@ -12,6 +12,7 @@ import finalCampaign.net.*;
 import finalCampaign.patch.*;
 import finalCampaign.ui.*;
 import mindustry.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
@@ -50,7 +51,7 @@ public class basicInfo extends iFeature {
                     if (m != null) for (StatValue v : m) if (v instanceof IFcStatNumberValue numVal) if (numVal.unit() == StatUnit.heatUnits) consHeat = true;
                 }
                 
-                if (key.equals("health")) {
+                if (key.equals("health") && Vars.state.rules.mode() == Gamemode.sandbox) {
                     barSetter setter = new barSetter(bundleNS.get("health"), 256f, building.maxHealth, 0, building.health, false, true, false, true, true);
                     Collapser col = new Collapser(new Table(ct -> {
                         ct.setBackground(Tex.sliderBack);
@@ -72,7 +73,7 @@ public class basicInfo extends iFeature {
                     });
                     bars.row();
                     bars.add(col).growX().center();
-                } else if (key.equals("heat") && (building instanceof HeatConsumer || (building.block instanceof Turret tb &&  tb.heatRequirement > 0f) || consHeat)) {
+                } else if (key.equals("heat") && Vars.state.rules.mode() == Gamemode.sandbox && (building instanceof HeatConsumer || (building.block instanceof Turret tb &&  tb.heatRequirement > 0f) || consHeat)) {
 
                     // wait for design
 

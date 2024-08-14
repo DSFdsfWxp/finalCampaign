@@ -11,7 +11,6 @@ import mindustry.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.type.*;
-import mindustry.world.*;
 import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.ItemTurret.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
@@ -45,6 +44,7 @@ public class fcAction {
                 int capacity = unit.type.itemCapacity - unit.stack.amount;
                 amount = Math.min(capacity, amount);
                 amount = Math.min(amount, ie.amount);
+                amount = Math.min(amount, unit.maxAccepted(item));
                 if (ie.amount < Short.MAX_VALUE) {
                     ie.amount -= amount;
                     itb.totalAmmo -= amount;
@@ -274,6 +274,7 @@ public class fcAction {
         if (!forceStatus) {
             f.fcForceDisable(false);
             f.fcForceEnable(false);
+            building.enabled = true;
         } else {
             f.fcForceDisable(forceDisable);
             f.fcForceEnable(!forceDisable);
@@ -301,13 +302,8 @@ public class fcAction {
         if (!sandbox()) return false;
         if (player.dead()) return false;
 
-        teamc.team(team);
         if (teamc instanceof Building building) {
-            Tile tile = building.tile();
-            if (tile != null) {
-                Vars.indexer.removeIndex(tile);
-                Vars.indexer.addIndex(tile);
-            }
+            building.changeTeam(team);
         }
 
         return true;

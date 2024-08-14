@@ -3,7 +3,6 @@ package finalCampaign.patch.impl;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
-import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
@@ -51,9 +50,8 @@ public abstract class fcBeamDrillBuild extends Building implements IFcDrillBuild
     }
 
     public float fcCalcDrillSpeed(Item item, int amount) {
-        float multiplier = Mathf.lerp(1f, fcDrill.optionalBoostIntensity, optionalEfficiency);
-        float drillTime = fcDrill.getDrillTime(lastItem);
-        return (amount * multiplier * timeScale) / drillTime;
+        float speed = optionalEfficiency > 0f ? fcDrill.optionalBoostIntensity : 1f;
+        return amount * speed * Math.max(1f, timeScale) / fcDrill.getDrillTime(item) * 3600f;
     }
 
     public void fcScan() {

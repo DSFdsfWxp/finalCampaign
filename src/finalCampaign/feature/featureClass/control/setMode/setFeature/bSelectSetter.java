@@ -33,7 +33,7 @@ public abstract class bSelectSetter<T> extends iFeature {
         for (T v : lst) strLst.add(transformer(v));
 
         boolean ambiguous = isAmbiguous(selected);
-        fakeFinal<String> current = new fakeFinal<>(transformer(currentValue(selected[0])));
+        fakeFinal<String> current = new fakeFinal<>(ambiguous ? "..." : transformer(currentValue(selected[0])));
         TextButton button = new TextButton(ambiguous ? "..." : current.get());
 
         table.left();

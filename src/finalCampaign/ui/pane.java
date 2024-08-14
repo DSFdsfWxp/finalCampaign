@@ -1,27 +1,32 @@
 package finalCampaign.ui;
 
-import arc.graphics.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import mindustry.gen.*;
-import mindustry.graphics.*;
 
 public abstract class pane extends Table {
     protected Table inner;
-    private boolean selected;
+    private boolean selected, hovering;
     private Seq<Runnable> selectedChangedListeners;
+    private boolean alwaysDrawBorder;
 
     public pane() {
         setBackground(Tex.sliderBack);
         inner = table().pad(4f).growX().get();
-        selected = false;
+        selected = hovering = false;
         selectedChangedListeners = new Seq<>();
+        alwaysDrawBorder = true;
+    }
+
+    public void alwaysDrawBorder(boolean v) {
+        alwaysDrawBorder = v;
+        if (!selected && !hovering) setBackground(v ? Tex.sliderBack : null);
     }
 
     public void setSelected(boolean v) {
         if (selected == v) return;
         selected = v;
-        setColor(selected ? Pal.accent : Color.white);
+        setBackground(selected ? Tex.buttonSelect : (alwaysDrawBorder ? Tex.sliderBack : null));
     }
 
     public void setSelected(boolean v, boolean fireEvent) {
@@ -49,10 +54,12 @@ public abstract class pane extends Table {
 
     public void addHoveredListener() {
         hovered(() -> {
-            if (!selected) setColor(Pal.accent.cpy().a(0.7f));
+            if (!selected) setBackground(Tex.buttonSelect);
+            hovering = true;
         });
         exited(() -> {
-            if (!selected) setColor(Color.white);
+            if (!selected) setBackground(alwaysDrawBorder ? Tex.sliderBack : null);
+            hovering = false;
         });
     }
 }

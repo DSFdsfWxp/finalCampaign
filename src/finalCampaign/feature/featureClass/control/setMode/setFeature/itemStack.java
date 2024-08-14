@@ -463,7 +463,7 @@ public class itemStack extends iFeature {
                                             if (sandbox) {
                                                 fcCall.setTurretAmmo(unit, building, item, amount == Short.MAX_VALUE ? 0 : amount - removed);
                                             } else {
-                                                removed = Math.min(removed, unit.stack.amount);
+                                                removed = Math.min(removed, unit.type.itemCapacity - unit.stack.amount);
                                                 fcCall.setTurretAmmo(unit, building, item, -removed);
                                             }
                                             ammoPriorityForceUpdate.set(true);
@@ -473,7 +473,7 @@ public class itemStack extends iFeature {
                                             if (sandbox) {
                                                 fcCall.setItem(unit, building, item, currentNum == Integer.MAX_VALUE ? 0 : currentNum - removed);
                                             } else {
-                                                removed = Math.min(removed, unit.stack.amount);
+                                                removed = Math.min(removed, unit.type.itemCapacity - unit.stack.amount);
                                                 fcCall.setItem(unit, building, item, -removed);
                                             }
                                         }

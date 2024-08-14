@@ -44,7 +44,7 @@ public abstract class bAttributeSetter extends iFeature {
             buildUI(selected, t);
         }), true);
         button.clicked(() -> col.toggle());
-        table.add(col).center().growX().colspan(2);
+        table.add(col).center().growX().colspan(2).padTop(4f);
     }
 
     public abstract void buildUI(Building[] selected, Table table);
