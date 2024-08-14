@@ -311,7 +311,7 @@ public class itemStack extends iFeature {
                 }
 
                 if (building.power != null && building.block.consPower != null) {
-                    Floatp amount = () -> fcBuilding.fcInfinityPower() ? Float.POSITIVE_INFINITY : building.power.status * Math.max(building.block.consPower.capacity, building.block.consPower.usage);
+                    Floatp amount = () -> building.power.status * Math.max(building.block.consPower.capacity, building.block.consPower.usage);
                     if (amount.get() > 0) {
                         t.add(new itemImage(Vars.ui.getIcon(Category.power.name()).getRegion(), () -> (int)(amount.get()), () -> amount.get() == Float.POSITIVE_INFINITY)).padRight(8f).tooltip(tt -> {
                             tt.setBackground(Tex.button);

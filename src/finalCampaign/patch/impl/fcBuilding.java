@@ -4,11 +4,13 @@ import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
 import arc.math.*;
+import arc.util.*;
 import arc.util.io.*;
 import finalCampaign.feature.featureClass.mapVersion.*;
 import finalCampaign.patch.*;
 import mindustry.gen.*;
 import mindustry.logic.*;
+import mindustry.world.modules.*;
 
 @Mixin(Building.class)
 public abstract class fcBuilding implements IFcBuilding{
@@ -21,7 +23,12 @@ public abstract class fcBuilding implements IFcBuilding{
     @Shadow(remap = false)
     public boolean enabled;
     @Shadow(remap = false)
-    public float health;
+    public float health, maxHealth;
+    @Shadow(remap = false)
+    public PowerModule power;
+
+    @Shadow(remap = false)
+    public abstract void kill();
 
     public boolean fcSetModeSelected() {
         return fcSetModeSelected;
@@ -89,5 +96,10 @@ public abstract class fcBuilding implements IFcBuilding{
     @Inject(method = "update", at = @At("HEAD"), remap = false)
     public void fcUpdate(CallbackInfo ci) {
         if (fcForceDisable || fcForceEnable) enabled = fcForceEnable;
+        if (power != null) if (Float.isNaN(power.status)) if (fcInfinityPower) {
+            fcInfinityPower = false;
+            if (health == Float.POSITIVE_INFINITY) health = maxHealth;
+            Time.run(120f, this::kill);
+        }
     }
 }
