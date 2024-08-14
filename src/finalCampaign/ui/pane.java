@@ -1,8 +1,10 @@
 package finalCampaign.ui;
 
 import arc.graphics.*;
+import arc.graphics.g2d.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
+import finalCampaign.graphics.g2d.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 
@@ -11,20 +13,28 @@ public abstract class pane extends Table {
     private boolean selected, hovering;
     private Seq<Runnable> selectedChangedListeners;
     private boolean alwaysDrawBorder;
+    private float backgroundDarkness;
 
     public pane() {
         setBackground(Tex.whitePane);
         setColor(Color.darkGray);
-        inner = table().pad(4f).growX().get();
+        inner = table().pad(2f).growX().get();
         selected = hovering = false;
         selectedChangedListeners = new Seq<>();
+        backgroundDarkness = 0f;
         alwaysDrawBorder = true;
     }
 
     @Override
     protected void drawBackground(float x, float y) {
+        Draw.color(0, 0, 0, backgroundDarkness);
+        fcFill.rect(x, y, width, height);
         if (!alwaysDrawBorder && !selected && !hovering) return;
         super.drawBackground(x, y);
+    }
+
+    public void backgroundDarkness(float v) {
+        backgroundDarkness = v;
     }
 
     public void alwaysDrawBorder(boolean v) {
@@ -35,7 +45,7 @@ public abstract class pane extends Table {
     public void setSelected(boolean v) {
         if (selected == v) return;
         selected = v;
-        setColor(selected ? Pal.accent : Color.darkGray);
+        setColor(selected ? Pal.accent : Color.gray);
     }
 
     public void setSelected(boolean v, boolean fireEvent) {
@@ -64,7 +74,7 @@ public abstract class pane extends Table {
     public void addHoveredListener() {
         hovered(() -> {
             if (!selected) {
-                setColor(Pal.accent);
+                setColor(Color.gray);
             }
             hovering = true;
         });

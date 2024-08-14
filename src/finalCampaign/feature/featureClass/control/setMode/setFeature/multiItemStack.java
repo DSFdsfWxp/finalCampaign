@@ -33,7 +33,7 @@ public class multiItemStack extends iFeature {
         group.setMinCheckCount(0);
         Collapser col = new Collapser(new Table(ct -> {
             ct.fillParent = true;
-            ct.setBackground(Tex.sliderBack);
+            ct.setBackground(Tex.pane);
 
             ct.table(t -> {
                 contentSelecter selecter = new contentSelecter();

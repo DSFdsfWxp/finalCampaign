@@ -217,7 +217,7 @@ public class itemStack extends iFeature {
                     for (int i=0; i<building.items.length(); i++) {
                         if (!building.items.has(i)) continue;
                         Item item = Vars.content.item(i);
-                        t.add(new itemImage(item.uiIcon, () -> building.items.get(item), () -> building.items.get(item) == Integer.MAX_VALUE)).padRight(8).tooltip(tt -> {
+                        itemImage image = t.add(new itemImage(item.uiIcon, () -> building.items.get(item), () -> building.items.get(item) == Integer.MAX_VALUE)).padRight(8).tooltip(tt -> {
                             tt.setBackground(Tex.button);
                             tt.left();
                             tt.add(item.localizedName).left().padLeft(8f).padRight(8f).row();
@@ -225,7 +225,8 @@ public class itemStack extends iFeature {
                                 int val = building.items.get(item);
                                 txt.setText(val == Integer.MAX_VALUE ? "∞" : Integer.toString(val));
                             });
-                        }).get().clicked(() -> {
+                        }).get();
+                        image.clicked(() -> {
                             if (currentItem.get() == item && !col.isCollapsed()) {
                                 col.setCollapsed(true);
                                 currentItem.set(null);
@@ -242,6 +243,7 @@ public class itemStack extends iFeature {
                             if (col.isCollapsed()) col.setCollapsed(false);
                             if (!addCol.isCollapsed()) addCol.setCollapsed(true);
                         });
+                        image.addListener(new HandCursorListener());
                         if (++ count % 5 == 0) t.row();
                         contentLst.add(item);
                     }
@@ -251,15 +253,16 @@ public class itemStack extends iFeature {
                     for (AmmoEntry ae : itb.ammo) {
                         ItemEntry ie = (ItemEntry) ae;
                         if (ie.amount <= 0) continue;
-                        t.add(new itemImage(ie.item.uiIcon, () -> ie.amount, () -> ie.amount == Short.MAX_VALUE)).padRight(8).tooltip(tt -> {
+                        itemImage image = t.add(new itemImage(ie.item.uiIcon, () -> ie.amount, () -> ie.amount == Short.MAX_VALUE)).padRight(8).tooltip(tt -> {
                             tt.setBackground(Tex.button);
                             tt.left();
                             tt.add(ie.item.localizedName).left().padLeft(8f).padRight(8f).row();
                             tt.add("").color(Color.lightGray).left().padLeft(8f).padRight(8f).minWidth(100f).update(txt -> txt.setText(ie.amount == Short.MAX_VALUE ? "∞" : Integer.toString(ie.amount)));
-                        }).get().clicked(() -> {
-                            if (currentItem.get() == ie.item && !col.isCollapsed()) {
+                        }).get();
+                        image.clicked(() -> {
+                            if (currentItemAmmo.get() == ie.item && !col.isCollapsed()) {
                                 col.setCollapsed(true);
-                                currentItem.set(null);
+                                currentItemAmmo.set(null);
                                 return;
                             }
                             currentItem.set(null);
@@ -272,6 +275,7 @@ public class itemStack extends iFeature {
                             if (col.isCollapsed()) col.setCollapsed(false);
                             if (!addCol.isCollapsed()) addCol.setCollapsed(true);
                         });
+                        image.addListener(new HandCursorListener());
                         if (++ count % 5 == 0) t.row();
                         contentLst.add(ie.item);
                     }
@@ -280,7 +284,7 @@ public class itemStack extends iFeature {
                 if (building.liquids != null) {
                     for (Liquid liquid : Vars.content.liquids()) {
                         if (building.liquids.get(liquid) <= 0f) continue;
-                        t.add(new itemImage(liquid.uiIcon, () -> (int)(building.liquids.get(liquid)), () -> building.liquids.get(liquid) == Float.POSITIVE_INFINITY)).padRight(8f).tooltip(tt -> {
+                        itemImage image = t.add(new itemImage(liquid.uiIcon, () -> (int)(building.liquids.get(liquid)), () -> building.liquids.get(liquid) == Float.POSITIVE_INFINITY)).padRight(8f).tooltip(tt -> {
                             tt.setBackground(Tex.button);
                             tt.left();
                             tt.add(liquid.localizedName).left().padLeft(8f).padRight(8f).row();
@@ -288,7 +292,8 @@ public class itemStack extends iFeature {
                                 float amount = building.liquids.get(liquid);
                                 txt.setText(amount == Float.POSITIVE_INFINITY ? "∞" : Float.toString(amount));
                             });
-                        }).get().clicked(() -> {
+                        }).get();
+                        image.clicked(() -> {
                             if (currentLiquid.get() == liquid && !col.isCollapsed()) {
                                 col.setCollapsed(true);
                                 currentLiquid.set(null);
@@ -305,6 +310,7 @@ public class itemStack extends iFeature {
                             if (col.isCollapsed()) col.setCollapsed(false);
                             if (!addCol.isCollapsed()) addCol.setCollapsed(true);
                         });
+                        image.addListener(new HandCursorListener());
                         if (++ count % 5 == 0) t.row();
                         contentLst.add(liquid);
                     }
@@ -313,7 +319,7 @@ public class itemStack extends iFeature {
                 if (building.power != null && building.block.consPower != null) {
                     Floatp amount = () -> building.power.status * Math.max(building.block.consPower.capacity, building.block.consPower.usage);
                     if (amount.get() > 0) {
-                        t.add(new itemImage(Vars.ui.getIcon(Category.power.name()).getRegion(), () -> (int)(amount.get()), () -> amount.get() == Float.POSITIVE_INFINITY)).padRight(8f).tooltip(tt -> {
+                        itemImage image = t.add(new itemImage(Vars.ui.getIcon(Category.power.name()).getRegion(), () -> (int)(amount.get()), () -> amount.get() == Float.POSITIVE_INFINITY)).padRight(8f).tooltip(tt -> {
                             tt.setBackground(Tex.button);
                             tt.left();
                             tt.add(Core.bundle.get("unit.powerunits")).left().padLeft(8f).padRight(8f).row();
@@ -321,7 +327,8 @@ public class itemStack extends iFeature {
                                 float val = amount.get();
                                 txt.setText(val == Float.POSITIVE_INFINITY ? "∞" : Float.toString(val));
                             });
-                        }).get().clicked(() -> {
+                        }).get();
+                        image.clicked(() -> {
                             if (currentPower.get() && !col.isCollapsed()) {
                                 col.setCollapsed(true);
                                 currentPower.set(false);
@@ -337,13 +344,15 @@ public class itemStack extends iFeature {
                             if (col.isCollapsed()) col.setCollapsed(false);
                             if (!addCol.isCollapsed()) addCol.setCollapsed(true);
                         });
+                        image.addListener(new HandCursorListener());
                         if (++ count % 5 == 0) t.row();
                         hasPower.set(true);
                     }
                 }
 
                 if (Vars.state.rules.mode() == Gamemode.sandbox) {
-                    t.image(Icon.add).size(32f).scaling(Scaling.fit).padRight(8f).get().clicked(() -> {
+                    Image image = t.image(Icon.add).size(32f).scaling(Scaling.fit).padRight(8f).get();
+                    image.clicked(() -> {
                         currentItem.set(null);
                         currentItemAmmo.set(null);
                         currentLiquid.set(null);
@@ -354,12 +363,13 @@ public class itemStack extends iFeature {
                         addCol.toggle();
                         if (!addCol.isCollapsed()) rebuildAddCol.get().run();
                     });
+                    image.addListener(new HandCursorListener());
                     if (++ count % 5 == 0) t.row();
                 }
             }).center().growX().row();
 
             col.setTable(new Table(ctc -> {
-                ctc.setBackground(Tex.sliderBack);
+                ctc.setBackground(Tex.pane);
 
                 rebuildCol.set(() -> {
                     ctc.clear();
@@ -494,7 +504,7 @@ public class itemStack extends iFeature {
             }));
 
             addCol.setTable(new Table(ctc -> {
-                ctc.setBackground(Tex.sliderBack);
+                ctc.setBackground(Tex.pane);
 
                 rebuildAddCol.set(() -> {
                     ctc.clear();

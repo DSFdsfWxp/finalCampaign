@@ -3,6 +3,7 @@ package finalCampaign.feature.featureClass.buildTargeting.sortfs;
 import arc.math.*;
 import finalCampaign.feature.featureClass.buildTargeting.fcSortf.*;
 import finalCampaign.feature.featureClass.buildTargetingLimit.*;
+import finalCampaign.patch.*;
 import mindustry.*;
 import mindustry.entities.*;
 import mindustry.game.*;
@@ -17,6 +18,7 @@ public class mostEnemyDirection extends baseSortf<NoneConfig> {
 
     public mostEnemyDirection(TurretBuild build) {
         super("mostEnemyDirection", build);
+        filter = ((IFcTurretBuild) build).fcFilter();
         root = new treeNode(360);
         calcDepth();
         needReset = false;

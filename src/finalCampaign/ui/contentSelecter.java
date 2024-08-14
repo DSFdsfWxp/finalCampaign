@@ -57,7 +57,13 @@ public class contentSelecter extends Table {
     }
 
     public Cell<ImageButton> add(Drawable image, String name) {
-        return add(image, null, null).name(name).tooltip(bundleNS.get(name));
+        return add(image, (Runnable) null, null).name(name).tooltip(bundleNS.get(name, name));
+    }
+
+    public Cell<ImageButton> add(Drawable image, String name, String tooltip) {
+        Cell<ImageButton> res = add(image, (Runnable) null, null).name(name);
+        if (!tooltip.isEmpty()) res.tooltip(tooltip);
+        return res;
     }
 
     public Cell<ImageButton> add(Drawable image, @Nullable Runnable clicked, @Nullable UnlockableContent content) {

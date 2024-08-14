@@ -38,9 +38,8 @@ public abstract class bAttributeSetter extends iFeature {
         button.setStyle(Styles.togglet);
         table.add(button).minWidth(75f).maxWidth(100f).group(group).right().row();
         Collapser col = new Collapser(new Table(t -> {
-            //t.setWidth(Scl.scl(280f));
             t.fillParent = true;
-            if (background) t.setBackground(Tex.sliderBack);
+            if (background) t.setBackground(Tex.pane);
             buildUI(selected, t);
         }), true);
         button.clicked(() -> col.toggle());

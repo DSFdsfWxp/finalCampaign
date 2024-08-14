@@ -53,8 +53,8 @@ public class textSlider extends Table {
         numUnit = "";
 
         flow.left();
-        flow.add(title).colspan(6).expandX().left();
-        label = flow.add(Float.toString(value)).colspan(4).expandX().right().visible(() -> showNum).get();
+        flow.add(title).colspan(6).expandX().left().padLeft(4f);
+        label = flow.add(Float.toString(value)).colspan(4).expandX().right().visible(() -> showNum).padRight(4f).get();
 
         slider.changed(() -> {
             if (modifyImmediately) modify();

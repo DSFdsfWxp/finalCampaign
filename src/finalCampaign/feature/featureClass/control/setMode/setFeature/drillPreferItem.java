@@ -26,7 +26,7 @@ public class drillPreferItem extends bAttributeSetter {
     public void buildUI(Building[] selected, Table table) {
         IFcDrillBuild target = (IFcDrillBuild) selected[0];
         choicesTable choicesTable = new choicesTable(target);
-        table.add(choicesTable).growX().pad(4f);
+        table.add(choicesTable).growX().pad(2f);
     }
 
     public static class choicesTable extends Table {
@@ -65,6 +65,7 @@ public class drillPreferItem extends bAttributeSetter {
             alwaysDrawBorder(false);
             touchable = Touchable.enabled;
             addListener(new HandCursorListener());
+            backgroundDarkness(0.5f);
             clicked(() -> {
                 setSelected(true);
                 fireSelectedChanged();

@@ -13,6 +13,7 @@ import arc.util.io.*;
 import finalCampaign.*;
 import finalCampaign.feature.featureClass.buildTargeting.*;
 import finalCampaign.feature.featureClass.buildTargeting.fcSortf.*;
+import finalCampaign.feature.featureClass.control.setMode.*;
 import finalCampaign.bundle.*;
 import finalCampaign.net.*;
 import finalCampaign.patch.*;
@@ -79,16 +80,17 @@ public class targetingPriority extends bAttributeSetter {
             presetsTableCol.toggle();
         }).group(presetsGroup).growX().with(t -> t.setStyle(Styles.togglet)).row();
 
-        table.add(presetsTableCol).center().growX().row();
+        table.add(presetsTableCol).padTop(4f).center().growX().row();
 
-        table.add(preferBuildingTargetCheck).center().growX().visible(() -> selected.length == 1).row();
-        table.add(preferExthinguishCheck).center().growX().visible(() -> selected.length == 1 && fcLiquidFirst != null).row();
+        if (selected.length == 1) table.add(preferBuildingTargetCheck).center().padTop(4f).growX().row();
+        if (selected.length == 1 && fcLiquidFirst != null) table.add(preferExthinguishCheck).padTop(4f).center().growX().row();
 
-        table.add(sideSelectTable).center().growX().visible(() -> selected.length == 1).row();
+        if (selected.length == 1) {
+            table.add(sideSelectTable).padTop(4f).center().growX().row();
+            table.add(priorityTable).padTop(4f).center().growX().row();
+            table.add(priorityAddTableCol).padTop(4f).center().growX().row();
+        }
 
-        table.add(priorityTable).center().growX().visible(() -> selected.length == 1).row();
-
-        table.add(priorityAddTableCol).center().growX().visible(() -> selected.length == 1).row();
     }
 
     public static class sideSelectTable extends Table {
@@ -99,20 +101,20 @@ public class targetingPriority extends bAttributeSetter {
             selected = () -> {};
             unit = true;
             ButtonGroup<TextButton> group = new ButtonGroup<>();
-            setBackground(Tex.sliderBack);
+            setBackground(Tex.pane);
 
             table(inner -> {
                 inner.button(bundleNS.get("unit"), Styles.flatTogglet, () -> {
                     if (unit) return;
                     unit = true;
                     selected.run();
-                }).group(group).growX();
+                }).group(group).growX().minHeight(32f);
                 inner.button(bundleNS.get("building"), Styles.flatTogglet, () -> {
                     if (!unit) return;
                     unit = false;
                     selected.run();
-                }).group(group).growX();
-            }).pad(4f).growX();
+                }).group(group).growX().minHeight(32f);
+            }).pad(2f).growX();
         }
 
         public void selected(Runnable run) {
@@ -123,7 +125,6 @@ public class targetingPriority extends bAttributeSetter {
     public static class priorityTable extends Table {
         fcSortf sortf;
         Table inner;
-        int lastCount;
         Runnable deleted;
         dragLayout layout;
         boolean unitSide;
@@ -139,11 +140,24 @@ public class targetingPriority extends bAttributeSetter {
             current = sortf.unitSortfs;
             add = new addItem(col);
 
-            setBackground(Tex.sliderBack);
+            setBackground(Tex.pane);
             table(t -> inner = t).pad(4f).growX();
-            layout = new dragLayoutY(8f, 160f);
-            inner.add(layout).growX();
-            inner.add(add).growX();
+            layout = new dragLayoutY(4f, 271f);
+            inner.add(layout).growX().row();
+            inner.add(add).growX().maxWidth(271f).minHeight(60f).visible(() -> !layout.dragging());
+
+            inner.addListener(new InputListener() {
+                @Override
+                public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button) {
+                    fSetMode.setFlickScrollEnabled(false);
+                    return true;
+                }
+
+                @Override
+                public void touchUp(InputEvent event, float x, float y, int pointer, KeyCode button) {
+                    fSetMode.setFlickScrollEnabled(true);
+                }
+            });
 
             layout.indexUpdate(() -> {
                 current.clear();
@@ -152,7 +166,6 @@ public class targetingPriority extends bAttributeSetter {
             });
 
             rebuild();
-            inner.changed(this::changed);
         }
 
         public void setSide(boolean unit) {
@@ -160,7 +173,6 @@ public class targetingPriority extends bAttributeSetter {
             current = unit ? sortf.unitSortfs : sortf.buildSortfs;
             rebuild();
             add.reset();
-            lastCount = current.size;
         }
 
         public void deleted(Runnable run) {
@@ -176,12 +188,7 @@ public class targetingPriority extends bAttributeSetter {
         }
 
         public void changed() {
-            if (current.size < lastCount) {
-                deleted.run();
-                rebuild();
-                lastCount = current.size;
-            }
-
+            deleted.run();
             updateSortf();
         }
 
@@ -193,6 +200,7 @@ public class targetingPriority extends bAttributeSetter {
                 priorityItem item = new priorityItem(layout, s, this);
                 item.setWidth(layout.getWidth());
                 map.put(item, s);
+                item.deleted(this::changed);
                 layout.addChild(item);
             }
         }
@@ -209,7 +217,7 @@ public class targetingPriority extends bAttributeSetter {
             added = () -> {};
             unitSide = true;
 
-            setBackground(Tex.sliderBack);
+            setBackground(Tex.pane);
             table(t -> inner = t).pad(4f).growX();
 
             rebuild();
@@ -237,7 +245,7 @@ public class targetingPriority extends bAttributeSetter {
                     item.remove();
                 });
 
-                inner.add(item).row();
+                inner.add(item).growX().padBottom(4f).row();
             }
         }
     }
@@ -247,10 +255,11 @@ public class targetingPriority extends bAttributeSetter {
 
         public priorityAddItem(String name) {
             this.name = name;
+            inner.add(fcSortf.localizedName(name)).wrap().grow().left();
         }
 
         public void buildUI() {
-            inner.add(fcSortf.localizedName(name)).wrap().grow();
+            addListener(new HandCursorListener());
         }
     }
 
@@ -265,10 +274,12 @@ public class targetingPriority extends bAttributeSetter {
             inner.add("+").center();
             canToggle = true;
             clicked(() -> col.setCollapsed(!holded));
+            addListener(new HandCursorListener());
         }
 
         public void reset() {
             if (holded) {
+                hovering = false;
                 clicked();
                 col.setCollapsed(true);
             }
@@ -278,33 +289,36 @@ public class targetingPriority extends bAttributeSetter {
     public static abstract class baseItem extends Table {
         Table inner;
         boolean canToggle;
-        boolean holded;
+        boolean holded, hovering;
 
         public baseItem() {
-            setBackground(Tex.sliderBack);
+            setBackground(Tex.whitePane);
+            setColor(Color.darkGray);
             table(t -> inner = t).pad(2f).growX();
+            touchable = Touchable.enabled;
 
-            inner.addListener(new forwardEventListener(this));
             hovered(this::hovered);
             exited(this::exited);
             clicked(this::clicked);
 
             canToggle = false;
             buildUI();
-            holded = false;
+            holded = hovering = false;
         }
 
         public void clicked() {
             holded = !holded;
-            setColor(holded ? Pal.accent : Color.white);
+            setColor(holded ? Pal.accent : Color.gray);
         }
 
         public void hovered() {
-            setColor(Pal.accent.cpy().a(0.7f));
+            if (!holded) setColor(Color.gray);
+            hovering = true;
         }
 
         public void exited() {
-            setColor(holded ? Pal.accent : Color.white);
+            setColor(holded ? Pal.accent : Color.darkGray);
+            hovering = false;
         }
 
         public abstract void buildUI();
@@ -314,17 +328,22 @@ public class targetingPriority extends bAttributeSetter {
         Table inner;
         baseSortf<?> item;
         dragLayout layout;
-        boolean config;
+        boolean config, hovering;
         Collapser configCol;
         priorityTable table;
+        Seq<Runnable> deletedListener;
+        Image deleteImage, reorderImage;
 
         @SuppressWarnings("unchecked")
         public priorityItem(dragLayout layout, baseSortf<?> item, priorityTable table) {
             this.item = item;
             this.layout = layout;
             this.table = table;
-            config = false;
-            setBackground(Tex.sliderBack);
+            config = hovering = false;
+            touchable = Touchable.enabled;
+            deletedListener = new Seq<>();
+            setBackground(Tex.whitePane);
+            setColor(Color.darkGray);
             table(t -> inner = t).pad(2f).growX();
             
             if (item.hasConfig()) {
@@ -340,43 +359,61 @@ public class targetingPriority extends bAttributeSetter {
                 }
             }
 
-            clicked(this::toggleConfig);
+            rebuild();
+
+            addListener(new ClickListener() {
+                public void clicked(InputEvent event, float x, float y) {
+                    if (configCol == null || deleteImage == null || reorderImage == null) return;
+                    if (event.targetActor.isDescendantOf(configCol) || event.targetActor.isDescendantOf(deleteImage) || event.targetActor.isDescendantOf(reorderImage)) return;
+                    toggleConfig();
+                }
+            });
+
             hovered(this::hovered);
             exited(this::exited);
-
-            rebuild();
         }
 
         public void toggleConfig() {
             if (configCol == null) return;
-            config = !config;
-            setColor(config ? Pal.accent : Color.white);
             configCol.toggle();
+            config = !configCol.isCollapsed();
+            setColor(config ? Pal.accent : Color.gray);
         }
 
         public void hovered() {
-            if (!config) setColor(Pal.accent.cpy().a(0.7f));
+            if (!config) setColor(Color.gray);
+            hovering = true;
         }
 
         public void exited() {
-            setColor(config ? Pal.accent : Color.white);
+            setColor(config ? Pal.accent : Color.darkGray);
+            hovering = false;
         }
 
         public void delete() {
             table.current.remove(item);
-            parent.change();
+            remove();
+            for (Runnable run : deletedListener) run.run();
+        }
+
+        public void deleted(Runnable run) {
+            if (!deletedListener.contains(run)) deletedListener.add(run);
         }
         
         public void rebuild() {
             inner.clear();
             
-            inner.add(item.localizedName).width(100f).wrap().growY().left();
-            inner.image(Icon.flipY).size(32f).scaling(Scaling.fit).right().get().addListener(new dragHandle(this, layout));
-            inner.image(Icon.trash).size(32f).scaling(Scaling.fit).padRight(4f).right().get().clicked(this::delete);
+            inner.add(item.localizedName).wrap().grow().padRight(4f).left();
+            deleteImage = inner.image(Icon.trash).size(32f).scaling(Scaling.fit).padRight(4f).right().get();
+            deleteImage.clicked(this::delete);
+            deleteImage.addListener(new HandCursorListener());
+            reorderImage = inner.image(Icon.flipY).size(32f).scaling(Scaling.fit).padRight(4f).right().get();
+            reorderImage.addListener(new dragHandle(this, layout));
+            reorderImage.addListener(new HandCursorListener());
 
             if (configCol != null) {
                 inner.row();
-                inner.add(configCol).colspan(2).center();
+                inner.add(configCol).colspan(3).center();
             }
         }
     }
@@ -402,7 +439,7 @@ public class targetingPriority extends bAttributeSetter {
             contentSelecter selecter = new contentSelecter();
             selecter.col(4);
             selecter.minSelectedCount(1);
-            for (Category cat : Category.all) selecter.add(Vars.ui.getIcon(cat.name()), cat.name());
+            for (Category cat : Category.all) selecter.add(Vars.ui.getIcon(cat.name()), cat.name(), "");
             selecter.setSelected(item.config.name());
             selecter.changed(() -> {
                 String name = selecter.getSelectedName();
@@ -418,9 +455,12 @@ public class targetingPriority extends bAttributeSetter {
         CheckBox check;
 
         public checkSettingTable(String name) {
-            add(name).width(width / Scl.scl() * 0.6f).left().wrap().growY();
+            Label label = add(name).left().wrap().grow().get();
             check = new CheckBox("");
             check.changed(this::change);
+            label.addListener(new HandCursorListener());
+            label.addListener(new forwardEventListener(check));
+            label.clicked(check::toggle);
             add(check).right();
         }
 
@@ -442,14 +482,13 @@ public class targetingPriority extends bAttributeSetter {
         boolean added;
 
         public presetsTable(Building[] selected) {
-            setBackground(Tex.sliderBack);
+            setBackground(Tex.pane);
             table(t -> inner = t).pad(2f).growX();
             items = new Seq<>();
             targets = selected;
             currentItem = null;
             added = false;
             applied = () -> {};
-            inner.changed(this::rebuild);
             rebuild();
         }
 
@@ -465,14 +504,18 @@ public class targetingPriority extends bAttributeSetter {
             for (int i=0; i<c; i++) {
                 presetItem item = new presetItem(i);
                 items.add(item);
-                inner.add(item).growY().padBottom(4f).row();
+                inner.add(item).growX().padBottom(4f).row();
                 item.clicked(() -> {
                     if (currentItem != item) {
                         if (currentItem != null) currentItem.setSelected(false);
                         currentItem = item;
                         item.setSelected(true);
+                    } else {
+                        currentItem.setSelected(false);
+                        currentItem = null;
                     }
                 });
+                item.deleted(this::rebuild);
                 if (i + 1 == c && added) {
                     item.fireClick();
                     item.rename = true;
@@ -482,10 +525,12 @@ public class targetingPriority extends bAttributeSetter {
             }
 
             inner.table(butt -> {
+                butt.right();
                 butt.button(Icon.save, () -> {
                     currentItem.save(targets[0]);
-                }).size(46f).scaling(Scaling.fit).right().disabled(e -> currentItem == null || targets.length > 0);
+                }).size(46f).scaling(Scaling.fit).padRight(4f).right().disabled(e -> currentItem == null || targets.length > 0);
                 butt.button(Icon.ok, () -> {
+                    if (currentItem == null) return;
                     for (Building building : targets) currentItem.apply(building);
                     applied.run();
                 }).size(46f).scaling(Scaling.fit).padRight(4f).right().disabled(e -> currentItem == null);
@@ -501,17 +546,21 @@ public class targetingPriority extends bAttributeSetter {
     public static class presetItem extends Table {
         Table inner;
         boolean rename;
-        boolean selected;
+        boolean selected, hovering;
         String name;
         int id;
         byte[] priorityData;
         boolean preferBuilding, preferExtinguish;
+        Seq<Runnable> deletedListener;
 
         public presetItem(int id) {
-            setBackground(Tex.sliderBack);
+            setBackground(Tex.whitePane);
+            setColor(Color.darkGray);
             table(t -> inner = t).pad(2f).growX();
             rename = false;
-            selected = false;
+            touchable = Touchable.enabled;
+            deletedListener = new Seq<>();
+            selected = hovering = false;
             this.id = id;
             name = buildTargetingPreset.getName(id);
             byte[] data = buildTargetingPreset.getData(id);
@@ -527,15 +576,17 @@ public class targetingPriority extends bAttributeSetter {
 
         public void setSelected(boolean v) {
             selected = v;
-            setColor(v ? Pal.accent : Color.white);
+            setColor(v ? Pal.accent : Color.gray);
         }
 
         public void hovered() {
-            if (!selected) setColor(Pal.accent.cpy().a(0.7f));
+            if (!selected) setColor(Color.gray);
+            hovering = true;
         }
 
         public void exited() {
-            setSelected(selected);
+            setColor(selected ? Pal.accent : Color.darkGray);
+            hovering = false;
         }
 
         public void apply(Building building) {
@@ -562,7 +613,11 @@ public class targetingPriority extends bAttributeSetter {
 
         public void delete() {
             buildTargetingPreset.remove(id);
-            parent.change();
+            for (Runnable run : deletedListener) run.run();
+        }
+
+        public void deleted(Runnable run) {
+            if (!deletedListener.contains(run)) deletedListener.add(run);
         }
 
         public void rename(String name) {
@@ -597,13 +652,17 @@ public class targetingPriority extends bAttributeSetter {
                 field.selectAll();
                 field.requestKeyboard();
             } else {
-                inner.add(name).left().width(100f).wrap().growY().padRight(8f).get().addListener(new forwardEventListener(this));
-                inner.image(Icon.trash).size(32f).scaling(Scaling.fit).padRight(8f).get().clicked(this::delete);
-                inner.image(Icon.pencil).size(32f).scaling(Scaling.fit).get().clicked(() -> {
+                inner.add(name).left().grow().wrap().padRight(8f).get();
+                Image deleteImage = inner.image(Icon.trash).size(32f).scaling(Scaling.fit).padRight(8f).get();
+                deleteImage.clicked(this::delete);
+                deleteImage.addListener(new HandCursorListener());
+                Image renameImage = inner.image(Icon.pencil).size(32f).scaling(Scaling.fit).get();
+                renameImage.clicked(() -> {
                     fireClick();
                     rename = true;
                     rebuild();
                 });
+                renameImage.addListener(new HandCursorListener());
             }
         }
     }

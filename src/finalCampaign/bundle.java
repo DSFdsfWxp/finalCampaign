@@ -96,6 +96,11 @@ public class bundle {
             return bundle.get(namespace + "." + name);
         }
 
+        public String get(String name, String def) {
+            if (name.startsWith("@")) name = name.substring(1);
+            return bundle.get(namespace + "." + name, def);
+        }
+
         public String format(String name, Object ...args) {
             if (name.startsWith("@")) name = name.substring(1);
             return bundle.format(namespace + "." + name, args);

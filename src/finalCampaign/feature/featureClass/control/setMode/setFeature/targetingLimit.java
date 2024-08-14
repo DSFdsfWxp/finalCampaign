@@ -32,7 +32,7 @@ public class targetingLimit extends bAttributeSetter {
 
     public void buildUI(Building[] selected, Table table) {
         IFcTurretBuild fcTurretBuild = (IFcTurretBuild) selected[0];
-        table.add(new limitTable(fcTurretBuild.fcFilter())).growX().pad(8f);
+        table.add(new limitTable(fcTurretBuild.fcFilter())).growX().pad(2f);
     }
 
     public static class limitTable extends Table {
@@ -72,6 +72,8 @@ public class targetingLimit extends bAttributeSetter {
             touchable = Touchable.enabled;
             col = new Collapser(new Table(), true);
 
+            backgroundDarkness(0.5f);
+
             inner.add(fcFilter.localizedName(name)).wrap().grow().left().get();
             check = new CheckBox("");
             inner.add(check).padLeft(4f).right().row();
@@ -91,8 +93,8 @@ public class targetingLimit extends bAttributeSetter {
             });
             addListener(new ClickListener() {
                 @Override
-                public void clicked(InputEvent event, float x, float y){
-                    if (event.targetActor.isDescendantOf(col) || event.targetActor.isAscendantOf(check)) return;
+                public void clicked(InputEvent event, float x, float y) {
+                    if (event.targetActor.isDescendantOf(col) || event.targetActor.isDescendantOf(check)) return;
                     limitItem.this.toggleConfig();
                 }
             });
@@ -101,15 +103,15 @@ public class targetingLimit extends bAttributeSetter {
         }
 
         public void toggleConfig() {
-            setColor(Pal.accent);
             if (col == null || filter == null) return;
             if (!filter.hasConfig()) return;
             col.toggle();
             config = !col.isCollapsed();
+            setColor(config ? Pal.accent : Color.gray);
         }
 
         public void hovered() {
-            setColor(Pal.accent);
+            if (!config) setColor(Color.gray);
         }
 
         public void exited() {

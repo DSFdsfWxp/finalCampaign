@@ -3,6 +3,7 @@ package finalCampaign.feature.featureClass.control.setMode.setFeature;
 import arc.*;
 import arc.func.*;
 import arc.graphics.*;
+import arc.scene.event.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
@@ -71,6 +72,7 @@ public class basicInfo extends iFeature {
                         col.toggle();
                         bar.outline(Pal.accent, col.isCollapsed() ? 0f : 2f);
                     });
+                    bar.addListener(new HandCursorListener());
                     bars.row();
                     bars.add(col).growX().center();
                 } else if (key.equals("heat") && Vars.state.rules.mode() == Gamemode.sandbox && (building instanceof HeatConsumer || (building.block instanceof Turret tb &&  tb.heatRequirement > 0f) || consHeat)) {
@@ -79,6 +81,7 @@ public class basicInfo extends iFeature {
 
                     bar.hovered(() -> bar.outline(Pal.accent, 2f));
                     bar.exited(() -> bar.outline(Pal.accent, 0));
+                    bar.addListener(new HandCursorListener());
 
                     bars.row();
                 }
