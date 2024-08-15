@@ -24,6 +24,7 @@ public class shareMixinLogger extends LoggerAdapterAbstract {
     }
 
     public void log(Level level, String text, Object ...args) {
+        if (!shareMixinService.mixinLog) return;
         Log.log(map.get(level), "[mixin] " + text.replace("{}", "@"), args);
     }
     public void log(Level level, String message, Throwable t) {

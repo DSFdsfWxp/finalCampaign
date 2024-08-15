@@ -14,7 +14,7 @@ public class desktopLauncher extends shareLauncher {
         args = arg;
         instance = new desktopLauncher();
 
-        for (String a : arg) if (a.equals("-fcLog")) shareMixinService.log = true;
+        shareMixinService.parseArg(arg);
 
         shareFiles.ExternalStoragePath = OS.userHome + File.separator;
         shareFiles.LocalStoragePath = new File("").getAbsolutePath() + File.separator;

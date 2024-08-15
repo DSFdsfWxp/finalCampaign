@@ -89,11 +89,13 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
     @Override
     public void created() {
         super.created();
-        
-        if (fcTurret.fcSortfData() != null) {
-            fcCall.setBuildingSortf(this, fcTurret.fcSortfData());
+
+        if (Vars.net.client() || !Vars.net.active()) {
+            if (fcTurret.fcSortfData() != null) {
+                fcCall.setBuildingSortf(this, fcTurret.fcSortfData());
+            }
+            fcCall.setTurretPreferBuildingTarget(this, fcTurret.fcPreferBuildingTarget());
         }
-        fcCall.setTurretPreferBuildingTarget(this, fcTurret.fcPreferBuildingTarget());
     }
 
     @Inject(method = "targetPosition", at = @At("HEAD"), remap = false, cancellable = true)

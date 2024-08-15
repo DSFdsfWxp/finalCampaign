@@ -21,8 +21,16 @@ public class shareMixinService extends MixinServiceAbstract implements ITransfor
     public static shareFi mod;
     public static shareFi thisJar;
     public static boolean log = false;
+    public static boolean mixinLog = false;
     
     private ObjectMap<String, ILogger> loggerMap;
+
+    public static void parseArg(String[] arg) {
+        for (String a : arg) {
+            if (a.equals("-fcLog")) log = true;
+            if (a.equals("-fcMixinLog")) mixinLog = true;
+        }
+    }
     
     public shareMixinService() {
         provider = new shareProvider();
