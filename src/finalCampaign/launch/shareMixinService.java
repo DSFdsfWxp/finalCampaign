@@ -20,6 +20,7 @@ public class shareMixinService extends MixinServiceAbstract implements ITransfor
 
     public static shareFi mod;
     public static shareFi thisJar;
+    public static boolean log = false;
     
     private ObjectMap<String, ILogger> loggerMap;
     

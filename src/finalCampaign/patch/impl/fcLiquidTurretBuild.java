@@ -5,6 +5,7 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
 import arc.util.io.*;
 import finalCampaign.feature.featureClass.mapVersion.*;
+import finalCampaign.net.*;
 import finalCampaign.patch.*;
 import mindustry.*;
 import mindustry.core.*;
@@ -31,9 +32,13 @@ public abstract class fcLiquidTurretBuild extends Building implements IFcLiquidT
 
         Building res = super.create(block, team);
 
-        fcPreferExtinguish = fcTurret.fcPreferExtinguish();
-
         return res;
+    }
+
+    @Override
+    public void created() {
+        super.created();
+        fcCall.setTurretPreferExtinguish(this, fcTurret.fcPreferExtinguish());
     }
 
     public boolean fcPreferExtinguish() {

@@ -22,6 +22,10 @@ public class fRoulette {
         public boolean fourSlot = false;
     }
 
+    public static boolean supported() {
+        return !Vars.headless;
+    }
+
     public static void init() {
         on = false;
         enabled = false;

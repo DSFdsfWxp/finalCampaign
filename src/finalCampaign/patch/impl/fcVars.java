@@ -3,27 +3,47 @@ package finalCampaign.patch.impl;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
+import arc.*;
 import arc.files.*;
+import arc.util.*;
+import finalCampaign.launch.*;
+import finalCampaign.util.*;
 import mindustry.*;
+import mindustry.core.*;
+import mindustry.io.*;
 
 @Mixin(Vars.class)
 public abstract class fcVars {
-    @Inject(method = "init", at = @At("RETURN"), remap = false)
-    private static void fcInit(CallbackInfo ci) {
-        Fi dataDir = Vars.dataDirectory.child("finalCampaign");
+    private static boolean steam;
+    private static String versionModifier;
 
-        Vars.saveDirectory = dataDir.child("saves/");
-        Vars.customMapDirectory = dataDir.child("maps/");
-        Vars.mapPreviewDirectory = dataDir.child("previews/");
-        Vars.tmpDirectory = dataDir.child("tmp/");
-        Vars.schematicDirectory = dataDir.child("schematics/");
+    @Inject(method = "loadSettings", at = @At("HEAD"), remap = false)
+    private static void fcLoadSettingsHead(CallbackInfo ci) {
+        if (OS.isAndroid) return;
+        Core.settings.setJson(JsonIO.json);
+        Core.settings.setAppName(Vars.appName);
 
-        Vars.saveDirectory.mkdirs();
-        Vars.customMapDirectory.mkdirs();
-        Vars.mapPreviewDirectory.mkdirs();
-        Vars.tmpDirectory.mkdirs();
-        Vars.schematicDirectory.mkdirs();
+        Fi dataDir = Core.settings.getDataDirectory().child("finalCampaign");
+        dataDir.mkdirs();
 
-        Vars.maps.reload();
+        patchedFi patchedModsFi = new patchedFi(dataDir.child("mods"));
+        patchedModsFi.mkdirs();
+        patchedFi patchedDataFi = new patchedFi(dataDir);
+        patchedDataFi.addPatchLst("mods", patchedModsFi);
+        patchedModsFi.addPatchLst(shareMixinService.mod.name(), new Fi(shareMixinService.mod.file()));
+
+        Core.settings.setDataDirectory(patchedDataFi);
+
+        steam = Vars.steam;
+        versionModifier = Version.modifier;
+        Vars.steam = false;
+        Version.modifier = "";
+    }
+
+    @Inject(method = "loadSettings", at = @At("RETURN"), remap = false)
+    private static void fcLoadSettingsReturn(CallbackInfo ci) {
+        if (OS.isAndroid) return;
+        Vars.steam = steam;
+        Version.modifier = versionModifier;
     }
 }

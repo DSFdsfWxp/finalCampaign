@@ -21,6 +21,10 @@ public class fCrosshair {
         public Color color = Color.white.cpy();
     }
 
+    public static boolean supported() {
+        return !Vars.headless;
+    }
+
     public static void init() {
         fragment = new crosshairFragment(Vars.ui.hudGroup);
         enabled = false;

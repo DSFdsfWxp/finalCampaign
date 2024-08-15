@@ -13,15 +13,17 @@ public class shareLogger {
 
         Log.level = LogLevel.debug;
 
-        try {
-            shareFi logFi = shareFiles.instance.dataDirectory().child("fc_mod_launcher_log.txt");
-            if (!logFi.exists()) logFi.writeString("init");
-            logFileStream = new PrintStream(logFi.write());
-        } catch(Throwable ignore) {}
+        if (shareMixinService.log) {
+            try {
+                shareFi logFi = shareFiles.instance.dataDirectory().child("fc_mod_launcher_log.txt");
+                if (!logFi.exists()) logFi.writeString("init");
+                logFileStream = new PrintStream(logFi.write());
+            } catch(Throwable ignore) {}
+        }
 
         Log.logger = (level, text) -> {
             System.out.println(Log.format(stags[level.ordinal()] + "&fr " + text));
-            logFileStream.println(Log.format(stagsNormal[level.ordinal()] + " " + text));
+            if (logFileStream != null) logFileStream.println(Log.format(stagsNormal[level.ordinal()] + " " + text));
         };
     }
 }

@@ -3,6 +3,10 @@ package finalCampaign.feature.featureClass.buildTargetingLimit;
 import finalCampaign.feature.featureClass.buildTargetingLimit.filters.*;
 
 public class fBuildTargetingLimit {
+    public static boolean supported() {
+        return true;
+    }
+    
     public static void init() {}
 
     public static void load() {

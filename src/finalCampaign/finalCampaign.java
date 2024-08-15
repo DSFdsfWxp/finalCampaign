@@ -12,8 +12,6 @@ import mindustry.mod.Mods.*;
 import mindustry.*;
 import mindustry.game.EventType.*;
 
-import static mindustry.Vars.*;
-
 public class finalCampaign extends Mod{
 
     public static LoadedMod thisMod;
@@ -23,33 +21,40 @@ public class finalCampaign extends Mod{
     public finalCampaign(){
         Log.info(" # finalCampaign [prototypePhase]");
         Log.info(" # " + version.toVersionString());
+    }
 
-        //listen for game load event
-        Events.on(ClientLoadEvent.class, e -> {
+    @Override
+    public void init() {
+        if (!Vars.headless) {
+            if (injector.injected() && injector.inInjectedGame()) {
+                modStartup();
+            } else {
+                Events.on(ClientLoadEvent.class, e -> {
+                    modStartup();
+                });
+            }
+        } else {
             modStartup();
-        });
-        Events.on(ServerLoadEvent.class, e -> {
-            modStartup();
-        });
+        }
     }
 
     private void modStartup() {
         if (injector.injected() && !injector.inInjectedGame()) {
-            thisMod = mods.getMod(finalCampaign.class);
+            thisMod = Vars.mods.getMod(finalCampaign.class);
             thisMod.meta.hidden = true;
             return;
         }
 
-        thisMod = mods.getMod(finalCampaign.class);
+        thisMod = Vars.mods.getMod(finalCampaign.class);
         thisModFi = new ZipFi(thisMod.file);
 
-        dataDir = dataDirectory.child("finalCampaign");
+        dataDir = Vars.dataDirectory.child("finalCampaign");
         if (!dataDir.exists()) dataDir.mkdirs();
 
         bundle.init();
         featureLoader.init();
         version.init();
-        atlas.init();
+        if (!Vars.headless) atlas.init();
 
         bundle.load();
 
@@ -80,12 +85,13 @@ public class finalCampaign extends Mod{
         }
 
         fcCall.register();
+        fcNet.register();
 
         features.add();
         featureLoader.load();
 
-        shaders.load();
-        atlas.load();
+        if (!Vars.headless) shaders.load();
+        if (!Vars.headless) atlas.load();
     }
 
     @Override

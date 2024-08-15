@@ -18,6 +18,10 @@ public class fFreeVision {
         public boolean autoTargeting = true;
     }
 
+    public static boolean supported() {
+        return !Vars.headless;
+    }
+
     public static void init() throws Exception {
         on = false;
         enabled = false;

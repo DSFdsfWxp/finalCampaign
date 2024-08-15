@@ -275,6 +275,11 @@ public class targetingPriority extends bAttributeSetter {
                     if (currentSideSortfs.peek().isValid()) {
                         added.run();
                         item.remove();
+                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                        Writes writes = new Writes(new DataOutputStream(stream));
+                        sortf.write(writes);
+                        writes.close();
+                        fcCall.setBuildingSortf(sortf.build, stream.toByteArray());
                     } else {
                         currentSideSortfs.pop();
                     }

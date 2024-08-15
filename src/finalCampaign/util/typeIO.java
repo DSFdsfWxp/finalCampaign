@@ -1,14 +1,11 @@
 package finalCampaign.util;
 
-import java.lang.reflect.*;
 import arc.util.io.*;
 import mindustry.gen.*;
 import mindustry.io.*;
 import mindustry.type.*;
 
 public class typeIO {
-    private static Constructor<Player> playerCon;
-
     public static Item[] readItems(Reads reads) {
         int len = reads.i();
         Item[] out = new Item[len];
@@ -22,17 +19,11 @@ public class typeIO {
     }
 
     public static Player readPlayer(Reads reads) {
-        if (playerCon == null) {
-            playerCon = reflect.getDeclaredConstructor(Player.class);
-            reflect.setAccessible(playerCon, true);
-        }
-        Player player = reflect.newInstance(playerCon);
-        player.read(reads);
-        return player;
+        return Groups.player.getByID(reads.i());
     }
 
     public static void writePlayer(Writes writes, Player player) {
-        player.write(writes);
+        writes.i(player.id);
     }
 
     public static Teamc readTeamc(Reads reads) {

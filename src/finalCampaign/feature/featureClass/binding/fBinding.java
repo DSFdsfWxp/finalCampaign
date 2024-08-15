@@ -14,6 +14,10 @@ import mindustry.ui.dialogs.*;
 public class fBinding {
 
     public static KeyBind[] allKeyBinds;
+
+    public static boolean supported() {
+        return !Vars.headless;
+    }
     
     public static void init() {
         Seq<KeyBind> tmp = new Seq<>(Binding.values());

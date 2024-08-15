@@ -5,6 +5,10 @@ import mindustry.*;
 import mindustry.gen.*;
 
 public class fSpritePacker {
+    public static boolean supported() {
+        return !Vars.headless;
+    }
+
     public static void init() {
         if (!version.debug) return;
     }

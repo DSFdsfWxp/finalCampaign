@@ -16,6 +16,10 @@ public class fTuner {
     private static ObjectMap<String, Object> configMap;
     private static tunerPane pane;
 
+    public static boolean supported() {
+        return !Vars.headless;
+    }
+
     public static void init() {
         map = new ObjectMap<>();
         configMap = new ObjectMap<>();

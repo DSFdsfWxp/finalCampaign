@@ -1,6 +1,5 @@
 package finalCampaign.patch.impl;
 
-import java.io.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
@@ -11,6 +10,7 @@ import arc.util.io.*;
 import finalCampaign.feature.featureClass.buildTargeting.*;
 import finalCampaign.feature.featureClass.buildTargetingLimit.*;
 import finalCampaign.feature.featureClass.mapVersion.*;
+import finalCampaign.net.*;
 import finalCampaign.patch.*;
 import mindustry.*;
 import mindustry.entities.*;
@@ -78,20 +78,22 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
         fcTurretBlock = (Turret) block;
         fcTurret = (IFcTurret) block;
 
-        Building res =  super.create(block, team);
+        Building res = super.create(block, team);
 
         fcSortf = new fcSortf((TurretBuild)(Object) this);
         fcFilter = new fcFilter((TurretBuild)(Object) this);
 
-        if (fcTurret.fcSortfData() != null) {
-            Reads reads = new Reads(new DataInputStream(new ByteArrayInputStream(fcTurret.fcSortfData())));
-            fcSortf.read(reads);
-            if (!fcSortf.isValid()) fcSortf = new fcSortf((TurretBuild)(Object) this);
-            reads.close();
-        }
-        fcPreferBuildingTarget = fcTurret.fcPreferBuildingTarget();
-
         return res;
+    }
+
+    @Override
+    public void created() {
+        super.created();
+        
+        if (fcTurret.fcSortfData() != null) {
+            fcCall.setBuildingSortf(this, fcTurret.fcSortfData());
+        }
+        fcCall.setTurretPreferBuildingTarget(this, fcTurret.fcPreferBuildingTarget());
     }
 
     @Inject(method = "targetPosition", at = @At("HEAD"), remap = false, cancellable = true)

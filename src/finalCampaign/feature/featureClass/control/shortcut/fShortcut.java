@@ -19,6 +19,10 @@ public class fShortcut {
         public uiPosition position;
     }
 
+    public static boolean supported() {
+        return !Vars.headless;
+    }
+
     public static void init() {
         config = new config();
         enabled = false;

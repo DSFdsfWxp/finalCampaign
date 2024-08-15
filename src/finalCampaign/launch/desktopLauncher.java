@@ -14,6 +14,8 @@ public class desktopLauncher extends shareLauncher {
         args = arg;
         instance = new desktopLauncher();
 
+        for (String a : arg) if (a.equals("-fcLog")) shareMixinService.log = true;
+
         shareFiles.ExternalStoragePath = OS.userHome + File.separator;
         shareFiles.LocalStoragePath = new File("").getAbsolutePath() + File.separator;
         
@@ -23,7 +25,7 @@ public class desktopLauncher extends shareLauncher {
             }
 
             public shareFi dataDirectory() {
-                return dataDir;
+                return dataDir.child("finalCampaign");
             }
         };
 
@@ -58,6 +60,11 @@ public class desktopLauncher extends shareLauncher {
         shareMixinService.mod = dataDir.child("mods/").child(config.modName);
 
         checkFiExists(shareMixinService.mod, "FinalCampaign Mod Jar File");
+
+        shareFi modsFi = dataDir.child("finalCampaign").child("mods/");
+        modsFi.mkdirs();
+        shareFi mod = modsFi.child(config.modName);
+        if (!mod.exists()) mod.writeString("NOTICE: This file is a placeholder for finalCampaign mod. The one in ../../mods/ will be loaded. ");
 
         shareCrashSender.setDefaultUncaughtExceptionHandler(new desktopCrashSender());
 

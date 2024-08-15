@@ -61,10 +61,13 @@ public class fcNet {
     private static fcPacket read(String txt) {
         char[] src = new char[txt.length()];
         txt.getChars(0, src.length, src, 0);
-        CharBuffer cb = CharBuffer.wrap(src);
-        ByteBuffer b = Buffers.newByteBuffer(src.length * 2);
-        Buffers.copy(cb, b, src.length);
-        byte[] data = b.array();
+
+        byte[] data = new byte[src.length * 2];
+        for (int i=0; i<src.length; i++) {
+            char c = src[i];
+            data[i * 2] = (byte) (c >>> 8);
+            data[i * 2 + 1] = (byte) (c & 0xff);
+        }
 
         Reads r = new Reads(new DataInputStream(new ByteArrayInputStream(data)));
         byte id = r.b();
@@ -84,6 +87,7 @@ public class fcNet {
 
     private static void clientReceive(String txt) {
         fcPacket packet = read(txt);
+        Log.debug("Client recieve: " + packet.getClass().getName() + ", " + txt.length());
         for (Annotation annotation : packet.getClass().getAnnotations())
             if (annotation instanceof CallFrom cf) if (cf.value() == PacketSource.client) return;
         
@@ -96,6 +100,7 @@ public class fcNet {
 
     private static void serverReceive(Player player, String txt) {
         fcPacket packet = read(txt);
+        Log.debug("Server recieve: " + packet.getClass().getName() + ", " + txt.length());
         for (Annotation annotation : packet.getClass().getAnnotations())
             if (annotation instanceof CallFrom cf) if (cf.value() == PacketSource.server) return;
         
@@ -107,8 +112,8 @@ public class fcNet {
     }
 
     public static void register() {
-        Vars.netClient.addPacketHandler(type, fcNet::clientReceive);
-        Vars.netServer.addPacketHandler(type, fcNet::serverReceive);
+        if (Vars.netClient != null) Vars.netClient.addPacketHandler(type, fcNet::clientReceive);
+        if (Vars.netServer != null) Vars.netServer.addPacketHandler(type, fcNet::serverReceive);
     }
 
     public static enum PacketSource {

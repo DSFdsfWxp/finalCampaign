@@ -2,7 +2,7 @@ package finalCampaign;
 
 import arc.struct.*;
 import arc.func.*;
-import arc.util.Log;
+import arc.util.*;
 import finalCampaign.feature.*;
 
 public class featureLoader {
@@ -24,7 +24,8 @@ public class featureLoader {
     public static void add(Class<?> featureClass) {
         if (!util.isValidFeature(featureClass)) 
             throw new RuntimeException("Not a valid feature: " + featureClass.getName());
-        featureLst.add(featureClass);
+        boolean supported = Reflect.invoke(featureClass, "supported");
+        if (supported) featureLst.add(featureClass);
     }
 
     private static void updateProgress() {

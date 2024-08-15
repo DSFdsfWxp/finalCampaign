@@ -4,6 +4,10 @@ import finalCampaign.feature.featureClass.buildTargeting.sortfs.*;
 
 public class fBuildTargeting {
 
+    public static boolean supported() {
+        return true;
+    }
+
     public static void init() {
         buildTargetingPreset.load();
     }

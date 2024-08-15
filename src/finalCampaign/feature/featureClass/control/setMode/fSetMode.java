@@ -42,6 +42,10 @@ public class fSetMode {
     private static int selectedNumDelta;
     private static Seq<Building> tmp;
 
+    public static boolean supported() {
+        return !Vars.headless;
+    }
+
     public static void init() {
         enabled = false;
         isOn = false;

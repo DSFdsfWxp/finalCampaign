@@ -1,12 +1,15 @@
 package finalCampaign.feature.featureClass.wiki;
 
 import arc.files.*;
-import arc.scene.ui.Button;
-import arc.scene.ui.Tooltip;
+import arc.scene.ui.*;
 import finalCampaign.*;
-import mindustry.gen.Tex;
+import mindustry.*;
+import mindustry.gen.*;
 
 public class fWiki {
+    public static boolean supported() {
+        return !Vars.headless;
+    }
 
     public static void init() {}
     public static void load() {}

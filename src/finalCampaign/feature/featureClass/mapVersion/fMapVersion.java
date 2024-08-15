@@ -8,6 +8,10 @@ public class fMapVersion {
     public static final int version = 1;
     protected static int currentVersion = 0;
 
+    public static boolean supported() {
+        return true;
+    }
+
     public static void init() {}
 
     public static void load() {

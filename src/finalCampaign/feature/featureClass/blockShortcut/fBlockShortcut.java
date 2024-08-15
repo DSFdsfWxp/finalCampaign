@@ -28,6 +28,10 @@ public class fBlockShortcut {
         public boolean disableGameBlockSelect = false;
     }
 
+    public static boolean supported() {
+        return !Vars.headless;
+    }
+
     public static void init() {
         blockLst = new Block[10];
         keyLst = new Seq<>();

@@ -352,8 +352,12 @@ public class fcAction {
             return false;
         }
 
-        IFcTurret fBlock = (IFcTurret) building.block;
-        fBlock.fcSortf(data);
+        if (!Vars.net.client() || !Vars.net.active()) {
+            if (player.id == Vars.player.id) {
+                IFcTurret fBlock = (IFcTurret) building.block;
+                fBlock.fcSortf(data);
+            }
+        }
 
         reads.close();
         return true;
@@ -367,9 +371,14 @@ public class fcAction {
         if (!(building instanceof IFcTurretBuild)) return false;
 
         IFcTurretBuild f = (IFcTurretBuild) building;
-        IFcTurret fBlock = (IFcTurret) building.block;
         f.fcPreferBuildingTarget(v);
-        fBlock.fcPreferBuildingTarget(v);
+        
+        if (!Vars.net.client() || !Vars.net.active()) {
+            if (player.id == Vars.player.id) {
+                IFcTurret fBlock = (IFcTurret) building.block;
+                fBlock.fcPreferBuildingTarget(v);
+            }
+        }
         
         return true;
     }
@@ -383,6 +392,13 @@ public class fcAction {
 
         IFcLiquidTurretBuild f = (IFcLiquidTurretBuild) building;
         f.fcPreferExtinguish(v);
+
+        if (!Vars.net.client() || !Vars.net.active()) {
+            if (player.id == Vars.player.id) {
+                IFcLiquidTurret fBlock = (IFcLiquidTurret) building.block;
+                fBlock.fcPreferExtinguish(v);
+            }
+        }
 
         return true;
     }

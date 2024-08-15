@@ -1,5 +1,7 @@
 package finalCampaign;
 
+import java.util.Locale;
+
 import arc.*;
 import arc.util.*;
 import arc.util.io.*;
@@ -23,13 +25,15 @@ public class bundle {
     }
 
     public static void load() {
-        String str = Core.bundle.getLocale().toString();
+        Locale locale = Locale.getDefault();
+        String str = locale.getLanguage() + "_" + locale.getCountry();
         String fileName = str.isEmpty() ? "default" : str;
 
         Fi bundleFile = bundleCacheDir.child(fileName + ".properties");
 
         if (!bundleFile.exists()) {
             Fi rawBundleFile = finalCampaign.thisModFi.child("fcBundle").child(bundleFile.name());
+            if (!rawBundleFile.exists()) rawBundleFile = rawBundleFile.parent().child("en_US.properties");
             String[] bundleContent = rawBundleFile.readString().split("\n");
             Seq<String> processedBundleContent = new Seq<>();
 

@@ -1,7 +1,7 @@
 package finalCampaign.feature.featureClass.buildTargeting;
 
 import arc.struct.*;
-import finalCampaign.setting;
+import finalCampaign.*;
 
 public class buildTargetingPreset {
     private static Seq<String> nameLst = new Seq<>();
