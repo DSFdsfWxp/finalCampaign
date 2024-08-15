@@ -3,12 +3,10 @@ package finalCampaign;
 import arc.*;
 import arc.util.*;
 import arc.files.*;
-import finalCampaign.dialog.*;
 import finalCampaign.feature.*;
 import finalCampaign.graphics.*;
 import finalCampaign.launch.*;
 import finalCampaign.net.*;
-import finalCampaign.util.*;
 import mindustry.mod.*;
 import mindustry.mod.Mods.*;
 import mindustry.*;
@@ -21,99 +19,73 @@ public class finalCampaign extends Mod{
     public static LoadedMod thisMod;
     public static ZipFi thisModFi;
     public static Fi dataDir;
-    private static load loadDialog;
 
     public finalCampaign(){
         Log.info(" # finalCampaign [prototypePhase]");
         Log.info(" # " + version.toVersionString());
 
         //listen for game load event
-        Events.on(ClientLoadEvent.class, event -> {
-            if (injector.injected() && !injector.inInjectedGame()) {
-                thisMod = mods.getMod(finalCampaign.class);
-                thisMod.meta.hidden = true;
-                return;
-            }
+        Events.on(ClientLoadEvent.class, e -> {
+            modStartup();
+        });
+        Events.on(ServerLoadEvent.class, e -> {
+            modStartup();
+        });
+    }
 
-            loadDialog = new load();
-            loadDialog.show();
-
-            loadDialog.setTotalStep(7);
-            loadDialog.setStepName("Waiting for other mods to be loaded");
-
+    private void modStartup() {
+        if (injector.injected() && !injector.inInjectedGame()) {
             thisMod = mods.getMod(finalCampaign.class);
-            thisModFi = new ZipFi(thisMod.file);
+            thisMod.meta.hidden = true;
+            return;
+        }
 
-            dataDir = dataDirectory.child("finalCampaign");
-            if (!dataDir.exists()) dataDir.mkdirs();
+        thisMod = mods.getMod(finalCampaign.class);
+        thisModFi = new ZipFi(thisMod.file);
 
-            asyncTask loadTask = new asyncTask(() -> {
-                int targetfps = Core.settings.getInt("fpscap", 120);
-                targetfps = Math.min(targetfps, 25);
+        dataDir = dataDirectory.child("finalCampaign");
+        if (!dataDir.exists()) dataDir.mkdirs();
 
-                if (Core.graphics.getFramesPerSecond() - targetfps <= -5 || Core.settings.getDataDirectory().child("launchid.dat").exists()) {
-                    asyncTask.reschedule(60f);
-                    return;
+        bundle.init();
+        featureLoader.init();
+        version.init();
+        atlas.init();
+
+        bundle.load();
+
+        if (!injector.inInjectedGame()) {
+            if (Vars.headless) {
+                Log.info("[finalCampaign] " + bundle.get("load.firstTimeInjection"));
+                try {
+                    injector.inject();
+                } catch(Exception e) {
+                    Log.err("[finalCampaign] " + bundle.get("error") + ": " + bundle.get("injector.fail"));
+                    safetyExit();
                 }
-
-                asyncTask.subTask(() -> loadDialog.nextStep("Initializing"));
-                asyncTask.defaultDelay(5f);
-                asyncTask.subTask(bundle::init);
-                asyncTask.subTask(featureLoader::init);
-                asyncTask.subTask(version::init);
-                asyncTask.subTask(atlas::init);
-                asyncTask.subTask(fcCall::register);
-
-                asyncTask.defaultDelay(10f);
-                asyncTask.subTask(0f, () -> loadDialog.nextStep("Loading bundle"));
-                asyncTask.subTask(bundle::load);
-
-                asyncTask.subTask(0f, () -> loadDialog.nextStep(bundle.get("load.checkingVersion")));
-                if (!injector.injected()) {
-                    if (injector.inInjectedGame()) {
-                        asyncTask.subTask(() -> {
-                            loadDialog.forceStop();
-                            Log.err(new RuntimeException("A restart to original game jar is needed to update this mod."));
-                            Vars.ui.showOkText(bundle.get("info"), bundle.get("injector.updateHint"), Core.app::exit);
-                        });
-                    } else {
-                        asyncTask.subTask(0f, () -> loadDialog.setStepName(bundle.get("load.firstTimeInjection")));
-                        asyncTask.subTask(() -> {
-                            try {
-                                injector.inject();
-                            } catch(Exception e) {
-                                loadDialog.forceStop();
-                                Log.err(e);
-                                Vars.ui.showOkText(bundle.get("error"), bundle.get("injector.fail"), Core.app::exit);
-                                Vars.ui.showException(e);
-                            }
-                        });
-                    }
-
-                    return;
-                }
-
-                asyncTask.subTask(0f, () -> loadDialog.nextStep(bundle.get("load.loadingFeature")));
-                asyncTask.subTask(0f, () -> {
-                    features.add();
-                    featureLoader.setProgressCons((p) -> {
-                        loadDialog.setStepProgress(p);
+            } else {
+                Core.app.post(() -> {
+                    Vars.ui.loadAnd(bundle.get("load.firstTimeInjection"), () -> {
+                        try {
+                            injector.inject();
+                        } catch(Exception e) {
+                            Log.err(e);
+                            Vars.ui.showOkText(bundle.get("error"), bundle.get("injector.fail"), finalCampaign::safetyExit);
+                            Vars.ui.showException(e);
+                        }
                     });
                 });
-                asyncTask.subTask(featureLoader::load);
+            }
 
-                asyncTask.subTask(0f, () -> loadDialog.nextStep(bundle.get("load.compilingShader")));
-                asyncTask.subTask(shaders::load);
+            return;
+        }
 
-                asyncTask.subTask(0f, () -> loadDialog.nextStep(bundle.get("load.loadingSprite")));
-                asyncTask.subTask(atlas::load);
+        fcCall.register();
 
-                asyncTask.subTask(0f, () -> loadDialog.nextStep(bundle.get("load.finish")));
-            });
+        features.add();
+        featureLoader.load();
 
-            loadTask.schedule();
-
-        });
+        shaders.load();
+        atlas.load();
     }
 
     @Override
@@ -121,8 +93,8 @@ public class finalCampaign extends Mod{
         //Log.info("Loading some example content.");
     }
 
+    // stop threads, clean up here
     public static void safetyExit() {
-        loadDialog.forceStop();
         Core.app.exit();
     }
 

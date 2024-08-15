@@ -2,15 +2,17 @@ package finalCampaign.launch;
 
 import arc.*;
 import arc.backend.sdl.*;
+import arc.files.*;
 import arc.util.*;
 import mindustry.desktop.*;
+import mindustry.server.*;
 
 public class sideDesktopMain {
-    public static void main(String appName, String[] args) throws Exception {
+    public static void main(String dataDir, boolean isServer, String[] args) throws Exception {
         if (Core.settings == null) Core.settings = new Settings();
         if (Core.files == null) Core.files = new SdlFiles();
 
-        Core.settings.setAppName(appName);
+        Core.settings.setDataDirectory(new Fi(dataDir));
         Core.settings.loadValues();
 
         String settingKey = "mod-final-campaign-enabled";
@@ -20,6 +22,18 @@ public class sideDesktopMain {
             Core.settings.saveValues();
         }
 
+        if (isServer) {
+            serverMain(args);
+        } else {
+            desktopMain(args);
+        }
+    }
+
+    private static void desktopMain(String[] args) {
         DesktopLauncher.main(args);
+    }
+
+    private static void serverMain(String[] args) {
+        ServerLauncher.main(args);
     }
 }

@@ -6,7 +6,7 @@ import arc.util.*;
 public class desktopLauncher extends shareLauncher {
     private static String[] args;
     private static shareLauncher instance;
-    private static String appName;
+    private static boolean isServer;
     private static shareFi dataDir;
     private static shareFi mindustryCore;
 
@@ -29,28 +29,48 @@ public class desktopLauncher extends shareLauncher {
 
         shareMixinService.thisJar = new shareFi(desktopLauncher.class.getProtectionDomain().getCodeSource().getLocation().getFile());
         shareFi path = shareMixinService.thisJar.parent();
-        shareFi configFi = path.child("fcConfig.bin");
+        shareFi configFi = path.child("fcConfig.properties");
+
+        checkFiExists(configFi, "FinalCampaign Mod Launcher Config File");
 
         bothConfigUtil.config config = null;
         try {
-            config = bothConfigUtil.read(configFi.read());
+            config = bothConfigUtil.read(configFi.reader());
         } catch (Exception e) {
             Log.err(e);
-            configFi.delete();
-            Log.info("  Maybe a update is needed.");
+            Log.err("[finalCampaign] Make sure the mod launcher config file is correct.");
+            System.exit(1);
+        }
+
+        if (!config.version.equals(bothLauncherVersion.toDesktopVersionString())) {
+            Log.err("[finalCampaign] An update is needed. Run patch again.");
+            System.exit(1);
         }
 
         mindustryCore = path.child(config.gameJarName);
 
         dataDir = new shareFi(config.dataDir);
-        appName = config.appName;
+        isServer = config.isServer;
+
+        checkFiExists(mindustryCore, "Mindustry Game Jar File");
+        checkFiExists(dataDir, "Game's Data Directory");
 
         shareMixinService.mod = dataDir.child("mods/").child(config.modName);
+
+        checkFiExists(shareMixinService.mod, "FinalCampaign Mod Jar File");
 
         shareCrashSender.setDefaultUncaughtExceptionHandler(new desktopCrashSender());
 
         instance.init();
         instance.startup();
+    }
+
+    private static void checkFiExists(shareFi fi, String name) {
+        if (!fi.exists()) {
+            Log.err("[finalCampaign] " + name + " is NOT existed: " + fi.absolutePath());
+            Log.err("[finalCampaign] Move it back or run patch again or correct the mod launcher config file.");
+            System.exit(1);
+        }
     }
 
     protected void handleCrash(Throwable error, String desc) {
@@ -69,6 +89,6 @@ public class desktopLauncher extends shareLauncher {
 
     protected void launch() throws Exception {
         Class<?> main = shareMixinService.getClassLoader().loadClass("finalCampaign.launch.sideDesktopMain");
-        main.getDeclaredMethod("main", String.class, String[].class).invoke(null, appName, (Object) args);
+        main.getDeclaredMethod("main", String.class, boolean.class, String[].class).invoke(null, dataDir.absolutePath(), isServer, (Object) args);
     }
 }

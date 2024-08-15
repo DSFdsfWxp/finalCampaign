@@ -5,7 +5,7 @@ import arc.*;
 import arc.struct.*;
 import arc.files.*;
 import arc.graphics.*;
-import arc.graphics.Texture.TextureFilter;
+import arc.graphics.Texture.*;
 import arc.graphics.g2d.*;
 import arc.graphics.g2d.TextureAtlas.*;
 import arc.scene.style.*;
@@ -94,26 +94,22 @@ public class atlas {
         }
 
         Fi spriteDir = version.debug && cacheInfo != null ? new Fi(cacheInfo.outputDir) : finalCampaign.thisModFi.child("fcSprite");
-        for (Fi dir : spriteDir.list()) asyncTask.subTask(() -> load(dir));
+        for (Fi dir : spriteDir.list()) load(dir);
 
         for (Seq<Content> arr : Vars.content.getContentMap()) {
-            asyncTask.subTask(() -> {
-                arr.each(c -> {
-                    if (c instanceof UnlockableContent u) {
-                        u.load();
-                        u.loadIcon();
-                    }
-                });
+            arr.each(c -> {
+                if (c instanceof UnlockableContent u) {
+                    u.load();
+                    u.loadIcon();
+                }
             });
         }
 
-        asyncTask.subTask(() -> {
-            if (cacheInfo == null) return;
-            if (!cacheInfo.done && version.debug) {
-                spritePacker.packGenerated(cacheInfo);
-                Vars.ui.showOkText("Info", "Sprite pack done. See your output directory.", () -> {});
-            }
-        });
+        if (cacheInfo == null) return;
+        if (!cacheInfo.done && version.debug) {
+            spritePacker.packGenerated(cacheInfo);
+            Vars.ui.showOkText("Info", "Sprite pack done. See your output directory.", () -> {});
+        }
     }
 
     public static AtlasRegion find(String name) {

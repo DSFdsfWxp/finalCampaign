@@ -4,7 +4,6 @@ import arc.struct.*;
 import arc.func.*;
 import arc.util.Log;
 import finalCampaign.feature.*;
-import finalCampaign.util.*;
 
 public class featureLoader {
     
@@ -35,29 +34,25 @@ public class featureLoader {
 
     public static void load() {
         for (Class<?> feature : featureLst) {
-            asyncTask.subTask(() -> {
-                String featureName = util.getFeatureName(feature);
-                try {
-                    feature.getDeclaredMethod("init").invoke(null);
-                    Log.debug("featureLoader: inited " + featureName);
-                } catch(Exception e) {
-                    Log.err("featureLoader: failed to init " + featureName, e);
-                }
-                updateProgress();
-            });
+            String featureName = util.getFeatureName(feature);
+            try {
+                feature.getDeclaredMethod("init").invoke(null);
+                Log.debug("featureLoader: inited " + featureName);
+            } catch(Exception e) {
+                Log.err("featureLoader: failed to init " + featureName, e);
+            }
+            updateProgress();
         }
 
         for (Class<?> feature : featureLst) {
-            asyncTask.subTask(() -> {
-                String featureName = util.getFeatureName(feature);
-                try {
-                    feature.getDeclaredMethod("load").invoke(null);
-                    Log.debug("featureLoader: loaded " + featureName);
-                } catch(Exception e) {
-                    Log.err("featureLoader: failed to load " + featureName, e);
-                }
-                updateProgress();
-            });
+            String featureName = util.getFeatureName(feature);
+            try {
+                feature.getDeclaredMethod("load").invoke(null);
+                Log.debug("featureLoader: loaded " + featureName);
+            } catch(Exception e) {
+                Log.err("featureLoader: failed to load " + featureName, e);
+            }
+            updateProgress();
         }
     }
 }

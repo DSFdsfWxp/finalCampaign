@@ -2,8 +2,7 @@ package finalCampaign;
 
 import arc.*;
 import arc.util.*;
-import arc.util.io.PropertiesUtils;
-import finalCampaign.util.*;
+import arc.util.io.*;
 import arc.files.*;
 import arc.struct.*;
 
@@ -34,35 +33,29 @@ public class bundle {
             String[] bundleContent = rawBundleFile.readString().split("\n");
             Seq<String> processedBundleContent = new Seq<>();
 
-            asyncTask.subTask(new Thread(() -> {
-                for (String txt : bundleContent) {
-                    String out = txt.trim();
-                    if (out.startsWith("[raw].")) {
-                        out = out.substring(6);
-                    } else {
-                        if (!out.isEmpty()) out = "finalCampaign." + out;
-                    }
-                    processedBundleContent.add(out);
+            for (String txt : bundleContent) {
+                String out = txt.trim();
+                if (out.startsWith("[raw].")) {
+                    out = out.substring(6);
+                } else {
+                    if (!out.isEmpty()) out = "finalCampaign." + out;
                 }
-            }));
+                processedBundleContent.add(out);
+            }
 
-            asyncTask.subTask(() -> {
-                bundleFile.writeString(String.join("\n", processedBundleContent));
-            });
+            bundleFile.writeString(String.join("\n", processedBundleContent));
         }
 
-        asyncTask.subTask(() -> {
-            I18NBundle bundle = Core.bundle;
-            while (bundle != null) {
-                try {
-                    PropertiesUtils.load(bundle.getProperties(), bundleFile.reader());
-                } catch(Exception e) {
-                    Log.err("bundle: failed to load bundle: " + fileName, e);
-                }
-    
-                bundle = bundle.getParent();
+        I18NBundle bundle = Core.bundle;
+        while (bundle != null) {
+            try {
+                PropertiesUtils.load(bundle.getProperties(), bundleFile.reader());
+            } catch(Exception e) {
+                Log.err("bundle: failed to load bundle: " + fileName, e);
             }
-        });
+
+            bundle = bundle.getParent();
+        }
     }
 
     public static String get(String name) {

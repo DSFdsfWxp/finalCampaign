@@ -4,7 +4,6 @@ import java.net.*;
 import java.nio.charset.*;
 import java.util.zip.*;
 import arc.*;
-import arc.backend.sdl.jni.*;
 import arc.files.*;
 import arc.struct.*;
 import arc.util.*;
@@ -23,6 +22,9 @@ public class injector {
         } else {
             injectDesktop();
         }
+
+        setting.put("injector.injectedVersion", Vars.android ? bothLauncherVersion.toAndoridVersionString() : bothLauncherVersion.toDesktopVersionString());
+        Core.settings.manualSave();
     }
 
     public static boolean inInjectedGame() {
@@ -35,12 +37,9 @@ public class injector {
         return true;
     }
 
-    @SuppressWarnings("resource")
     public static boolean injected() {
         if (Vars.mobile) {
-            if (inInjectedGame()) return true;
-            //return ((String) setting.get("injector.injectedVersion", "")).equals(bothLauncherVersion.toAndoridVersionString());
-            return false;
+            return ((String) setting.get("injector.injectedVersion", "")).equals(bothLauncherVersion.toAndoridVersionString());
         }
 
         URL url = mindustry.Vars.class.getProtectionDomain().getCodeSource().getLocation();
@@ -59,15 +58,14 @@ public class injector {
         if (!gameJar.absolutePath().toLowerCase().endsWith(".jar"))
             throw new RuntimeException("Could not locate mindustry jar file form class path.");
             
-        Fi configFi = gameJar.parent().child("fcConfig.bin");
+        Fi configFi = gameJar.parent().child("fcConfig.properties");
         if (configFi.exists()) {
             try {
-                if (!bothLauncherVersion.toDesktopVersionString().equals(bothConfigUtil.read(configFi.read()).version)) return false;
+                return ((String) setting.get("injector.injectedVersion", "")).equals(bothLauncherVersion.toDesktopVersionString());
             } catch(Exception e) {
                 Log.err(e);
                 return false;
             }
-            return true;
         } else {
             return false;
         }
@@ -278,7 +276,7 @@ public class injector {
         ZipFi preMainJar = new ZipFi(tmp);
 
         Fi patchedFile = path.child("fcMindustry.patched.jar");
-        Fi configFi = path.child("fcConfig.bin");
+        Fi configFi = path.child("fcConfig.properties");
 
         if (patchedFile.exists()) patchedFile.delete();
         jarWriter writer = new jarWriter(patchedFile, false);
@@ -326,12 +324,17 @@ java -jar ./fcMindustry.patched.jar
         configSrc.modName = finalCampaign.thisMod.file.name();
         configSrc.gameJarName = gameJar.name();
         configSrc.dataDir = Core.settings.getDataDirectory().absolutePath();
-        bothConfigUtil.write(configSrc, configFi.write());
+        configSrc.isServer = Vars.headless;
+        bothConfigUtil.write(configSrc, configFi.writer(false));
 
         Log.info("injector:  -> " + patchedFile.absolutePath());
         Log.info("injector: done.");
 
-        SDL.SDL_ShowSimpleMessageBox(SDL.SDL_MESSAGEBOX_INFORMATION, bundle.get("info"), String.format(bundle.get("injector.finishHint"), scriptFile.absolutePath()));
-        finalCampaign.safetyExit();
+        if (!Vars.headless) {
+            Vars.ui.showOkText(bundle.get("info"), String.format(bundle.get("injector.finishHint"), scriptFile.absolutePath()), finalCampaign::safetyExit);
+        } else {
+            Log.info("[finalCampaign] " + bundle.get("info") + ": " + String.format(bundle.get("injector.finishHint"), scriptFile.absolutePath()));
+            finalCampaign.safetyExit();
+        }
     }
 }

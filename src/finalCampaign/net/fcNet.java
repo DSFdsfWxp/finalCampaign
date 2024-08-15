@@ -33,7 +33,10 @@ public class fcNet {
         w.close();
 
         CharBuffer cb = ByteBuffer.wrap(os.toByteArray()).asCharBuffer();
-        String txt = String.valueOf(cb.array());
+        int clen = cb.length();
+        char[] carr = new char[clen];
+        for (int i=0; i<clen; i++) carr[i] = cb.get(i);
+        String txt = String.valueOf(carr);
 
         boolean reliable = true;
 

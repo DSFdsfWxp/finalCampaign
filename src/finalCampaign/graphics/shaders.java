@@ -1,12 +1,10 @@
 package finalCampaign.graphics;
 
-import finalCampaign.util.*;
-
 public class shaders {
     public static crosshairShader crosshair;
 
     public static void load() {
-        asyncTask.subTask(() -> crosshair = new crosshairShader());
+        crosshair = new crosshairShader();
     }
 
     public static class crosshairShader extends shader {
