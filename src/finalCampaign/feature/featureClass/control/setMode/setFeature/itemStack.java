@@ -380,16 +380,16 @@ public class itemStack extends iFeature {
                         if (currentItem.get() != null) {
                             Item current = currentItem.get();
                             selectedContent.set(current);
-                            tc.image(current.uiIcon).size(32f).scaling(Scaling.fit).left().padLeft(16f);
+                            tc.image(current.uiIcon).size(32f).scaling(Scaling.fit).left().padLeft(12f);
                             tc.add(current.localizedName).left().padLeft(4f).padRight(4f).wrap().growY();
-                            tc.add("").right().wrap().grow().labelAlign(Align.right).padRight(16f).update(l -> l.setText(building.items.get(current) == Integer.MAX_VALUE ? "∞" : Integer.toString(building.items.get(current)))).row();
+                            tc.add("").right().wrap().grow().labelAlign(Align.right).padRight(12f).update(l -> l.setText(building.items.get(current) == Integer.MAX_VALUE ? "∞" : Integer.toString(building.items.get(current)))).row();
                         }
                         if (currentItemAmmo.get() != null) {
                             Item current = currentItemAmmo.get();
                             selectedContent.set(current);
-                            tc.image(current.uiIcon).size(32f).scaling(Scaling.fit).left().padLeft(16f);
+                            tc.image(current.uiIcon).size(32f).scaling(Scaling.fit).left().padLeft(12f);
                             tc.add(current.localizedName).left().padLeft(4f).wrap().growY();
-                            tc.add("").right().wrap().grow().labelAlign(Align.right).padRight(16f).update(l -> {
+                            tc.add("").right().wrap().grow().labelAlign(Align.right).padRight(12f).update(l -> {
                                 String txt = "N/A";
                                 if (building instanceof ItemTurretBuild itb) {
                                     for (AmmoEntry ae : itb.ammo) {
@@ -405,15 +405,15 @@ public class itemStack extends iFeature {
                         if (currentLiquid.get() != null) {
                             Liquid current = currentLiquid.get();
                             selectedContent.set(current);
-                            tc.image(current.uiIcon).size(32f).scaling(Scaling.fit).left().padLeft(16f);
+                            tc.image(current.uiIcon).size(32f).scaling(Scaling.fit).left().padLeft(12f);
                             tc.add(current.localizedName).left().padLeft(4f).padRight(4f).wrap().growY();
-                            tc.add("").right().wrap().wrap().grow().labelAlign(Align.right).padRight(16f).update(l -> l.setText(building.liquids.get(current) == Float.POSITIVE_INFINITY ? "∞" : Float.toString(building.liquids.get(current)))).row();
+                            tc.add("").right().wrap().wrap().grow().labelAlign(Align.right).padRight(12f).update(l -> l.setText(building.liquids.get(current) == Float.POSITIVE_INFINITY ? "∞" : Float.toString(building.liquids.get(current)))).row();
                         }
                         if (currentPower.get()) {
                             selectedContent.set(null);
-                            tc.image(Vars.ui.getIcon(Category.power.name()).getRegion()).size(32f).scaling(Scaling.fit).left().padLeft(16f);
+                            tc.image(Vars.ui.getIcon(Category.power.name()).getRegion()).size(32f).scaling(Scaling.fit).left().padLeft(12f);
                             tc.add(Core.bundle.get("unit.powerunits")).left().padLeft(4f).padRight(4f).wrap().growY();
-                            if (building.block.consPower != null) tc.add("").right().wrap().wrap().grow().labelAlign(Align.right).padRight(16f).update(l -> l.setText(building.power.status == Float.POSITIVE_INFINITY ? "∞" : Float.toString(building.power.status * Math.max(building.block.consPower.capacity, building.block.consPower.usage))));
+                            if (building.block.consPower != null) tc.add("").right().wrap().wrap().grow().labelAlign(Align.right).padRight(12f).update(l -> l.setText(building.power.status == Float.POSITIVE_INFINITY ? "∞" : Float.toString(building.power.status * Math.max(building.block.consPower.capacity, building.block.consPower.usage))));
                             tc.row();
                         }
     
@@ -430,7 +430,7 @@ public class itemStack extends iFeature {
                             slider.showNum = false;
                             tc.row();
                             tc.table(butt -> {
-                                TextField field = butt.field("0", txt -> slider.rawValue(Integer.parseInt(txt))).valid(value -> Strings.canParsePositiveFloat(value)).growX().minWidth(10f).padRight(4f).padLeft(16f).left().get();
+                                TextField field = butt.field("0", txt -> slider.rawValue(Integer.parseInt(txt))).valid(value -> Strings.canParsePositiveFloat(value)).growX().minWidth(10f).padRight(4f).padLeft(8f).left().get();
                                 slider.modified(() -> field.setText(selectedContent.get() instanceof Item ? Integer.toString((int) slider.value()) : Float.toString(slider.value())));
                                 butt.button(bundleNS.get("take"), () -> {
                                     if (selectedContent.get() instanceof Item item) {
@@ -454,6 +454,7 @@ public class itemStack extends iFeature {
                                     } else if (selectedContent.get() instanceof Liquid liquid) {
                                         float taken = Math.min(building.liquids.get(liquid), slider.value());
                                         fcCall.takeLiquid(unit, building, liquid, taken);
+                                        ammoPriorityForceUpdate.set(true);
                                     } else if (currentPower.get() && building.block.consPower != null) {
                                         float taken = Math.min(building.power.status * Math.max(building.block.consPower.capacity, building.block.consPower.usage), slider.value());
                                         fcCall.takePower(unit, building, taken);
@@ -491,12 +492,13 @@ public class itemStack extends iFeature {
                                         float currentNum = building.liquids.get(liquid);
                                         float removed = Math.min(currentNum, slider.value());
                                         fcCall.setLiquid(building, liquid, currentNum == Float.POSITIVE_INFINITY ? 0 : currentNum - removed);
+                                        ammoPriorityForceUpdate.set(true);
                                     } else if (currentPower.get() && building.block.consPower != null) {
                                         float current = building.power.status * Math.max(building.block.consPower.capacity, building.block.consPower.usage);
                                         float removed = Math.min(current, slider.value());
                                         fcCall.setPower(building, current == Float.POSITIVE_INFINITY ? 0 : current - removed);
                                     }
-                                }).width(75f).right().padRight(16f).get().setDisabled(() -> !(selectedContent.get() instanceof Item) && !sandbox);
+                                }).width(75f).right().padRight(8f).get().setDisabled(() -> !(selectedContent.get() instanceof Item) && !sandbox);
                             }).center().colspan(3).padTop(4f).growX();
                         }
                     }).growX().padTop(8f).padBottom(8f);
@@ -558,6 +560,7 @@ public class itemStack extends iFeature {
                                 } else if (content instanceof Liquid liquid) {
                                     float amount = building.liquids.get(liquid);
                                     fcCall.setLiquid(building, liquid, amount + setter.get().value());
+                                    ammoPriorityForceUpdate.set(true);
                                 }
                             }
                         }).right().width(44f).padLeft(4f).growY().padRight(8f);

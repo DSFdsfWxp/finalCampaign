@@ -1,6 +1,6 @@
 package finalCampaign.util;
 
-import arc.scene.Element;
+import arc.scene.*;
 import arc.scene.event.*;
 
 public class forwardEventListener implements EventListener {

@@ -18,7 +18,7 @@ public abstract class pane extends Table {
     public pane() {
         setBackground(Tex.whitePane);
         setColor(Color.darkGray);
-        inner = table().pad(2f).growX().get();
+        inner = table().growX().get();
         selected = hovering = false;
         selectedChangedListeners = new Seq<>();
         backgroundDarkness = 0f;
@@ -45,7 +45,7 @@ public abstract class pane extends Table {
     public void setSelected(boolean v) {
         if (selected == v) return;
         selected = v;
-        setColor(selected ? Pal.accent : Color.gray);
+        setColor(selected ? Pal.accent : Color.darkGray);
     }
 
     public void setSelected(boolean v, boolean fireEvent) {

@@ -4,6 +4,7 @@ import arc.func.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
+import arc.util.*;
 import arc.util.io.*;
 import finalCampaign.*;
 import finalCampaign.patch.*;
@@ -74,13 +75,16 @@ public class fcSortf implements Sortf {
         return true;
     }
 
+    @Nullable
+    public baseSortf<?> get(String name, boolean unit) {
+        int pos = indexOf(name, unit);
+        if (pos == -1) return null;
+        if (unit) return unitSortfs.get(pos);
+        return buildSortfs.get(pos);
+    }
+
     public boolean has(String name, boolean unit) {
-        if (unit) {
-            for (baseSortf<?> sortf : unitSortfs) if (sortf.name.equals(name)) return true;
-        } else {
-            for (baseSortf<?> sortf : buildSortfs) if (sortf.name.equals(name)) return true;
-        }
-        return false;
+        return indexOf(name, unit) != -1;
     }
 
     public int indexOf(String name, boolean unit) {
@@ -125,40 +129,32 @@ public class fcSortf implements Sortf {
     public void read(Reads reads) {
         int uc = reads.i();
         int bc = reads.i();
-        Seq<String> uReaded = new Seq<>();
-        Seq<String> bReaded = new Seq<>();
+        Seq<baseSortf<?>> uRead = new Seq<>();
+        Seq<baseSortf<?>> bRead = new Seq<>();
 
         for (int i=0; i<uc; i++) {
             String name = reads.str();
 
             int pos = indexOf(name, true);
-            if (pos == -1) {
-                pos = unitSortfs.size;
-                unitSortfs.add(provs.get(name).get(build));
-            }
+            baseSortf<?> current = pos == -1 ? current = provs.get(name).get(build) : unitSortfs.get(pos);
 
-            unitSortfs.get(pos).read(reads);
-            uReaded.add(name);
+            current.read(reads);
+            uRead.add(current);
         }
         for (int i=0; i<bc; i++) {
             String name = reads.str();
 
             int pos = indexOf(name, false);
-            if (pos == -1) {
-                pos = buildSortfs.size;
-                buildSortfs.add(provs.get(name).get(build));
-            }
+            baseSortf<?> current = pos == -1 ? current = provs.get(name).get(build) : buildSortfs.get(pos);
 
-            buildSortfs.get(pos).read(reads);
-            bReaded.add(name);
+            current.read(reads);
+            bRead.add(current);
         }
 
-        Seq<baseSortf<?>> uToRemove = new Seq<>();
-        Seq<baseSortf<?>> bToRemove = new Seq<>();
-        for (baseSortf<?> sortf : unitSortfs) if (!uReaded.contains(sortf.name)) uToRemove.add(sortf);
-        for (baseSortf<?> sortf : buildSortfs) if (!bReaded.contains(sortf.name)) bToRemove.add(sortf);
-        unitSortfs.removeAll(uToRemove);
-        buildSortfs.removeAll(bToRemove);
+        unitSortfs.clear();
+        buildSortfs.clear();
+        unitSortfs.addAll(uRead);
+        buildSortfs.addAll(bRead);
     }
 
     public void write(Writes writes) {

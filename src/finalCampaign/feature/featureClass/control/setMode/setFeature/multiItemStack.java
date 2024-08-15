@@ -107,16 +107,16 @@ public class multiItemStack extends iFeature {
                         String name = selecter.getSelectedName();
                         if (name == null) name = "";
                         if (name.equals("power")) {
-                            setter.set(new barSetter("", 210f, 1e7f, 0, 0, false, true, true, true, false));
+                            setter.set(new barSetter("", 202f, 1e7f, 0, 0, false, true, true, true, false));
                         } else {
-                            setter.set(new barSetter("", 210f, 100f, 0, 0, false, true, true, true, false));
+                            setter.set(new barSetter("", 202f, 100f, 0, 0, false, true, true, true, false));
                             setter.get().setDisabled(true);
                         }
                     } else {
                         if (content instanceof Item) {
-                            setter.set(new barSetter("", 210f, 1e7f, 0, 0, true, true, true, true, false));
+                            setter.set(new barSetter("", 202f, 1e7f, 0, 0, true, true, true, true, false));
                         } else if (content instanceof Liquid) {
-                            setter.set(new barSetter("", 210f, 1e7f, 0, 0, false, true, true, true, false));
+                            setter.set(new barSetter("", 202f, 1e7f, 0, 0, false, true, true, true, false));
                         }
                     }
 

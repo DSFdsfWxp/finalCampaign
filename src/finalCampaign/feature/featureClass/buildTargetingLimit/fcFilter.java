@@ -2,6 +2,7 @@ package finalCampaign.feature.featureClass.buildTargetingLimit;
 
 import arc.func.*;
 import arc.struct.*;
+import arc.util.*;
 import arc.util.io.*;
 import finalCampaign.*;
 import finalCampaign.patch.*;
@@ -51,6 +52,7 @@ public class fcFilter {
         return false;
     }
 
+    @Nullable
     public baseFilter<?> get(String name) {
         for (baseFilter<?> filter : filters) if (filter.name.equals(name)) return filter;
         return null;

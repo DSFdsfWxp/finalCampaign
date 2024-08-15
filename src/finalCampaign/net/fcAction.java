@@ -4,6 +4,7 @@ import java.io.*;
 import java.lang.reflect.*;
 import arc.util.*;
 import arc.util.io.*;
+import finalCampaign.feature.featureClass.buildTargeting.fcSortf;
 import finalCampaign.net.fcNet.*;
 import finalCampaign.patch.*;
 import finalCampaign.util.*;
@@ -333,10 +334,28 @@ public class fcAction {
         if (!(building instanceof IFcTurretBuild)) return false;
 
         IFcTurretBuild f = (IFcTurretBuild) building;
+        fcSortf sortf = f.fcSortf();
+
+        ByteArrayOutputStream bak = new ByteArrayOutputStream();
+        Writes writes = new Writes(new DataOutputStream(bak));
+        sortf.write(writes);
+        writes.close();
+
         Reads reads = new Reads(new DataInputStream(new ByteArrayInputStream(data)));
-        f.fcSortf().read(reads);
+        sortf.read(reads);
         reads.close();
 
+        reads = new Reads(new DataInputStream(new ByteArrayInputStream(bak.toByteArray())));
+        if (!sortf.isValid()) {
+            sortf.read(reads);
+            reads.close();
+            return false;
+        }
+
+        IFcTurret fBlock = (IFcTurret) building.block;
+        fBlock.fcSortf(data);
+
+        reads.close();
         return true;
     }
 
@@ -348,8 +367,10 @@ public class fcAction {
         if (!(building instanceof IFcTurretBuild)) return false;
 
         IFcTurretBuild f = (IFcTurretBuild) building;
+        IFcTurret fBlock = (IFcTurret) building.block;
         f.fcPreferBuildingTarget(v);
-
+        fBlock.fcPreferBuildingTarget(v);
+        
         return true;
     }
 

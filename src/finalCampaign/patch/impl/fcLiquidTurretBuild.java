@@ -20,13 +20,20 @@ import mindustry.world.blocks.defense.turrets.LiquidTurret.*;
 public abstract class fcLiquidTurretBuild extends Building implements IFcLiquidTurretBuild {
     private LiquidTurretBuild turretBuild = (LiquidTurretBuild)(Object) this;
     private IFcTurretBuild fcTurretBuild = (IFcTurretBuild) this;
-    private LiquidTurret turretBlock;
+    private LiquidTurret fcTurretBlock;
+    private IFcLiquidTurret fcTurret;
     private boolean fcPreferExtinguish = true;
 
     @Override
     public Building create(Block block, Team team) {
-        turretBlock = (LiquidTurret) block;
-        return super.create(block, team);
+        fcTurretBlock = (LiquidTurret) block;
+        fcTurret = (IFcLiquidTurret) block;
+
+        Building res = super.create(block, team);
+
+        fcPreferExtinguish = fcTurret.fcPreferExtinguish();
+
+        return res;
     }
 
     public boolean fcPreferExtinguish() {
@@ -39,8 +46,8 @@ public abstract class fcLiquidTurretBuild extends Building implements IFcLiquidT
 
     protected void findTarget(){
         Runnable extinguish = () -> {
-            if (turretBlock.extinguish && liquids.current().canExtinguish()) {
-                float range = turretBlock.range;
+            if (fcTurretBlock.extinguish && liquids.current().canExtinguish()) {
+                float range = fcTurretBlock.range;
     
                 int tx = World.toTile(x), ty = World.toTile(y);
                 Fire result = null;

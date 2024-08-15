@@ -20,7 +20,9 @@
         "fcBeamDrillBuild",
         "fcVars",
         "fcSaveFileReader",
-        "fcConsumePower"
+        "fcConsumePower",
+        "fcTurret",
+        "fcLiquidTurret"
     ],
     "client": [
 	]

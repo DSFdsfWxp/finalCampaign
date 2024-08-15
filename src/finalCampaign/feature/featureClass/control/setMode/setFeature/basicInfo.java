@@ -53,7 +53,7 @@ public class basicInfo extends iFeature {
                 }
                 
                 if (key.equals("health") && Vars.state.rules.mode() == Gamemode.sandbox) {
-                    barSetter setter = new barSetter(bundleNS.get("health"), 256f, building.maxHealth, 0, building.health, false, true, false, true, true);
+                    barSetter setter = new barSetter(bundleNS.get("health"), 264f, building.maxHealth, 0, building.health, false, true, false, true, true);
                     Collapser col = new Collapser(new Table(ct -> {
                         ct.setBackground(Tex.sliderBack);
                         ct.fillParent = true;

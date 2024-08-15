@@ -1,5 +1,6 @@
 package finalCampaign.patch.impl;
 
+import java.io.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
@@ -41,7 +42,8 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
     @Shadow(remap = false)
     public abstract BulletType peekAmmo();
 
-    private Turret turretBlock;
+    private Turret fcTurretBlock;
+    private IFcTurret fcTurret;
     private boolean fcForceDisablePredictTarget = false;
     private boolean fcPreferBuildingTarget = false;
     private fcSortf fcSortf;
@@ -73,10 +75,22 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
 
     @Override
     public Building create(Block block, Team team) {
-        turretBlock = (Turret) block;
+        fcTurretBlock = (Turret) block;
+        fcTurret = (IFcTurret) block;
+
         Building res =  super.create(block, team);
+
         fcSortf = new fcSortf((TurretBuild)(Object) this);
         fcFilter = new fcFilter((TurretBuild)(Object) this);
+
+        if (fcTurret.fcSortfData() != null) {
+            Reads reads = new Reads(new DataInputStream(new ByteArrayInputStream(fcTurret.fcSortfData())));
+            fcSortf.read(reads);
+            if (!fcSortf.isValid()) fcSortf = new fcSortf((TurretBuild)(Object) this);
+            reads.close();
+        }
+        fcPreferBuildingTarget = fcTurret.fcPreferBuildingTarget();
+
         return res;
     }
 
@@ -115,10 +129,10 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
       if (cheating())
         return peekAmmo(); 
       Turret.AmmoEntry entry = (Turret.AmmoEntry)this.ammo.peek();
-      if (entry.amount < Short.MAX_VALUE) entry.amount -= turretBlock.ammoPerShot;
+      if (entry.amount < Short.MAX_VALUE) entry.amount -= fcTurretBlock.ammoPerShot;
       if (entry.amount <= 0)
         this.ammo.pop(); 
-        if (entry.amount < Short.MAX_VALUE) this.totalAmmo -= turretBlock.ammoPerShot;
+        if (entry.amount < Short.MAX_VALUE) this.totalAmmo -= fcTurretBlock.ammoPerShot;
       this.totalAmmo = Math.max(this.totalAmmo, 0);
       return entry.type();
     }
@@ -129,11 +143,11 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
         Runnable findUnitTarget = () -> {
             fcSortf.beforeTargeting();
 
-            target = Units.bestEnemy(team, x, y, range, e -> !e.dead() && (fcFilter.filters.size > 0 ? fcFilter.unitFilter.get(e) : turretBlock.unitFilter.get(e)) && (e.isGrounded() || turretBlock.targetAir) && (!e.isGrounded() || turretBlock.targetGround), fcSortf.unitSortfs.size > 0 ? fcSortf : turretBlock.unitSort);
+            target = Units.bestEnemy(team, x, y, range, e -> !e.dead() && (fcFilter.filters.size > 0 ? fcFilter.unitFilter.get(e) : fcTurretBlock.unitFilter.get(e)) && (e.isGrounded() || fcTurretBlock.targetAir) && (!e.isGrounded() || fcTurretBlock.targetGround), fcSortf.unitSortfs.size > 0 ? fcSortf : fcTurretBlock.unitSort);
         };
 
         Runnable findBuildingTarget = () -> {
-            if (!turretBlock.targetGround) return;
+            if (!fcTurretBlock.targetGround) return;
             target = null;
             float cost = Float.POSITIVE_INFINITY;
 
@@ -141,7 +155,7 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
 
             Vars.indexer.allBuildings(x, y, range, building -> {
                 if (building.team == Team.derelict && !Vars.state.rules.coreCapture) return;
-                if (!turretBlock.buildingFilter.get(building) || !building.block.targetable || building.team == team || !(fcFilter.filters.size > 0 ? fcFilter.buildingFilter.get(building) : turretBlock.buildingFilter.get(building))) return;
+                if (!fcTurretBlock.buildingFilter.get(building) || !building.block.targetable || building.team == team || !(fcFilter.filters.size > 0 ? fcFilter.buildingFilter.get(building) : fcTurretBlock.buildingFilter.get(building))) return;
 
                 if (fcSortf.cost(building) < cost) target = building;
             });
