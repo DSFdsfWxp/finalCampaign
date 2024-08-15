@@ -1,9 +1,6 @@
 # project
 /.gradle
 /.vscode
-/.settings
-.project
-.classpath
 
 # build
 /bin
