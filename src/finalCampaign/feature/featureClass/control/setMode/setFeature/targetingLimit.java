@@ -1,6 +1,5 @@
 package finalCampaign.feature.featureClass.control.setMode.setFeature;
 
-import java.io.*;
 import arc.*;
 import arc.graphics.*;
 import arc.input.*;
@@ -8,8 +7,8 @@ import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
+import arc.struct.*;
 import arc.util.*;
-import arc.util.io.*;
 import finalCampaign.*;
 import finalCampaign.feature.featureClass.buildTargetingLimit.*;
 import finalCampaign.feature.featureClass.buildTargetingLimit.fcFilter.*;
@@ -42,18 +41,14 @@ public class targetingLimit extends bAttributeSetter {
             this.filter = filter;
 
             for (String name : fcFilter.filterLst()) {
-                add(new limitItem(name, filter)).growX().padBottom(4f).row();
+                limitItem item = new limitItem(name, filter);
+                add(item).growX().padBottom(4f).row();
+                item.modified(this::updateFilter);
             }
-
-            changed(this::updateFilter);
         }
 
         public void updateFilter() {
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            Writes writes = new Writes(new DataOutputStream(stream));
-            filter.write(writes);
-            writes.close();
-            fcCall.setBuildingFilter(filter.build, stream.toByteArray());
+            fcCall.setBuildingFilter(filter.build, filter.write());
         }
     }
 
@@ -64,6 +59,7 @@ public class targetingLimit extends bAttributeSetter {
         boolean config;
         CheckBox check;
         Collapser col;
+        Seq<Runnable> modifiedListener;
         
         public limitItem(String name, fcFilter filter) {
             this.name = name;
@@ -71,6 +67,7 @@ public class targetingLimit extends bAttributeSetter {
             fFilter = filter;
             touchable = Touchable.enabled;
             col = new Collapser(new Table(), true);
+            modifiedListener = new Seq<>();
 
             backgroundDarkness(0.5f);
 
@@ -84,12 +81,13 @@ public class targetingLimit extends bAttributeSetter {
             check.changed(() -> {
                 if (check.isChecked()) {
                     fFilter.add(name);
+                    fireModified();
+                    fFilter.remove(name);
                 } else {
-                    fFilter.filters.remove(this.filter);
-                    config = false;
+                    fFilter.remove(name);
+                    fireModified();
+                    filter.filters.add(this.filter);
                 }
-                update();
-                parent.change();
             });
             addListener(new ClickListener() {
                 @Override
@@ -99,7 +97,15 @@ public class targetingLimit extends bAttributeSetter {
                 }
             });
             
-            update();
+            update(this::update);
+        }
+
+        public void modified(Runnable run) {
+            if (!modifiedListener.contains(run)) modifiedListener.add(run);
+        }
+
+        public void fireModified() {
+            for (Runnable run : modifiedListener) run.run();
         }
 
         public void toggleConfig() {
@@ -121,8 +127,12 @@ public class targetingLimit extends bAttributeSetter {
         @SuppressWarnings("unchecked")
         public void update() {
             if (fFilter.has(name)) {
-                filter = fFilter.get(name);
                 check.setChecked(true);
+
+                baseFilter<?> n = fFilter.get(name);
+                if (filter != null) if (filter.equals(n)) return;
+
+                filter = n;
 
                 if (filter.hasConfig()) {
                     Class<?> type = filter.configType();
@@ -134,11 +144,11 @@ public class targetingLimit extends bAttributeSetter {
 
                     if (c != null) {
                         col.setTable(c);
-                        c.changed(this::change);
+                        c.modified(this::fireModified);
                     }
                 }
             } else {
-                if (col != null) col.setCollapsed(true);
+                if (col != null) if (!col.isCollapsed()) toggleConfig();
                 filter = null;
                 check.setChecked(false);
             }
@@ -168,10 +178,12 @@ public class targetingLimit extends bAttributeSetter {
                     if (!field.isValid()) return;
                     int v = Integer.parseInt(field.getText());
                     boolean t = filter.config != v;
+                    int original = filter.config;
                     filter.config = v;
+                    if (t) fireModified();
+                    filter.config = original;
                     editing = false;
-                    rebuild();
-                    if (t) change();
+                    rebuild();                    
                 });
                 field.keyDown(KeyCode.escape, () -> {
                     editing = false;
@@ -183,13 +195,22 @@ public class targetingLimit extends bAttributeSetter {
                         if (!focused) {
                             editing = false;
                             Core.app.post(cNum.this::rebuild);
+                            if (!field.isValid()) return;
+                            int v = Integer.parseInt(field.getText());
+                            boolean t = filter.config != v;
+                            int original = filter.config;
+                            filter.config = v;
+                            editing = false;
+                            if (t) fireModified();
+                            filter.config = original;
+                            rebuild();
                         }
                     }
                 });
                 field.selectAll();
                 field.requestKeyboard();
             } else {
-                inner.add(Integer.toString(filter.config)).colspan(7).growX();
+                inner.add(Integer.toString(filter.config)).colspan(7).growX().update(l -> l.setText(Integer.toString(filter.config)));
                 inner.button(bundle.get("edit"), () -> {
                     editing = true;
                     Core.app.post(this::rebuild);
@@ -200,13 +221,23 @@ public class targetingLimit extends bAttributeSetter {
 
     public abstract static class limitConfig<T> extends Table {
         baseFilter<T> filter;
+        Seq<Runnable> modifiedListener;
 
         public limitConfig(baseFilter<T> filter, String name) {
             this.filter = filter;
             fillParent = true;
+            modifiedListener = new Seq<>();
 
             add(bundle.get("setMode.feature.setting.targetingLimit.config." + name, name)).wrap().grow().left().padTop(8f).padBottom(8f).row();
             buildUI();
+        }
+
+        public void modified(Runnable run) {
+            if (!modifiedListener.contains(run)) modifiedListener.add(run);
+        }
+
+        public void fireModified() {
+            for (Runnable run : modifiedListener) run.run();
         }
 
         public abstract void buildUI();

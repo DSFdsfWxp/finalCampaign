@@ -1,7 +1,6 @@
 package finalCampaign.ui;
 
 import arc.struct.*;
-import arc.*;
 import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
@@ -16,6 +15,7 @@ public class contentSelecter extends Table {
     private bundleNS bundleNS;
     private int count, col;
     private float size, iconSize;
+    private Seq<Runnable> modifiedListener;
 
     public contentSelecter() {
         group = new ButtonGroup<>();
@@ -26,7 +26,7 @@ public class contentSelecter extends Table {
         size = 46f;
         iconSize = 32f;
         col = 5;
-
+        modifiedListener = new Seq<>();
     }
 
     public contentSelecter(float size, float iconSize, int col) {
@@ -68,16 +68,22 @@ public class contentSelecter extends Table {
 
     public Cell<ImageButton> add(Drawable image, @Nullable Runnable clicked, @Nullable UnlockableContent content) {
         Cell<ImageButton> cell = button(image, Styles.selecti,() -> {
-            Core.app.post(() -> {
-                contentSelecter.this.change();
-                if (clicked != null) clicked.run();
-            });
+            fireModified();
+            if (clicked != null) clicked.run();
         }).size(size).scaling(Scaling.fit).group(group).name(content == null ? "null-" + Integer.toString(count) : content.getContentType().name() + "-" + content.name);
         ImageButton button = cell.get();
         button.resizeImage(iconSize);
         if (++ count % col == 0) row();
         if (content != null) map.put(button, content);
         return cell;
+    }
+
+    public void fireModified() {
+        for (Runnable run : modifiedListener) run.run();
+    }
+
+    public void modified(Runnable run) {
+        if (!modifiedListener.contains(run)) modifiedListener.add(run);
     }
 
     @Override

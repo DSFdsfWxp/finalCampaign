@@ -27,7 +27,7 @@ public class bundle {
     public static void load() {
         Locale locale = Locale.getDefault();
         String str = locale.getLanguage() + "_" + locale.getCountry();
-        String fileName = str.isEmpty() ? "default" : str;
+        String fileName = str.isEmpty() ? "en_US" : str;
 
         Fi bundleFile = bundleCacheDir.child(fileName + ".properties");
 

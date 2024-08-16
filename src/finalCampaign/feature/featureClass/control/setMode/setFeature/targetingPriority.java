@@ -69,7 +69,6 @@ public class targetingPriority extends bAttributeSetter {
         }
 
         presetsTable.applied(() -> priorityTable.rebuild());
-        priorityAddTable.added(() -> priorityTable.rebuild());
         priorityTable.updated(() -> priorityAddTable.rebuild());
         sideSelectTable.selected(() -> {
             priorityTable.setSide(sideSelectTable.unit);
@@ -172,7 +171,7 @@ public class targetingPriority extends bAttributeSetter {
             });
 
             inner.update(() -> {
-                if (rebuildTimer.sTime() < 2f || layout.dragging()) return;
+                if (rebuildTimer.sTime() < 0.1f || layout.dragging()) return;
                 rebuildTimer.mark();
 
                 boolean needRebuild = current.size != currentNameLst.size;
@@ -205,17 +204,7 @@ public class targetingPriority extends bAttributeSetter {
         public void updateSortf() {
             currentNameLst.clear();
             for (baseSortf<?> s : current) currentNameLst.add(s.name);
-
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            Writes writes = new Writes(new DataOutputStream(stream));
-            sortf.write(writes);
-            writes.close();
-            fcCall.setBuildingSortf(sortf.build, stream.toByteArray());
-        }
-
-        public void changed() {
-            updated.run();
-            updateSortf();
+            fcCall.setBuildingSortf(sortf.build, sortf.write());
         }
 
         public void rebuild() {
@@ -228,7 +217,12 @@ public class targetingPriority extends bAttributeSetter {
                 item.setWidth(268f);
                 map.put(item, s);
                 currentNameLst.add(s.name);
-                item.deleted(this::changed);
+                item.deleted(() -> {
+                    fcSortf c = sortf.clone(sortf.build);
+                    c.remove(s.name, s.unitSide);
+                    fcCall.setBuildingSortf(sortf.build, c.write());
+                });
+                item.modified(this::updateSortf);
                 layout.addChild(item);
             }
         }
@@ -237,24 +231,18 @@ public class targetingPriority extends bAttributeSetter {
     public static class priorityAddTable extends Table {
         Table inner;
         fcSortf sortf;
-        Runnable added;
         boolean unitSide;
         Seq<baseSortf<?>> currentSideSortfs;
 
         public priorityAddTable(fcSortf sortf) {
             this.sortf = sortf;
             currentSideSortfs = sortf.unitSortfs;
-            added = () -> {};
             unitSide = true;
 
             setBackground(Tex.pane);
             table(t -> inner = t).pad(4f).growX();
 
             rebuild();
-        }
-
-        public void added(Runnable run) {
-            added = run;
         }
 
         public void setSide(boolean unit) {
@@ -273,13 +261,10 @@ public class targetingPriority extends bAttributeSetter {
                 item.clicked(() -> {
                     sortf.add(name, unitSide);
                     if (currentSideSortfs.peek().isValid()) {
-                        added.run();
-                        item.remove();
-                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                        Writes writes = new Writes(new DataOutputStream(stream));
-                        sortf.write(writes);
-                        writes.close();
-                        fcCall.setBuildingSortf(sortf.build, stream.toByteArray());
+                        currentSideSortfs.pop();
+                        fcSortf c = sortf.clone(sortf.build);
+                        c.add(name, unitSide);
+                        fcCall.setBuildingSortf(sortf.build, c.write());
                     } else {
                         currentSideSortfs.pop();
                     }
@@ -299,6 +284,7 @@ public class targetingPriority extends bAttributeSetter {
         }
 
         public void buildUI() {
+            canToggle = false;
             addListener(new HandCursorListener());
         }
     }
@@ -347,6 +333,7 @@ public class targetingPriority extends bAttributeSetter {
         }
 
         public void clicked() {
+            if (!canToggle) return;
             holded = !holded;
             setColor(holded ? Pal.accent : Color.gray);
         }
@@ -372,6 +359,7 @@ public class targetingPriority extends bAttributeSetter {
         Collapser configCol;
         priorityTable table;
         Seq<Runnable> deletedListener;
+        Seq<Runnable> modifiedListener;
         Image deleteImage, reorderImage;
 
         @SuppressWarnings("unchecked")
@@ -382,6 +370,7 @@ public class targetingPriority extends bAttributeSetter {
             config = hovering = false;
             touchable = Touchable.enabled;
             deletedListener = new Seq<>();
+            modifiedListener = new Seq<>();
             setBackground(Tex.whitePane);
             setColor(Color.darkGray);
             table(t -> inner = t).growX();
@@ -395,7 +384,7 @@ public class targetingPriority extends bAttributeSetter {
 
                 if (configTable != null) {
                     configCol = new Collapser(configTable, true);
-                    configTable.changed(this::change);
+                    configTable.modified(this::fireModified);
                 }
             }
 
@@ -431,13 +420,19 @@ public class targetingPriority extends bAttributeSetter {
         }
 
         public void delete() {
-            table.current.remove(item);
-            remove();
             for (Runnable run : deletedListener) run.run();
         }
 
         public void deleted(Runnable run) {
             if (!deletedListener.contains(run)) deletedListener.add(run);
+        }
+
+        public void fireModified() {
+            for (Runnable run : modifiedListener) run.run();
+        }
+
+        public void modified(Runnable run) {
+            if (!modifiedListener.contains(run)) modifiedListener.add(run);
         }
         
         public void rebuild() {
@@ -460,11 +455,21 @@ public class targetingPriority extends bAttributeSetter {
 
     public static abstract class priorityItemConfig<T> extends Table {
         baseSortf<T> item;
+        private Seq<Runnable> modifiedListener;
 
         public priorityItemConfig(baseSortf<T> item, String name) {
             this.item = item;
+            modifiedListener = new Seq<>();
             add(bundle.get("setMode.feature.setting.targetingPriority.config." + name, name)).wrap().grow().padTop(8f).padBottom(8f).row();
             buildUI();
+        }
+
+        public void modified(Runnable run) {
+            if (!modifiedListener.contains(run)) modifiedListener.add(run);
+        }
+
+        public void fireModified() {
+            for (Runnable run : modifiedListener) run.run();
         }
 
         public abstract void buildUI();
@@ -480,12 +485,14 @@ public class targetingPriority extends bAttributeSetter {
             selecter.col(4);
             selecter.minSelectedCount(1);
             for (Category cat : Category.all) selecter.add(Vars.ui.getIcon(cat.name()), cat.name(), "");
-            selecter.setSelected(item.config.name());
-            selecter.changed(() -> {
+            selecter.update(() -> selecter.setSelected(item.config.name()));
+            selecter.modified(() -> {
                 String name = selecter.getSelectedName();
                 if (name == null) return;
+                Category original = item.config;
                 item.config = Category.valueOf(name);
-                cCategory.this.change();
+                fireModified();
+                item.config = original;
             });
             add(selecter).center();
         }
@@ -657,14 +664,10 @@ public class targetingPriority extends bAttributeSetter {
             if (building instanceof IFcTurretBuild fcTurretBuild) {
                 preferBuilding = fcTurretBuild.fcPreferBuildingTarget();
                 preferExtinguish = building instanceof IFcLiquidTurretBuild fcLiquidTurretBuild ? fcLiquidTurretBuild.fcPreferExtinguish() : true;
+                priorityData = fcTurretBuild.fcSortf().write();
+
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 Writes writes = new Writes(new DataOutputStream(stream));
-                fcTurretBuild.fcSortf().write(writes);
-                writes.close();
-                priorityData = stream.toByteArray();
-
-                stream = new ByteArrayOutputStream();
-                writes = new Writes(new DataOutputStream(stream));
                 TypeIO.writeBytes(writes, priorityData);
                 writes.bool(preferBuilding);
                 writes.bool(preferExtinguish);
@@ -707,6 +710,7 @@ public class targetingPriority extends bAttributeSetter {
                     public void keyboardFocusChanged(FocusEvent event, Element element, boolean focused) {
                         if (!focused) {
                             rename = false;
+                            if (field.isValid()) rename(field.getText().trim());
                             rebuild();
                         }
                     }

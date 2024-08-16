@@ -179,6 +179,7 @@ public class genNet {
     private static String generateFcCall() {
         String code = "";
         code += "package finalCampaign.net;\n\n";
+        code += "import arc.*;\n";
         code += "import mindustry.*;\n";
         code += "import finalCampaign.net.packet.*;\n\n";
         code += "// Automatic generated, do not modify.\n\n";
@@ -213,7 +214,7 @@ public class genNet {
         switch (callFrom.value()) {
             case both: {
                 code += "        if (!Vars.net.active() || Vars.net.server())\n";
-                code += "            packet.handleServer(Vars.player);\n";
+                code += "            Core.app.post(() -> packet.handleServer(Vars.player));\n";
             }
             case client: {
                 code += "        if (Vars.net.client())\n";

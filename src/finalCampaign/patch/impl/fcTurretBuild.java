@@ -12,6 +12,7 @@ import finalCampaign.feature.featureClass.buildTargetingLimit.*;
 import finalCampaign.feature.featureClass.mapVersion.*;
 import finalCampaign.net.*;
 import finalCampaign.patch.*;
+import finalCampaign.util.fakeFinal;
 import mindustry.*;
 import mindustry.entities.*;
 import mindustry.entities.bullet.*;
@@ -22,7 +23,7 @@ import mindustry.world.blocks.*;
 import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 
-@Mixin(TurretBuild.class)
+@Mixin(value = TurretBuild.class, remap = false)
 public abstract class fcTurretBuild extends Building implements ControlBlock, IFcTurretBuild {
     @Shadow(remap = false)
     public abstract boolean hasAmmo();
@@ -85,17 +86,14 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
 
         return res;
     }
-
+    
     @Override
-    public void created() {
-        super.created();
-
-        if (Vars.net.client() || !Vars.net.active()) {
-            if (fcTurret.fcSortfData() != null) {
-                fcCall.setBuildingSortf(this, fcTurret.fcSortfData());
-            }
-            fcCall.setTurretPreferBuildingTarget(this, fcTurret.fcPreferBuildingTarget());
+    public void playerPlaced(Object config) {
+        super.playerPlaced(config);
+        if (fcTurret.fcSortfData() != null) {
+            fcCall.setBuildingSortf(this, fcTurret.fcSortfData());
         }
+        fcCall.setTurretPreferBuildingTarget(this, fcTurret.fcPreferBuildingTarget());
     }
 
     @Inject(method = "targetPosition", at = @At("HEAD"), remap = false, cancellable = true)
@@ -153,7 +151,7 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
         Runnable findBuildingTarget = () -> {
             if (!fcTurretBlock.targetGround) return;
             target = null;
-            float cost = Float.POSITIVE_INFINITY;
+            fakeFinal<Float> cost = new fakeFinal<Float>(Float.POSITIVE_INFINITY);
 
             fcSortf.beforeTargeting();
 
@@ -161,7 +159,11 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
                 if (building.team == Team.derelict && !Vars.state.rules.coreCapture) return;
                 if (!fcTurretBlock.buildingFilter.get(building) || !building.block.targetable || building.team == team || !(fcFilter.filters.size > 0 ? fcFilter.buildingFilter.get(building) : fcTurretBlock.buildingFilter.get(building))) return;
 
-                if (fcSortf.cost(building) < cost) target = building;
+                float bcost = fcSortf.cost(building);
+                if (bcost < cost.get()) {
+                    target = building;
+                    cost.set(bcost);
+                }
             });
 
             if (target == null) target = canHeal() ? Units.findAllyTile(team, x, y, range, b -> b.damaged() && b != this) : null;

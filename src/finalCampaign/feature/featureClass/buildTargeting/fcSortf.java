@@ -1,5 +1,6 @@
 package finalCampaign.feature.featureClass.buildTargeting;
 
+import java.io.*;
 import arc.func.*;
 import arc.math.*;
 import arc.math.geom.*;
@@ -9,6 +10,7 @@ import arc.util.io.*;
 import finalCampaign.*;
 import finalCampaign.patch.*;
 import finalCampaign.util.*;
+import mindustry.*;
 import mindustry.entities.Units.*;
 import mindustry.gen.*;
 import mindustry.world.blocks.defense.turrets.*;
@@ -22,6 +24,8 @@ public class fcSortf implements Sortf {
     public final Seq<baseSortf<?>> unitSortfs;
     public final TurretBuild build;
     private final IFcAttractiveEntityType buildType;
+    private timer debugTimer = new timer();
+    private boolean print = false;
 
     public static void register(String name, Func<TurretBuild, baseSortf<?>> prov) {
         provs.put(name, prov);
@@ -41,6 +45,7 @@ public class fcSortf implements Sortf {
         buildType = (IFcAttractiveEntityType) build.block;
         unitSortfs = new Seq<>();
         buildSortfs = new Seq<>();
+        debugTimer.mark();
     }
 
     public float cost(Unit unit, float x, float y) {
@@ -48,10 +53,18 @@ public class fcSortf implements Sortf {
         
         for (int i=0; i<unitSortfs.size; i++) {
             float s = Mathf.clamp(unitSortfs.get(i).calc(unit));
-            if (s > 0) score += s + Math.pow(2, i + 1) - 1;
+            if (s > 0) score += s + Math.pow(2, unitSortfs.size - 1) - 1;
+        }
+
+        if (print) {
+            Log.debug(unit.type.localizedName + " " + Float.toString(-score));
         }
 
         if (!build.isControlled()) score += calcAttractive((IFcAttractiveEntityType) unit.type, new Vec2(unit.x, unit.y));
+
+        if (print) {
+            Log.debug(unit.type.localizedName + " f " + Float.toString(-score));
+        }
 
         return -score;
     }
@@ -61,10 +74,18 @@ public class fcSortf implements Sortf {
         
         for (int i=0; i<buildSortfs.size; i++) {
             float s = Mathf.clamp(buildSortfs.get(i).calc(building));
-            if (s > 0) score += s + Math.pow(2, i + 1) - 1;
+            if (s > 0) score += s * Math.pow(2, buildSortfs.size - i);
+        }
+
+        if (print) {
+            Log.debug(building.block.localizedName + " " + Float.toString(-score));
         }
 
         if (!build.isControlled()) score += calcAttractive((IFcAttractiveEntityType) building.block, new Vec2(building.x, building.y));
+
+        if (print) {
+            Log.debug(building.block.localizedName + " f " + Float.toString(-score));
+        }
 
         return -score;
     }
@@ -97,14 +118,24 @@ public class fcSortf implements Sortf {
     }
 
     public void add(String name, boolean unit) {
+        if (has(name, unit)) return;
         var prov = provs.get(name);
         if (prov == null) return;
 
         if (unit) {
             unitSortfs.add(prov.get(build));
+            unitSortfs.peek().unitSide = true;
         } else {
             buildSortfs.add(prov.get(build));
+            buildSortfs.peek().unitSide = false;
         }
+    }
+
+    public void remove(String name, boolean unit) {
+        Seq<baseSortf<?>> sortfs = unit ? unitSortfs : buildSortfs;
+        Seq<baseSortf<?>> toRemove = new Seq<>();
+        for (baseSortf<?> sortf : sortfs) if (sortf.name.equals(name)) toRemove.add(sortf);
+        sortfs.removeAll(toRemove);
     }
 
     private float calcAttractive(IFcAttractiveEntityType type, Vec2 targetPos) {
@@ -123,7 +154,7 @@ public class fcSortf implements Sortf {
             dstFactor = (float) bezier.solve(dst);
         }
         float val = angleFactor * dstFactor * type.fcAttractiveness() - buildType.fcAntiAttractiveness();
-        return val > 0 ? val - type.fcHiddenness() : 0f;
+        return val > 0 ? Math.max(0f, val - type.fcHiddenness()) : 0f;
     }
 
     public void read(Reads reads) {
@@ -138,6 +169,7 @@ public class fcSortf implements Sortf {
             int pos = indexOf(name, true);
             baseSortf<?> current = pos == -1 ? current = provs.get(name).get(build) : unitSortfs.get(pos);
 
+            current.unitSide = true;
             current.read(reads);
             uRead.add(current);
         }
@@ -147,6 +179,7 @@ public class fcSortf implements Sortf {
             int pos = indexOf(name, false);
             baseSortf<?> current = pos == -1 ? current = provs.get(name).get(build) : buildSortfs.get(pos);
 
+            current.unitSide = false;
             current.read(reads);
             bRead.add(current);
         }
@@ -155,6 +188,12 @@ public class fcSortf implements Sortf {
         buildSortfs.clear();
         unitSortfs.addAll(uRead);
         buildSortfs.addAll(bRead);
+    }
+
+    public void read(byte[] data) {
+        Reads r = new Reads(new DataInputStream(new ByteArrayInputStream(data)));
+        read(r);
+        r.close();
     }
 
     public void write(Writes writes) {
@@ -171,9 +210,22 @@ public class fcSortf implements Sortf {
         }
     }
 
+    public byte[] write() {
+        ByteArrayOutputStream s = new ByteArrayOutputStream();
+        Writes w = new Writes(new DataOutputStream(s));
+        write(w);
+        w.close();
+        return s.toByteArray();
+    }
+
     public void beforeTargeting() {
         for (baseSortf<?> sortf : unitSortfs) sortf.beforeTargeting();
         for (baseSortf<?> sortf : buildSortfs) sortf.beforeTargeting();
+        print = false;
+        if (debugTimer.sTime() > 10f && (Vars.net.server() || !Vars.net.active())) {
+            print = true;
+            debugTimer.mark();
+        }
     }
 
     public fcSortf clone(TurretBuild build) {
@@ -191,6 +243,7 @@ public class fcSortf implements Sortf {
         public final TurretBuild build;
         public final IFcTurretBuild fcBuild;
         public final Turret block;
+        public boolean unitSide;
         public T config;
 
         public baseSortf(String name, TurretBuild build) {
@@ -220,6 +273,7 @@ public class fcSortf implements Sortf {
         public baseSortf<T> clone(TurretBuild build) {
             baseSortf<T> out = (baseSortf<T>) fcSortf.provs.get(name).get(build);
             out.config = config;
+            out.unitSide = unitSide;
             return out;
         }
 

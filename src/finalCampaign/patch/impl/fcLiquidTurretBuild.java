@@ -36,12 +36,9 @@ public abstract class fcLiquidTurretBuild extends Building implements IFcLiquidT
     }
 
     @Override
-    public void created() {
-        super.created();
-        
-        if (Vars.net.client() || !Vars.net.active()) {
-            fcCall.setTurretPreferExtinguish(this, fcTurret.fcPreferExtinguish());
-        }
+    public void playerPlaced(Object config) {
+        super.playerPlaced(config);
+        fcCall.setTurretPreferExtinguish(this, fcTurret.fcPreferExtinguish());
     }
 
     public boolean fcPreferExtinguish() {

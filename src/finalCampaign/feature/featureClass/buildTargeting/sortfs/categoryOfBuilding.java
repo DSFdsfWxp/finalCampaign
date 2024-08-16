@@ -16,7 +16,7 @@ public class categoryOfBuilding extends baseSortf<Category> {
     }
 
     public boolean isValid() {
-        return true;
+        return !unitSide;
     }
 
     @Override

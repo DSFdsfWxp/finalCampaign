@@ -1,5 +1,6 @@
 package finalCampaign.feature.featureClass.buildTargetingLimit;
 
+import java.io.*;
 import arc.func.*;
 import arc.struct.*;
 import arc.util.*;
@@ -59,7 +60,17 @@ public class fcFilter {
     }
 
     public void add(String name) {
+        if (has(name)) return;
         filters.add(provs.get(name).get(build));
+    }
+
+    public void remove(String name) {
+        for (baseFilter<?> f : filters) {
+            if (f.name.equals(name)) {
+                filters.remove(f);
+                return;
+            }
+        }
     }
 
     public void read(Reads reads) {
@@ -79,12 +90,32 @@ public class fcFilter {
         filters.removeAll(toRemove);
     }
 
+    public void read(byte[] data) {
+        Reads r = new Reads(new DataInputStream(new ByteArrayInputStream(data)));
+        read(r);
+        r.close();
+    }
+
     public void write(Writes writes) {
         writes.i(filters.size);
         for (baseFilter<?> filter : filters) {
             writes.str(filter.name);
             filter.write(writes);
         }
+    }
+
+    public byte[] write() {
+        ByteArrayOutputStream s = new ByteArrayOutputStream();
+        Writes w = new Writes(new DataOutputStream(s));
+        write(w);
+        w.close();
+        return s.toByteArray();
+    }
+
+    public fcFilter clone(TurretBuild target) {
+        fcFilter c = new fcFilter(target);
+        for (baseFilter<?> f : filters) c.filters.add(f.clone(target));
+        return c;
     }
 
     public void beforeTargeting() {
@@ -120,7 +151,9 @@ public class fcFilter {
 
         @SuppressWarnings("unchecked")
         public baseFilter<T> clone(TurretBuild build) {
-            return (baseFilter<T>) provs.get(name).get(build);
+            baseFilter<T> res = (baseFilter<T>) provs.get(name).get(build);
+            res.config = config;
+            return res;
         }
 
         public void beforeTargeting() {}

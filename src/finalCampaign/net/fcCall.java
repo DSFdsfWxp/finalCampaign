@@ -1,5 +1,6 @@
 package finalCampaign.net;
 
+import arc.*;
 import mindustry.*;
 import finalCampaign.net.packet.*;
 
@@ -13,7 +14,7 @@ public class fcCall {
         packet.data = data;
 
         if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
+            Core.app.post(() -> packet.handleServer(Vars.player));
         if (Vars.net.client())
             fcNet.send(packet);
     }
@@ -24,7 +25,7 @@ public class fcCall {
         packet.v = v;
 
         if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
+            Core.app.post(() -> packet.handleServer(Vars.player));
         if (Vars.net.client())
             fcNet.send(packet);
     }
@@ -35,7 +36,7 @@ public class fcCall {
         packet.data = data;
 
         if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
+            Core.app.post(() -> packet.handleServer(Vars.player));
         if (Vars.net.client())
             fcNet.send(packet);
     }
@@ -46,7 +47,7 @@ public class fcCall {
         packet.liquid = liquid;
 
         if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
+            Core.app.post(() -> packet.handleServer(Vars.player));
         if (Vars.net.client())
             fcNet.send(packet);
     }
@@ -57,7 +58,7 @@ public class fcCall {
         packet.v = v;
 
         if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
+            Core.app.post(() -> packet.handleServer(Vars.player));
         if (Vars.net.client())
             fcNet.send(packet);
     }
@@ -69,7 +70,7 @@ public class fcCall {
         packet.forceDisable = forceDisable;
 
         if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
+            Core.app.post(() -> packet.handleServer(Vars.player));
         if (Vars.net.client())
             fcNet.send(packet);
     }
@@ -80,7 +81,7 @@ public class fcCall {
         packet.amount = amount;
 
         if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
+            Core.app.post(() -> packet.handleServer(Vars.player));
         if (Vars.net.client())
             fcNet.send(packet);
     }
@@ -93,7 +94,7 @@ public class fcCall {
         packet.amount = amount;
 
         if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
+            Core.app.post(() -> packet.handleServer(Vars.player));
         if (Vars.net.client())
             fcNet.send(packet);
     }
@@ -105,7 +106,7 @@ public class fcCall {
         packet.amount = amount;
 
         if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
+            Core.app.post(() -> packet.handleServer(Vars.player));
         if (Vars.net.client())
             fcNet.send(packet);
     }
@@ -116,7 +117,7 @@ public class fcCall {
         packet.amount = amount;
 
         if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
+            Core.app.post(() -> packet.handleServer(Vars.player));
         if (Vars.net.client())
             fcNet.send(packet);
     }
@@ -127,7 +128,7 @@ public class fcCall {
         packet.team = team;
 
         if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
+            Core.app.post(() -> packet.handleServer(Vars.player));
         if (Vars.net.client())
             fcNet.send(packet);
     }
@@ -140,7 +141,7 @@ public class fcCall {
         packet.amount = amount;
 
         if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
+            Core.app.post(() -> packet.handleServer(Vars.player));
         if (Vars.net.client())
             fcNet.send(packet);
     }
@@ -151,7 +152,7 @@ public class fcCall {
         packet.order = order;
 
         if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
+            Core.app.post(() -> packet.handleServer(Vars.player));
         if (Vars.net.client())
             fcNet.send(packet);
     }
@@ -162,7 +163,7 @@ public class fcCall {
         packet.v = v;
 
         if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
+            Core.app.post(() -> packet.handleServer(Vars.player));
         if (Vars.net.client())
             fcNet.send(packet);
     }
@@ -173,7 +174,7 @@ public class fcCall {
         packet.v = v;
 
         if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
+            Core.app.post(() -> packet.handleServer(Vars.player));
         if (Vars.net.client())
             fcNet.send(packet);
     }
@@ -186,7 +187,7 @@ public class fcCall {
         packet.amount = amount;
 
         if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
+            Core.app.post(() -> packet.handleServer(Vars.player));
         if (Vars.net.client())
             fcNet.send(packet);
     }
@@ -198,7 +199,7 @@ public class fcCall {
         packet.amount = amount;
 
         if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
+            Core.app.post(() -> packet.handleServer(Vars.player));
         if (Vars.net.client())
             fcNet.send(packet);
     }
@@ -211,7 +212,7 @@ public class fcCall {
         packet.amount = amount;
 
         if (!Vars.net.active() || Vars.net.server())
-            packet.handleServer(Vars.player);
+            Core.app.post(() -> packet.handleServer(Vars.player));
         if (Vars.net.client())
             fcNet.send(packet);
     }

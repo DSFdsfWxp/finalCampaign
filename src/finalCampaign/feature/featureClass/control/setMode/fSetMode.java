@@ -231,6 +231,7 @@ public class fSetMode {
                 selectingBuilding.clear();
                 selectedNumDelta = 0;
                 selecting = false;
+                frag.clear();
             }
         });
 

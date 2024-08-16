@@ -13,7 +13,7 @@ import mindustry.logic.*;
 import mindustry.world.modules.*;
 
 @Mixin(Building.class)
-public abstract class fcBuilding implements IFcBuilding{
+public abstract class fcBuilding implements IFcBuilding {
     private boolean fcSetModeSelected = false;
     private boolean fcForceDisable = false;
     private boolean fcForceEnable = false;

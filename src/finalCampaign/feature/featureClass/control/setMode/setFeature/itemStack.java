@@ -126,7 +126,7 @@ public class itemStack extends iFeature {
                         Table lt = new Table();
                         float amount = ilb.liquids.get(liquid);
                         if (amount <= 0f) continue;
-                        if (amount == Float.POSITIVE_INFINITY) amount = building.block.liquidCapacity * 0.1f;
+                        if (amount == Float.POSITIVE_INFINITY) amount = building.block.liquidCapacity;
                         lt.setBackground(Tex.whiteui);
                         lt.color.set(liquid.color.cpy().mul(0.5f));
                         lt.table(lit -> lit.image(liquid.uiIcon).size(32f).minWidth(0f).scaling(Scaling.fit).center()).width(248f * (amount / (building.block.liquidCapacity * Vars.content.liquids().size)));
@@ -208,6 +208,7 @@ public class itemStack extends iFeature {
 
                 if (!needRebuild) return;
                 forceRebuild.set(false);
+                ammoPriorityForceUpdate.set(true);
 
                 contentLst.clear();
                 hasPower.set(false);
@@ -445,7 +446,6 @@ public class itemStack extends iFeature {
                                             int taken = (int) Math.min(amount, slider.value());
                                             taken = Math.min(taken, unit.maxAccepted(item));
                                             fcCall.takeTurretAmmo(unit, building, item, taken);
-                                            ammoPriorityForceUpdate.set(true);
                                         } else {
                                             int taken = (int) Math.min(building.items.get(item), slider.value());
                                             taken = Math.min(taken, unit.maxAccepted(item));
@@ -454,7 +454,6 @@ public class itemStack extends iFeature {
                                     } else if (selectedContent.get() instanceof Liquid liquid) {
                                         float taken = Math.min(building.liquids.get(liquid), slider.value());
                                         fcCall.takeLiquid(unit, building, liquid, taken);
-                                        ammoPriorityForceUpdate.set(true);
                                     } else if (currentPower.get() && building.block.consPower != null) {
                                         float taken = Math.min(building.power.status * Math.max(building.block.consPower.capacity, building.block.consPower.usage), slider.value());
                                         fcCall.takePower(unit, building, taken);
@@ -547,7 +546,6 @@ public class itemStack extends iFeature {
                                         amount = add == Integer.MAX_VALUE ? Short.MAX_VALUE : amount + add;
                                         if (amount != Short.MAX_VALUE) amount = Math.min(amount, ((ItemTurret) building.block).maxAmmo);
                                         fcCall.setTurretAmmo(unit, building, item, amount);
-                                        ammoPriorityForceUpdate.set(true);
                                         forceRebuild.set(true);
                                     } else {
                                         int amount = building.items.get(item);
@@ -560,11 +558,10 @@ public class itemStack extends iFeature {
                                 } else if (content instanceof Liquid liquid) {
                                     float amount = building.liquids.get(liquid);
                                     fcCall.setLiquid(building, liquid, amount + setter.get().value());
-                                    ammoPriorityForceUpdate.set(true);
                                 }
                             }
                         }).right().width(44f).padLeft(4f).growY().padRight(8f);
-                        selecter.changed(() -> {
+                        selecter.modified(() -> {
                             setterTable.clear();
                             UnlockableContent content = selecter.getSelectedContent();
                             if (content == null) {
@@ -586,7 +583,7 @@ public class itemStack extends iFeature {
 
                             setterTable.add(setter.get()).left().width(218f);
                         });
-                        selecter.change();
+                        selecter.fireModified();
                     }).growX().margin(8f);
                 });
             }));

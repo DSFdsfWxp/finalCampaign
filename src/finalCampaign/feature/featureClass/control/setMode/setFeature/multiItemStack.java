@@ -99,7 +99,7 @@ public class multiItemStack extends iFeature {
                         }
                     }
                 }).width(44f).padLeft(4f).padRight(4f).right().growY();
-                selecter.changed(() -> {
+                selecter.modified(() -> {
                     setterTable.clear();
 
                     UnlockableContent content = selecter.getSelectedContent();
@@ -122,7 +122,7 @@ public class multiItemStack extends iFeature {
 
                     setterTable.add(setter.get()).left().width(210f);
                 });
-                selecter.change();
+                selecter.fireModified();
             }).pad(8f).growX();
         }), true);
 
