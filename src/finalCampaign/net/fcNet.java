@@ -64,9 +64,9 @@ public class fcNet implements ApplicationListener {
 
     private static void clientReceive(String txt) {
         fcPacket[] packets = read(txt);
-        Log.debug("Client recieved, len: " + txt.length());
+        //Log.debug("Client recieved, len: " + txt.length());
         for (fcPacket packet : packets) {
-            Log.debug(packet.getClass().getName());
+            //Log.debug(packet.getClass().getName());
             for (Annotation annotation : packet.getClass().getAnnotations())
                 if (annotation instanceof CallFrom cf) if (cf.value() == PacketSource.client) return;
             
@@ -80,9 +80,9 @@ public class fcNet implements ApplicationListener {
 
     private static void serverReceive(Player player, String txt) {
         fcPacket[] packets = read(txt);
-        Log.debug("Server recieved, len: " + txt.length());
+        //Log.debug("Server recieved, len: " + txt.length());
         for (fcPacket packet : packets) {
-            Log.debug(packet.getClass().getName());
+            //Log.debug(packet.getClass().getName());
             for (Annotation annotation : packet.getClass().getAnnotations())
                 if (annotation instanceof CallFrom cf) if (cf.value() == PacketSource.server) return;
             
