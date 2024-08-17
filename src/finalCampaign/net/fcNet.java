@@ -7,10 +7,10 @@ import arc.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
-import finalCampaign.util.*;
 import mindustry.*;
 import mindustry.gen.*;
 
+// Notice:
 // Not registering packets in Mindustry.net.Net because the max packet id is 127, the game has used 114
 // ids and the additional ids registered by mods may be different between different clients.
 
@@ -39,9 +39,11 @@ public class fcNet implements ApplicationListener {
             unreliableQueue.add(bs.toByteArray());
         }
 
+        /*
         if (Vars.net.client()) {
-            debug.printStackTrace();
+            finalCampaign.util.debug.printStackTrace();
         }
+        */
     }
 
     private static fcPacket[] read(String txt) {

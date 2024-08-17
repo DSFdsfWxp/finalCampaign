@@ -19,7 +19,11 @@ import finalCampaign.bundle.*;
 import finalCampaign.net.*;
 import finalCampaign.patch.*;
 import finalCampaign.ui.*;
+import finalCampaign.ui.layout.dragHandle;
+import finalCampaign.ui.layout.dragLayout;
+import finalCampaign.ui.layout.dragLayoutY;
 import finalCampaign.util.*;
+import finalCampaign.util.event.forwardEventListener;
 import mindustry.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -708,7 +712,7 @@ public class targetingPriority extends bAttributeSetter {
                 field.addListener(new FocusListener() {
                     @Override
                     public void keyboardFocusChanged(FocusEvent event, Element element, boolean focused) {
-                        if (!focused) {
+                        if (!focused && rename) {
                             rename = false;
                             if (field.isValid()) rename(field.getText().trim());
                             rebuild();

@@ -61,7 +61,9 @@ public class injector {
         Fi configFi = gameJar.parent().child("fcConfig.properties");
         if (configFi.exists()) {
             try {
-                return ((String) setting.get("injector.injectedVersion", "")).equals(bothLauncherVersion.toDesktopVersionString());
+                var config = bothConfigUtil.read(configFi.reader());
+                String currentVersion = bothLauncherVersion.toDesktopVersionString();
+                return ((String) setting.get("injector.injectedVersion", "")).equals(currentVersion) && config.version.equals(currentVersion);
             } catch(Exception e) {
                 Log.err(e);
                 return false;
@@ -301,7 +303,7 @@ public class injector {
         String script = """
 @echo off
 title finalCampaign Mod - Mindustry
-java -jar ./fcMindustry.patched.jar
+java -jar ./fcMindustry.patched.jar %*
 if %ERRORLEVEL% EQU 0 goto f
 echo.
 echo The game crash or your java is not installed correctly.
@@ -311,7 +313,7 @@ pause
         if (!OS.isWindows) 
             script = """
 #!/bin/sh
-java -jar ./fcMindustry.patched.jar
+java -jar ./fcMindustry.patched.jar "$@"
             """;
 
         Fi scriptFile = path.child("fcLaunch." + (OS.isWindows ? "bat" : "sh"));

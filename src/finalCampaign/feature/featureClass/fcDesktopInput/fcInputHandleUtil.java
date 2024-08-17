@@ -13,6 +13,10 @@ import mindustry.world.*;
 import static arc.Core.*;
 import static mindustry.Vars.*;
 
+// Notice:
+// Code from InputHandle of v7 146
+// In order to resolve access problem.
+
 @SuppressWarnings("all")
 public class fcInputHandleUtil {
 

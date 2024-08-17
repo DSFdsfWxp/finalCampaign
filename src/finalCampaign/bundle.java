@@ -1,7 +1,6 @@
 package finalCampaign;
 
-import java.util.Locale;
-
+import java.util.*;
 import arc.*;
 import arc.util.*;
 import arc.util.io.*;
@@ -11,10 +10,21 @@ import arc.struct.*;
 public class bundle {
 
     public static Fi bundleCacheDir;
+    public static final String bundleVersion = "0";
 
     public static void init() {
-        bundleCacheDir = finalCampaign.dataDir.child("bundle");
+        bundleCacheDir = finalCampaign.dataDir.child("fcBundle");
         if (!bundleCacheDir.exists()) bundleCacheDir.mkdirs();
+        if (checkUpdate()) clearCache();
+    }
+
+    public static boolean checkUpdate() {
+        Fi bundleVersionFi = bundleCacheDir.child("version.properties");
+        if (!bundleVersionFi.exists()) return true;
+        ObjectMap<String, String> map = new ObjectMap<>();
+        PropertiesUtils.load(map, bundleVersionFi.reader());
+        if (map.get("version", "").equals(bundleVersion)) return false;
+        return true;
     }
 
     public static void clearCache() {
@@ -48,6 +58,14 @@ public class bundle {
             }
 
             bundleFile.writeString(String.join("\n", processedBundleContent));
+            Fi bundleVersionFile = bundleCacheDir.child("version.properties");
+            ObjectMap<String, String> map = new ObjectMap<>();
+            map.put("version", bundleVersion);
+            try {
+                PropertiesUtils.store(map, bundleVersionFile.writer(false), null);
+            } catch(Exception e) {
+                Log.err(e);
+            }
         }
 
         I18NBundle bundle = Core.bundle;

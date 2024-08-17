@@ -26,8 +26,17 @@ public class bezier {
 
     private double splineSamples[];
 
-    public bezier(double p0x, double p0y, double p1x, double p1y, double p2x, double p2y, double p3x, double p3y) {
+    public bezier() {
         splineSamples = new double[CUBIC_BEZIER_SPLINE_SAMPLES];
+    }
+
+    public bezier(double p0x, double p0y, double p1x, double p1y, double p2x, double p2y, double p3x, double p3y) {
+        this();
+        set(p0x, p0y, p1x, p1y, p2x, p2y, p3x, p3y);
+    }
+
+    public bezier set(double p0x, double p0y, double p1x, double p1y, double p2x, double p2y, double p3x, double p3y) {
+        arrays.fillD(splineSamples, 0d);
 
         cx = 3.0 * p1x;
         bx = 3.0 * (p2x - p1x) - cx;
@@ -64,6 +73,8 @@ public class bezier {
 
         sx = p3x - p0x;
         sy = p3y - p0y;
+
+        return this;
     }
 
     private double sampleCurveX(double t) {

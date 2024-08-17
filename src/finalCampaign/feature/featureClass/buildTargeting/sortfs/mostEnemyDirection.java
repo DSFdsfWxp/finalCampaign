@@ -7,6 +7,7 @@ import finalCampaign.patch.*;
 import mindustry.*;
 import mindustry.entities.*;
 import mindustry.game.*;
+import mindustry.game.Teams.*;
 import mindustry.gen.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 
@@ -38,13 +39,13 @@ public class mostEnemyDirection extends baseSortf<NoneConfig> {
     }
 
     public float calc(Unit unit) {
-        checkReset(true);
-        return clampFloat(readFromTree(build.angleTo(unit)));
+        checkReset();
+        return readFromTree(build.angleTo(unit));
     }
 
     public float calc(Building building) {
-        checkReset(false);
-        return clampFloat(readFromTree(build.angleTo(building)));
+        checkReset();
+        return readFromTree(build.angleTo(building));
     }
 
     private void calcDepth() {
@@ -57,7 +58,7 @@ public class mostEnemyDirection extends baseSortf<NoneConfig> {
         for (int d=-depth; d<=0 && d>=-depth; d+=gd) {
             if (d==0) gd = -1;
             float nd = (float) Math.pow(10, d);
-            int c = 10 - (int) (from * Math.pow(10, -d)) % 10;
+            int c = d == 0 ? Math.abs((int) from - (int) to) : (gd > 0 ? 10 - (int) (from * Math.pow(10, -d)) % 10 : (int) (to * Math.pow(10, -d)) % 10);
 
             for (int i=0; i<c; i++) {
                 if (from >= to) return;
@@ -67,8 +68,8 @@ public class mostEnemyDirection extends baseSortf<NoneConfig> {
                     int n = p == 0 ? (int) from : (int) ((from % Math.pow(10, -p + 1)) * Math.pow(10, p));
                     if (node.children[n] == null) node.children[n] = new treeNode(10);
                     node = node.children[n];
-                    node.count ++;
                 }
+                node.count ++;
 
                 from += nd;
             }
@@ -120,8 +121,8 @@ public class mostEnemyDirection extends baseSortf<NoneConfig> {
             p2y = y2;
         }
 
-        from = Angles.angle(p1x, p1y, build.x, build.y);
-        to = Angles.angle(p2x, p2y, build.x, build.y);
+        from = Angles.angle(0, 0, p1x, p1y);
+        to = Angles.angle(0, 0, p2x, p2y);
         addToTree(Math.min(from, to), Math.max(from, to));
     }
 
@@ -139,24 +140,29 @@ public class mostEnemyDirection extends baseSortf<NoneConfig> {
         return c;
     }
 
-    private void checkReset(boolean targetUnit) {
+    private void checkReset() {
         if (!needReset) return;
 
         root.clear();
         float range = build.range();
-        if (targetUnit) {
-            Units.nearbyEnemies(build.team, build.x - range, build.y - range, range*2f, range*2f, e -> {
-                if(e.dead() || e.team == Team.derelict || !e.within(build.x, build.y, range + e.hitSize/2f) || !e.targetable(build.team) || e.inFogTo(build.team)) return;
+        if (unitSide) {
+            Units.nearbyEnemies(build.team, build.x - range, build.y - range, range * 2f, range * 2f, e -> {
+                if(e.dead() || e.team == Team.derelict || !e.within(build.x, build.y, range + e.hitSize / 2f) || !e.targetable(build.team) || e.inFogTo(build.team)) return;
                 if ((e.isGrounded() && !block.targetGround) || (!e.isGrounded() && !block.targetAir) || !(filter.filters.size > 0 ? filter.unitFilter.get(e) : block.unitFilter.get(e))) return;
 
                 addToTree(e.x, e.y, e.hitSize);
             });
         } else {
-            Vars.indexer.allBuildings(build.x, build.y, range, e -> {
-                if (e.dead() || (e.team == Team.derelict && !Vars.state.rules.coreCapture) || e.team == build.team || !block.targetGround || !(filter.filters.size > 0 ? filter.buildingFilter.get(e) : block.buildingFilter.get(e))) return;
+            for (TeamData data : Vars.state.teams.present) {
+                if (data.buildingTree == null) continue;
+                data.buildingTree.intersect(build.x - range, build.y - range, range * 2f, range * 2f, e -> {
+                    if (e != null && e.within(build.x, build.y, range + e.hitSize() / 2f)) {
+                        if (e.dead() || (e.team == Team.derelict && !Vars.state.rules.coreCapture) || e.team == build.team || !block.targetGround || !(filter.filters.size > 0 ? filter.buildingFilter.get(e) : block.buildingFilter.get(e))) return;
 
-                addToTree(e.x, e.y, e.hitSize());
-            });
+                        addToTree(e.x, e.y, e.hitSize());
+                    }
+                });
+            }
         }
 
         needReset = false;

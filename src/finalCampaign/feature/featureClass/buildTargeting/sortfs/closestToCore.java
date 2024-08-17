@@ -21,11 +21,11 @@ public class closestToCore extends baseSortf<NoneConfig> {
 
     public float calc(Unit unit) {
         CoreBuild core = unit.team == build.team ? unit.closestCore() : unit.closestEnemyCore();
-        return 1f - clampFloat((new Vec2(unit.x - core.x, unit.y - core.y)).len());
+        return - (new Vec2(unit.x - core.x, unit.y - core.y)).len();
     }
 
     public float calc(Building building) {
         CoreBuild core = building.team == build.team ? building.closestCore() : building.closestEnemyCore();
-        return 1f - clampFloat((new Vec2(building.x - core.x, building.y - core.y)).len());
+        return - (new Vec2(building.x - core.x, building.y - core.y)).len();
     }
 }

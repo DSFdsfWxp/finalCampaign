@@ -192,7 +192,7 @@ public class targetingLimit extends bAttributeSetter {
                 field.addListener(new FocusListener() {
                     @Override
                     public void keyboardFocusChanged(FocusEvent event, Element element, boolean focused) {
-                        if (!focused) {
+                        if (!focused && editing) {
                             editing = false;
                             Core.app.post(cNum.this::rebuild);
                             if (!field.isValid()) return;

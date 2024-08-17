@@ -3,6 +3,14 @@ package finalCampaign.util;
 import java.lang.reflect.*;
 
 public class reflect {
+    public static Class<?> findClass(String name, ClassLoader loader) {
+        try {
+            return loader.loadClass(name);
+        } catch (Exception ignore) {
+            return null;
+        }
+    }
+
     public static <T> Constructor<T> getDeclaredConstructor(Class<T> c, Class<?> ...args) {
         try {
             return c.getDeclaredConstructor(args);

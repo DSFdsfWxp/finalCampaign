@@ -2,7 +2,6 @@ package finalCampaign.feature.featureClass.buildTargeting;
 
 import java.io.*;
 import arc.func.*;
-import arc.math.*;
 import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
@@ -11,12 +10,11 @@ import finalCampaign.*;
 import finalCampaign.patch.*;
 import finalCampaign.util.*;
 import mindustry.*;
-import mindustry.entities.Units.*;
 import mindustry.gen.*;
 import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 
-public class fcSortf implements Sortf {
+public class fcSortf {
     protected final static ObjectMap<String, Func<TurretBuild, baseSortf<?>>> provs = new ObjectMap<>();
     protected final static Seq<String> lst = new Seq<>();
     
@@ -48,46 +46,25 @@ public class fcSortf implements Sortf {
         debugTimer.mark();
     }
 
-    public float cost(Unit unit, float x, float y) {
-        float score = 0f;
-        
-        for (int i=0; i<unitSortfs.size; i++) {
-            float s = Mathf.clamp(unitSortfs.get(i).calc(unit));
-            if (s > 0) score += s + Math.pow(2, unitSortfs.size - 1) - 1;
-        }
-
-        if (print) {
-            Log.debug(unit.type.localizedName + " " + Float.toString(-score));
-        }
-
-        if (!build.isControlled()) score += calcAttractive((IFcAttractiveEntityType) unit.type, new Vec2(unit.x, unit.y));
-
-        if (print) {
-            Log.debug(unit.type.localizedName + " f " + Float.toString(-score));
-        }
-
-        return -score;
+    public float[] score(Unit unit, float[] res) {
+        res = arrays.ensureLengthF(res, unitSortfs.size + 1);
+        res[0] = calcAttractive((IFcAttractiveEntityType) unit.type, new Vec2(unit.x, unit.y));
+        for (int i=1; i<res.length; i++) res[i] = i > unitSortfs.size ? 0f : unitSortfs.get(i - 1).calc(unit);
+        return res;
     }
 
-    public float cost(Building building) {
-        float score = 0f;
-        
-        for (int i=0; i<buildSortfs.size; i++) {
-            float s = Mathf.clamp(buildSortfs.get(i).calc(building));
-            if (s > 0) score += s * Math.pow(2, buildSortfs.size - i);
+    public float[] score(Building building, float[] res) {
+        res = arrays.ensureLengthF(res, buildSortfs.size + 1);
+        res[0] = calcAttractive((IFcAttractiveEntityType) building.block, new Vec2(building.x, building.y));
+        for (int i=1; i<res.length; i++) res[i] = i > buildSortfs.size ? 0f : buildSortfs.get(i - 1).calc(building);
+        if (Vars.net.server() || !Vars.net.active()) {
+            if (print) {
+                String t = "";
+                for (float s : res) t += Float.toString(s) + " ";
+                Log.debug("@: @", building.block.localizedName, t);
+            }
         }
-
-        if (print) {
-            Log.debug(building.block.localizedName + " " + Float.toString(-score));
-        }
-
-        if (!build.isControlled()) score += calcAttractive((IFcAttractiveEntityType) building.block, new Vec2(building.x, building.y));
-
-        if (print) {
-            Log.debug(building.block.localizedName + " f " + Float.toString(-score));
-        }
-
-        return -score;
+        return res;
     }
 
     public boolean isValid() {
@@ -139,10 +116,10 @@ public class fcSortf implements Sortf {
     }
 
     private float calcAttractive(IFcAttractiveEntityType type, Vec2 targetPos) {
-        Vec2 pos = new Vec2(build.x, build.y);
-        Vec2 currentDirection = build.targetPos.cpy().nor();
+        Vec2 pos = Tmp.v1.set(build.x, build.y);
+        Vec2 currentDirection = Tmp.v2.set(build.targetPos).nor();
 
-        Vec2 deltaPos = pos.cpy().sub(targetPos);
+        Vec2 deltaPos = Tmp.v3.set(pos).sub(targetPos);
         float dst = deltaPos.len();
         float angleFactor = currentDirection.dot(deltaPos) / (currentDirection.len() * dst) + 2;
         float dstFactor = 1.5f;
@@ -150,7 +127,7 @@ public class fcSortf implements Sortf {
             double x4 = 3d * Math.sqrt(build.range()) + 120d;
             double x2 = 2d / 3d * (x4 + 5d);
             double x3 = 1d / 3d * (x4 + 5d);
-            bezier bezier = new bezier(5d, 1.5d, x2, 1.5d, x3, 0d, x4, 0d);
+            bezier bezier = tmp.b1.set(5d, 1.5d, x2, 1.5d, x3, 0d, x4, 0d);
             dstFactor = (float) bezier.solve(dst);
         }
         float val = angleFactor * dstFactor * type.fcAttractiveness() - buildType.fcAntiAttractiveness();

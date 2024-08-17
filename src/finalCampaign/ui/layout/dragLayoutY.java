@@ -1,33 +1,34 @@
-package finalCampaign.ui;
+package finalCampaign.ui.layout;
 
 import arc.graphics.g2d.*;
 import arc.scene.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
+import arc.util.*;
 import mindustry.gen.*;
 
-public class dragLayoutX extends dragLayout {
-    float space, prefWidth, prefHeight, targetHeight;
+public class dragLayoutY extends dragLayout {
+    float space, prefWidth, prefHeight, targetWidth;
     Seq<Element> seq = new Seq<>();
     int insertPosition = 0;
     boolean invalidated;
 
-    public dragLayoutX(float space, float height) {
+    public dragLayoutY(float space, float width) {
         setTransform(true);
         this.space = Scl.scl(space);
-        targetHeight = height;
+        targetWidth = width;
     }
 
     @Override
     public void layout(){
         invalidated = true;
-        float cx = 0;
+        float cy = 0;
         seq.clear();
 
-        float totalWidth = getChildren().sumf(e -> e.getWidth() + space);
+        float totalHeight = getChildren().sumf(e -> e.getHeight() + space);
 
-        width = prefWidth = totalWidth;
-        height = prefHeight = Scl.scl(targetHeight);
+        height = prefHeight = totalHeight;
+        width = prefWidth = Scl.scl(targetWidth);
 
         //layout everything normally
         for(int i = 0; i < getChildren().size; i++){
@@ -36,34 +37,34 @@ public class dragLayoutX extends dragLayout {
             //ignore the dragged element
             if(dragging == e) continue;
 
-            e.setSize(e.getPrefWidth(), height);
-            e.setPosition(cx, 0);
+            e.setSize(width, e.getPrefHeight());
+            e.setPosition(0, height - cy, Align.topLeft);
 
-            cx += e.getPrefWidth() + space;
+            cy += e.getPrefHeight() + space;
             seq.add(e);
         }
 
         //insert the dragged element if necessary
         if(dragging != null){
             //find real position of dragged element top
-            float realX = dragging.x + dragging.translation.x;
+            float realY = dragging.getY(Align.top) + dragging.translation.y;
 
             insertPosition = 0;
 
             for(int i = 0; i < seq.size; i++){
                 Element cur = seq.get(i);
                 //find fit point
-                if(realX > cur.x && (i == seq.size - 1 || realX < seq.get(i + 1).x)) {
+                if(realY < cur.y && (i == seq.size - 1 || realY > seq.get(i + 1).y)){
                     insertPosition = i + 1;
                     break;
                 }
             }
 
-            float shiftAmount = dragging.getWidth() + space;
+            float shiftAmount = dragging.getHeight() + space;
 
             //shift elements below insertion point down
             for(int i = insertPosition; i < seq.size; i++){
-                seq.get(i).x += shiftAmount;
+                seq.get(i).y -= shiftAmount;
             }
         }
 
@@ -90,11 +91,11 @@ public class dragLayoutX extends dragLayout {
 
         //draw selection box indicating placement position
         if(dragging != null && insertPosition <= seq.size){
-            float shiftAmount = dragging.getWidth();
-            float lastX = insertPosition == seq.size ? x + width : seq.get(insertPosition).x + x - space;
-            float lastY = y;
+            float shiftAmount = dragging.getHeight();
+            float lastX = x;
+            float lastY = insertPosition == 0 ? height + y : seq.get(insertPosition - 1).y + y - space;
 
-            Tex.pane.draw(lastX - shiftAmount, lastY, dragging.getWidth(), height);
+            Tex.pane.draw(lastX, lastY - shiftAmount, width, dragging.getHeight());
         }
 
         if(invalidated){

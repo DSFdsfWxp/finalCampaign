@@ -1,4 +1,4 @@
-package finalCampaign.ui;
+package finalCampaign.ui.layout;
 
 import arc.scene.*;
 import arc.scene.ui.layout.*;

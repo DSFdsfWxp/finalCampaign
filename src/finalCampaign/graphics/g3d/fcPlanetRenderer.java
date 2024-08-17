@@ -1,4 +1,4 @@
-package finalCampaign.graphics;
+package finalCampaign.graphics.g3d;
 
 import arc.*;
 import arc.graphics.*;
@@ -9,10 +9,10 @@ import mindustry.game.EventType.*;
 import mindustry.graphics.g3d.*;
 import mindustry.type.*;
 
-public class customPlanetRenderer extends PlanetRenderer {
+public class fcPlanetRenderer extends PlanetRenderer {
     @Override
     public void render(PlanetParams params) {
-        customPlanetParams cParams = (customPlanetParams) params;
+        fcPlanetParams cParams = (fcPlanetParams) params;
 
         Draw.flush();
         Gl.clear(Gl.depthBufferBit);

@@ -22,14 +22,24 @@ public class shareMixinService extends MixinServiceAbstract implements ITransfor
     public static shareFi thisJar;
     public static boolean log = false;
     public static boolean mixinLog = false;
-    
+    public static boolean debug = false;
+    public static String[] startupArgs;
+
     private ObjectMap<String, ILogger> loggerMap;
 
     public static void parseArg(String[] arg) {
         for (String a : arg) {
-            if (a.equals("-fcLog")) log = true;
+            if (a.equals("-fcBootstrapLog")) log = true;
             if (a.equals("-fcMixinLog")) mixinLog = true;
+            if (a.equals("-fcDebug")) debug = true;
         }
+
+        Seq<String> args = new Seq<>(arg);
+        if (log) args.remove("-fcBootstrapLog");
+        if (mixinLog) args.remove("-fcMixinLog");
+        if (debug) args.remove("-fcDebug");
+
+        startupArgs = args.toArray(String.class);
     }
     
     public shareMixinService() {

@@ -1,4 +1,4 @@
-package finalCampaign.ui;
+package finalCampaign.ui.layout;
 
 import arc.input.*;
 import arc.math.geom.*;

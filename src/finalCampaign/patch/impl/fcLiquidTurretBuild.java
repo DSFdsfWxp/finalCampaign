@@ -53,7 +53,7 @@ public abstract class fcLiquidTurretBuild extends Building implements IFcLiquidT
         Runnable extinguish = () -> {
             if (fcTurretBlock.extinguish && liquids.current().canExtinguish()) {
                 float range = fcTurretBlock.range;
-    
+
                 int tx = World.toTile(x), ty = World.toTile(y);
                 Fire result = null;
                 float mindst = 0f;

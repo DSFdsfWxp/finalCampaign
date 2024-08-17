@@ -18,13 +18,19 @@ public class finalCampaign extends Mod{
     public static ZipFi thisModFi;
     public static Fi dataDir;
 
-    public finalCampaign(){
-        Log.info(" # finalCampaign [prototypePhase]");
-        Log.info(" # " + version.toVersionString());
-    }
-
     @Override
     public void init() {
+        thisMod = Vars.mods.getMod(finalCampaign.class);
+        thisModFi = new ZipFi(thisMod.file);
+
+        dataDir = Vars.dataDirectory.child("finalCampaign");
+        if (!dataDir.exists()) dataDir.mkdirs();
+
+        version.init();
+
+        Log.info(" # finalCampaign [prototypePhase]");
+        Log.info(" # " + version.toVersionString());
+
         if (!Vars.headless) {
             if (injector.injected() && injector.inInjectedGame()) {
                 modStartup();
@@ -45,15 +51,8 @@ public class finalCampaign extends Mod{
             return;
         }
 
-        thisMod = Vars.mods.getMod(finalCampaign.class);
-        thisModFi = new ZipFi(thisMod.file);
-
-        dataDir = Vars.dataDirectory.child("finalCampaign");
-        if (!dataDir.exists()) dataDir.mkdirs();
-
         bundle.init();
         featureLoader.init();
-        version.init();
         if (!Vars.headless) atlas.init();
 
         bundle.load();
@@ -92,6 +91,8 @@ public class finalCampaign extends Mod{
 
         if (!Vars.headless) shaders.load();
         if (!Vars.headless) atlas.load();
+
+        System.gc();
     }
 
     @Override

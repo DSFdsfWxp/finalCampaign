@@ -19,10 +19,10 @@ public class farest extends baseSortf<NoneConfig> {
     }
 
     public float calc(Unit unit) {
-        return clampFloat((new Vec2(unit.x - build.x, unit.y - build.y)).len());
+        return (new Vec2(unit.x - build.x, unit.y - build.y)).len();
     }
 
     public float calc(Building building) {
-        return clampFloat((new Vec2(building.x - build.x, building.y - build.y)).len());
+        return (new Vec2(building.x - build.x, building.y - build.y)).len();
     }
 }

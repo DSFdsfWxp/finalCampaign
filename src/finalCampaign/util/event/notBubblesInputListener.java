@@ -1,4 +1,4 @@
-package finalCampaign.util;
+package finalCampaign.util.event;
 
 import arc.scene.event.*;
 

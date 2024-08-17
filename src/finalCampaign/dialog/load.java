@@ -2,7 +2,7 @@ package finalCampaign.dialog;
 
 import arc.*;
 import arc.scene.*;
-import arc.scene.actions.Actions;
+import arc.scene.actions.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
@@ -11,7 +11,7 @@ import arc.input.*;
 import arc.math.*;
 import arc.math.geom.*;
 import finalCampaign.*;
-import finalCampaign.graphics.*;
+import finalCampaign.graphics.g3d.*;
 import finalCampaign.util.*;
 import mindustry.*;
 import mindustry.ui.*;
@@ -19,14 +19,13 @@ import mindustry.ui.dialogs.*;
 import mindustry.content.*;
 import mindustry.game.*;
 import mindustry.graphics.*;
-import mindustry.graphics.g3d.*;
 import mindustry.graphics.g3d.PlanetRenderer.*;
 import mindustry.type.*;
 
 public class load extends BaseDialog implements PlanetInterfaceRenderer {
 
-    public PlanetRenderer planets = new customPlanetRenderer();
-    public customPlanetParams state = new customPlanetParams();
+    public fcPlanetRenderer planets = new fcPlanetRenderer();
+    public fcPlanetParams state = new fcPlanetParams();
     
     private boolean shouldStopFakeUpdate;
     private Label zoomLabel;

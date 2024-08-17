@@ -18,10 +18,10 @@ public class highestHp extends baseSortf<NoneConfig> {
     }
 
     public float calc(Unit unit) {
-        return clampFloat(unit.health);
+        return unit.health;
     }
 
     public float calc(Building building) {
-        return clampFloat(building.health);
+        return building.health;
     }
 }

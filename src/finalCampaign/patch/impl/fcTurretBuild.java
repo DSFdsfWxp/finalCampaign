@@ -12,7 +12,7 @@ import finalCampaign.feature.featureClass.buildTargetingLimit.*;
 import finalCampaign.feature.featureClass.mapVersion.*;
 import finalCampaign.net.*;
 import finalCampaign.patch.*;
-import finalCampaign.util.fakeFinal;
+import finalCampaign.util.*;
 import mindustry.*;
 import mindustry.entities.*;
 import mindustry.entities.bullet.*;
@@ -49,6 +49,8 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
     private boolean fcPreferBuildingTarget = false;
     private fcSortf fcSortf;
     private fcFilter fcFilter;
+    private float[] fcTargetScore = new float[1];
+    private float[] fcTmpTargetScore;
 
     public boolean fcForceDisablePredictTarget() {
         return fcForceDisablePredictTarget;
@@ -141,28 +143,45 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
 
     public void fcFindTarget() {
         float range = range();
+        fcSortf.beforeTargeting();
+        fcFilter.beforeTargeting();
+        target = null;
+        arrays.fillF(fcTargetScore, 0f);
 
         Runnable findUnitTarget = () -> {
-            fcSortf.beforeTargeting();
+            if(team == Team.derelict) return;
+            fcTargetScore = arrays.ensureLengthF(fcTargetScore, fcSortf.unitSortfs.size + 1);
 
-            target = Units.bestEnemy(team, x, y, range, e -> !e.dead() && (fcFilter.filters.size > 0 ? fcFilter.unitFilter.get(e) : fcTurretBlock.unitFilter.get(e)) && (e.isGrounded() || fcTurretBlock.targetAir) && (!e.isGrounded() || fcTurretBlock.targetGround), fcSortf.unitSortfs.size > 0 ? fcSortf : fcTurretBlock.unitSort);
+            Units.nearbyEnemies(team, x - range, y - range, range * 2f, range * 2f, unit -> {
+                if (unit.dead() || !(fcFilter.filters.size > 0 ? fcFilter.unitFilter.get(unit) : fcTurretBlock.unitFilter.get(unit)) || (unit.isGrounded() && !fcTurretBlock.targetGround) || (!unit.isGrounded() && !fcTurretBlock.targetAir)) return;
+                if(unit.team == Team.derelict || !unit.within(x, y, range + unit.hitSize / 2f) || !unit.targetable(team) || unit.inFogTo(team)) return;
+    
+                fcTmpTargetScore = fcSortf.score(unit, fcTmpTargetScore);
+                for (int i=0; i<fcTmpTargetScore.length; i++) {
+                    if (fcTargetScore[i] < fcTmpTargetScore[i] || target == null) {
+                        target = unit;
+                        System.arraycopy(fcTmpTargetScore, 0, fcTargetScore, 0, fcTmpTargetScore.length);
+                    }
+                    if (fcTargetScore[i] != fcTmpTargetScore[i]) break;
+                }
+            });
         };
 
         Runnable findBuildingTarget = () -> {
             if (!fcTurretBlock.targetGround) return;
-            target = null;
-            fakeFinal<Float> cost = new fakeFinal<Float>(Float.POSITIVE_INFINITY);
-
-            fcSortf.beforeTargeting();
-
+            fcTargetScore = arrays.ensureLengthF(fcTargetScore, fcSortf.buildSortfs.size + 1);
+            
             Vars.indexer.allBuildings(x, y, range, building -> {
                 if (building.team == Team.derelict && !Vars.state.rules.coreCapture) return;
-                if (!fcTurretBlock.buildingFilter.get(building) || !building.block.targetable || building.team == team || !(fcFilter.filters.size > 0 ? fcFilter.buildingFilter.get(building) : fcTurretBlock.buildingFilter.get(building))) return;
+                if (!building.block.targetable || building.team == team || !(fcFilter.filters.size > 0 ? fcFilter.buildingFilter.get(building) : fcTurretBlock.buildingFilter.get(building))) return;
 
-                float bcost = fcSortf.cost(building);
-                if (bcost < cost.get()) {
-                    target = building;
-                    cost.set(bcost);
+                fcTmpTargetScore = fcSortf.score(building, fcTmpTargetScore);
+                for (int i=0; i<fcTmpTargetScore.length; i++) {
+                    if (fcTargetScore[i] < fcTmpTargetScore[i] || target == null) {
+                        target = building;
+                        System.arraycopy(fcTmpTargetScore, 0, fcTargetScore, 0, fcTmpTargetScore.length);
+                    }
+                    if (fcTargetScore[i] != fcTmpTargetScore[i]) break;
                 }
             });
 
