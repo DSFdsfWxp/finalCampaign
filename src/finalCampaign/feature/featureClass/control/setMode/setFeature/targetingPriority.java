@@ -169,8 +169,21 @@ public class targetingPriority extends bAttributeSetter {
             });
 
             layout.indexUpdate(() -> {
+                var children = layout.getChildren();
+                boolean needUpdate = false;
+
+                if (current.size == children.size) {
+                    for (int i=0; i<current.size; i++) {
+                        if (!current.get(i).name.equals(map.get((Table) children.get(i)).name)) {
+                            needUpdate = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!needUpdate) return;
                 current.clear();
-                for (Element e : layout.getChildren()) current.add(map.get((Table) e));
+                for (Element e : children) current.add(map.get((Table) e));
                 updateSortf();
             });
 
@@ -495,7 +508,7 @@ public class targetingPriority extends bAttributeSetter {
                 if (name == null) return;
                 Category original = item.config;
                 item.config = Category.valueOf(name);
-                fireModified();
+                if (original.ordinal() != item.config.ordinal()) fireModified();
                 item.config = original;
             });
             add(selecter).center();

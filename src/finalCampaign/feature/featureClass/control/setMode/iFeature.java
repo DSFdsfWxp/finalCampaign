@@ -4,7 +4,7 @@ import arc.scene.ui.layout.*;
 import finalCampaign.bundle.*;
 import mindustry.gen.*;
 
-public abstract class iFeature {
+public abstract class IFeature {
     public boolean supportMultiSelect;
     public String category;
     public String name;

@@ -11,7 +11,7 @@ import mindustry.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 
-public abstract class bSelectSetter<T> extends iFeature {
+public abstract class bSelectSetter<T> extends IFeature {
     private boolean sandboxOnly;
     protected bundleNS bundleNS;
 

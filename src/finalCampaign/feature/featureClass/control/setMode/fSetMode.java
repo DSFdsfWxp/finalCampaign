@@ -6,9 +6,9 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.input.*;
 import arc.struct.*;
-import finalCampaign.feature.featureClass.binding.*;
-import finalCampaign.feature.featureClass.fcDesktopInput.*;
+import finalCampaign.event.*;
 import finalCampaign.feature.featureClass.tuner.*;
+import finalCampaign.input.*;
 import finalCampaign.patch.*;
 import mindustry.*;
 import mindustry.core.GameState.*;
@@ -41,6 +41,9 @@ public class fSetMode {
     protected static boolean selectSameBlockBuilding;
     private static int selectedNumDelta;
     private static Seq<Building> tmp;
+
+    private static Building lastSelected;
+    private static Building lastDeselected;
 
     public static boolean supported() {
         return !Vars.headless;
@@ -83,11 +86,11 @@ public class fSetMode {
             }
         });
 
-        fFcDesktopInput.addBindingHandle(() -> {
+        Events.on(fcInputHandleUpdateEvent.class, event -> {
             if (!enabled) return;
             if (Core.scene.hasDialog() || Core.scene.hasField()) return;
 
-            if (Core.input.keyTap(binding.setMode)) {
+            if (Core.input.keyTap(fcBindings.setMode)) {
                 isOn = !isOn;
                 if (isOn) frag.rebuild();
             }
@@ -168,35 +171,32 @@ public class fSetMode {
                 dx = dy = dw = dh = 0;
 
                 for (Building b : selectingBuilding) {
-                    IFcBuilding fb = (IFcBuilding) b;
+                    if (selected.contains(b)) continue;
                     if (deselect) {
-                        if (!fb.fcSetModeSelected()) continue;
                         selected.remove(b);
-                        selectingBuilding.add(b);
-                        fb.fcSetModeSelected(false);
+                        lastDeselected = b;
                         selectedNumDelta --;
                     } else {
-                        if (fb.fcSetModeSelected()) continue;
                         selected.add(b);
-                        fb.fcSetModeSelected(true);
+                        lastSelected = b;
                         selectedNumDelta ++;
                     }
                 }
                 selectingBuilding.clear();
 
-                if (selectSameBlockBuilding && selected.size >= 1 && selectedNumDelta == 1 && !deselect) {
+                if (selectSameBlockBuilding && selected.size > 0 && Math.abs(selectedNumDelta) == 1) {
                     Seq<Building> stack = new Seq<>();
-                    stack.add(selected.pop());
+                    Seq<Building> nextStack = new Seq<>();
+                    Building first = deselect ? lastDeselected : lastSelected;
+                    stack.add(first);
                     tmp.clear();
 
                     while (stack.size > 0) {
-                        Seq<Building> toAdd = new Seq<>();
+                        nextStack.clear();
                         for (Building b : stack) {
                             if (tmp.contains(b)) continue;
 
-                            IFcBuilding fb = (IFcBuilding) b;
                             Tile t = b.tile();
-                            if (!fb.fcSetModeSelected()) fb.fcSetModeSelected(!deselect);
                             int da = (int) (Math.ceil(b.block.size / 2f - 1f)) + 1;
                             int db = b.block.size % 2 == 0 ? da + 1 : da;
 
@@ -206,14 +206,17 @@ public class fSetMode {
                             lst[2] = Vars.world.build(t.x - da, t.y);
                             lst[3] = Vars.world.build(t.x + db, t.y);
 
-                            for (Building s : lst) if (s != null) if (s.block == b.block && s.team == b.team) toAdd.add(s);
+                            for (Building s : lst) if (s != null) if (s.block == b.block && s.team == b.team) nextStack.add(s);
+                            tmp.add(b);
                         }
-                        tmp.add(stack);
-                        stack = toAdd;
+                        Seq<Building> swap = stack;
+                        stack = nextStack;
+                        nextStack = swap;
                     }
 
                     if (!deselect) {
-                        for (Building b : tmp) if (!selected.contains(b)) selected.add(b);
+                        selected.pop();
+                        selected.add(tmp);
                     } else {
                         selected.removeAll(tmp);
                     }
@@ -235,7 +238,7 @@ public class fSetMode {
             }
         });
 
-        fFcDesktopInput.addDrawTopHandle(() -> {
+        Events.on(fcDrawWorldTopEvent.class, event -> {
             if (!isOn()) return;
 
             Cons<Building> draw = b -> {
@@ -296,11 +299,12 @@ public class fSetMode {
         return isOn && enabled;
     }
 
+    /** Set whether the setting pane can be flick scrolled */
     public static void setFlickScrollEnabled(boolean v) {
         if (frag.pane != null) frag.pane.setFlickScroll(v);
     }
 
-    public static void addFeature(iFeature feature) {
+    public static void addFeature(IFeature feature) {
         if (!frag.categories.contains(feature.category)) frag.categories.add(feature.category);
         if (!frag.features.contains(feature)) frag.features.add(feature);
     }

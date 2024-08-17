@@ -30,7 +30,7 @@ import mindustry.world.blocks.defense.turrets.ItemTurret.*;
 import mindustry.world.blocks.defense.turrets.LiquidTurret.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 
-public class itemStack extends iFeature {
+public class itemStack extends IFeature {
     public itemStack() {
         category = "content";
         name = "itemStack";

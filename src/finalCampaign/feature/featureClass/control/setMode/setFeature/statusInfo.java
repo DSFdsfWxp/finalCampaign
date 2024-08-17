@@ -19,7 +19,7 @@ import mindustry.world.blocks.production.Separator.*;
 import mindustry.world.blocks.production.WallCrafter.*;
 import mindustry.world.meta.*;
 
-public class statusInfo extends iFeature{
+public class statusInfo extends IFeature{
     public statusInfo() {
         supportMultiSelect = false;
         category = "basic";

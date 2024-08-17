@@ -17,7 +17,7 @@ import mindustry.world.blocks.defense.turrets.ItemTurret;
 import mindustry.world.blocks.defense.turrets.ItemTurret.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 
-public class multiItemStack extends iFeature {
+public class multiItemStack extends IFeature {
     public multiItemStack() {
         category = "content";
         name = "multiItemStack";

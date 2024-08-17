@@ -1,7 +1,8 @@
 package finalCampaign.feature.featureClass.crosshair;
 
+import arc.*;
 import arc.graphics.*;
-import finalCampaign.feature.featureClass.fcDesktopInput.*;
+import finalCampaign.event.*;
 import finalCampaign.feature.featureClass.tuner.*;
 import finalCampaign.feature.featureClass.tuner.fTuner.*;
 import mindustry.*;
@@ -35,7 +36,7 @@ public class fCrosshair {
         enabled = fTuner.add("centerCrosshair", false, config, v -> enabled = v);
         Vars.ui.hudGroup.addChild(fragment);
         fragment.added();
-        fFcDesktopInput.addBindingHandle(fragment::checkMoving);
+        Events.on(fcInputHandleUpdateEvent.class, event -> fragment.checkMoving());
     }
 
     public static boolean isOn() {

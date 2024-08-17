@@ -22,7 +22,7 @@ public class setModeFragment extends Table {
     private boolean extandedSettingTable;
     protected ScrollPane pane;
     protected boolean forceSelectOpt;
-    protected Seq<iFeature> features;
+    protected Seq<IFeature> features;
     protected Seq<String> categories;
 
     public setModeFragment() {
@@ -118,7 +118,7 @@ public class setModeFragment extends Table {
                         bundleNS bundle = new bundleNS("setMode.feature." + cat);
                         boolean inited = false;
 
-                        for (iFeature feature : features) {
+                        for (IFeature feature : features) {
                             if (!cat.equals(feature.category)) continue;
                             if (selected.length > 1 && !feature.supportMultiSelect) continue;
                             if (feature.isSupported(selected)) {

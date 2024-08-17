@@ -4,7 +4,6 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
-import finalCampaign.graphics.g2d.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 
@@ -28,7 +27,7 @@ public abstract class pane extends Table {
     @Override
     protected void drawBackground(float x, float y) {
         Draw.color(0, 0, 0, backgroundDarkness);
-        fcFill.rect(x, y, width, height);
+        Fill.crect(x, y, width, height);
         if (!alwaysDrawBorder && !selected && !hovering) return;
         super.drawBackground(x, y);
     }

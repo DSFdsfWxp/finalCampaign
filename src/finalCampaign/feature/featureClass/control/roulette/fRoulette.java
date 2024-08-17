@@ -2,12 +2,12 @@ package finalCampaign.feature.featureClass.control.roulette;
 
 import arc.*;
 import arc.math.geom.*;
-import arc.util.Reflect;
-import finalCampaign.feature.featureClass.binding.*;
+import arc.util.*;
+import finalCampaign.event.*;
 import finalCampaign.feature.featureClass.control.setMode.*;
-import finalCampaign.feature.featureClass.fcDesktopInput.*;
 import finalCampaign.feature.featureClass.tuner.*;
 import finalCampaign.feature.featureClass.tuner.fTuner.*;
+import finalCampaign.input.*;
 import mindustry.*;
 
 public class fRoulette {
@@ -23,7 +23,7 @@ public class fRoulette {
     }
 
     public static boolean supported() {
-        return !Vars.headless;
+        return !Vars.headless && !Vars.mobile;
     }
 
     public static void init() {
@@ -33,14 +33,14 @@ public class fRoulette {
     }
 
     public static boolean isOn() {
-        return inited && on && enabled && !Vars.control.input.commandMode && fSetMode.isOn();
+        return inited && on && enabled && !Vars.control.input.commandMode && !fSetMode.isOn();
     }
 
     public static void load() {
         enabled = fTuner.add("roulette", false, config, v -> enabled = v);
 
-        fFcDesktopInput.addBindingHandle(() -> {
-            if (Core.input.keyDown(binding.roulette) && !Core.scene.hasField() && !Core.scene.hasDialog()) {
+        Events.on(fcInputHandleUpdateEvent.class, event -> {
+            if (Core.input.keyDown(fcBindings.roulette) && !Core.scene.hasField() && !Core.scene.hasDialog()) {
                 if (!on) {
                     on = true;
                     Vec2 mPos = Core.input.mouse();
@@ -52,7 +52,7 @@ public class fRoulette {
                 }
             }
 
-            if (Core.input.keyRelease(binding.roulette)) {
+            if (Core.input.keyRelease(fcBindings.roulette)) {
                 on = false;
                 frag.remove(0.2f);
                 if (frag.selectedBlock != null) {

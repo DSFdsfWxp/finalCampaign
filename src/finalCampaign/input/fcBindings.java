@@ -1,10 +1,16 @@
-package finalCampaign.feature.featureClass.binding;
+package finalCampaign.input;
 
+import arc.*;
 import arc.KeyBinds.*;
 import arc.input.InputDevice.*;
-import arc.input.KeyCode;
+import arc.struct.*;
+import arc.util.*;
+import mindustry.Vars;
+import mindustry.input.*;
+import mindustry.ui.dialogs.*;
+import arc.input.*;
 
-public enum binding implements KeyBind {
+public enum fcBindings implements KeyBind {
 
     freeVision(KeyCode.f4, "finalCampaign"),
     roulette(KeyCode.tab),
@@ -26,12 +32,12 @@ public enum binding implements KeyBind {
     private final KeybindValue defaultValue;
     private final String category;
 
-    binding(KeybindValue defaultValue, String category) {
+    fcBindings(KeybindValue defaultValue, String category) {
         this.defaultValue = defaultValue;
         this.category = category;
     }
 
-    binding(KeybindValue defaultValue) {
+    fcBindings(KeybindValue defaultValue) {
         this(defaultValue, null);
     }
 
@@ -43,5 +49,17 @@ public enum binding implements KeyBind {
     @Override
     public String category() {
         return category;
+    }
+
+    public static void load() {
+        Seq<KeyBind> tmp = new Seq<>();
+        for (Object o : Binding.values()) tmp.add((KeyBind) o);
+        for (Object o : values()) tmp.add((KeyBind) o);
+        KeyBinds newKeyBinds = new KeyBinds();
+        newKeyBinds.setDefaults(tmp.toArray(KeyBind.class));
+
+        Core.keybinds = newKeyBinds;
+        Reflect.invoke(newKeyBinds, "load");
+        Vars.ui.controls = new KeybindDialog();
     }
 }

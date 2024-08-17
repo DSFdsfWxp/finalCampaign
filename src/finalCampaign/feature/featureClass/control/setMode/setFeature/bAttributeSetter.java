@@ -9,7 +9,7 @@ import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
 
-public abstract class bAttributeSetter extends iFeature {
+public abstract class bAttributeSetter extends IFeature {
     protected bundleNS bundleNS;
     private String action;
     private boolean sandboxOnly;

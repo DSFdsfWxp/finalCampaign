@@ -5,6 +5,7 @@ import arc.util.*;
 import arc.files.*;
 import finalCampaign.feature.*;
 import finalCampaign.graphics.*;
+import finalCampaign.input.*;
 import finalCampaign.launch.*;
 import finalCampaign.net.*;
 import mindustry.mod.*;
@@ -85,6 +86,7 @@ public class finalCampaign extends Mod{
 
         fcCall.register();
         fcNet.register();
+        fcInput.load();
 
         features.add();
         featureLoader.load();

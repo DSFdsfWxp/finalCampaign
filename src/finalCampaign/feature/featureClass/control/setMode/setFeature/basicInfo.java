@@ -22,7 +22,7 @@ import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.heat.*;
 import mindustry.world.meta.*;
 
-public class basicInfo extends iFeature {
+public class basicInfo extends IFeature {
     public basicInfo() {
         category = "basic";
         name = "basicInfo";

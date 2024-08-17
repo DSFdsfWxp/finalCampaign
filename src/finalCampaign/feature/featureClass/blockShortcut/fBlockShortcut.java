@@ -1,10 +1,10 @@
 package finalCampaign.feature.featureClass.blockShortcut;
 
 import finalCampaign.*;
-import finalCampaign.feature.featureClass.binding.*;
-import finalCampaign.feature.featureClass.fcDesktopInput.*;
+import finalCampaign.event.*;
 import finalCampaign.feature.featureClass.tuner.*;
 import finalCampaign.feature.featureClass.tuner.fTuner.*;
+import finalCampaign.input.*;
 import mindustry.*;
 import mindustry.core.GameState.*;
 import mindustry.game.EventType.*;
@@ -36,16 +36,16 @@ public class fBlockShortcut {
         blockLst = new Block[10];
         keyLst = new Seq<>();
 
-        keyLst.add(binding.blockShortcut_1);
-        keyLst.add(binding.blockShortcut_2);
-        keyLst.add(binding.blockShortcut_3);
-        keyLst.add(binding.blockShortcut_4);
-        keyLst.add(binding.blockShortcut_5);
-        keyLst.add(binding.blockShortcut_6);
-        keyLst.add(binding.blockShortcut_7);
-        keyLst.add(binding.blockShortcut_8);
-        keyLst.add(binding.blockShortcut_9);
-        keyLst.add(binding.blockShortcut_10);
+        keyLst.add(fcBindings.blockShortcut_1);
+        keyLst.add(fcBindings.blockShortcut_2);
+        keyLst.add(fcBindings.blockShortcut_3);
+        keyLst.add(fcBindings.blockShortcut_4);
+        keyLst.add(fcBindings.blockShortcut_5);
+        keyLst.add(fcBindings.blockShortcut_6);
+        keyLst.add(fcBindings.blockShortcut_7);
+        keyLst.add(fcBindings.blockShortcut_8);
+        keyLst.add(fcBindings.blockShortcut_9);
+        keyLst.add(fcBindings.blockShortcut_10);
 
         isOn = false;
         forceIgnoreCheck = false;
@@ -72,7 +72,7 @@ public class fBlockShortcut {
 
         fTuner.add("blockShortcut", config);
 
-        fFcDesktopInput.addBindingHandle(() -> {
+        Events.on(fcInputHandleUpdateEvent.class, event -> {
             for (int i=0; i<keyLst.size; i++) if (Core.input.keyTap(keyLst.get(i))) checkAndSaveOrSwitchTo(i);
         });
 

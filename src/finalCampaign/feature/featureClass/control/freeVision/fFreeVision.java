@@ -1,9 +1,9 @@
 package finalCampaign.feature.featureClass.control.freeVision;
 
 import arc.*;
-import finalCampaign.feature.featureClass.binding.*;
-import finalCampaign.feature.featureClass.fcDesktopInput.*;
+import finalCampaign.event.*;
 import finalCampaign.feature.featureClass.tuner.*;
+import finalCampaign.input.*;
 import mindustry.*;
 
 public class fFreeVision {
@@ -19,7 +19,7 @@ public class fFreeVision {
     }
 
     public static boolean supported() {
-        return !Vars.headless;
+        return !Vars.headless && !Vars.mobile;
     }
 
     public static void init() throws Exception {
@@ -29,11 +29,7 @@ public class fFreeVision {
     }
 
     public static void load() throws Exception {
-        fFcDesktopInput.addBindingHandle(new bindingHandle() {
-            public void run() {
-                checkOnOff();
-            }
-        });
+        Events.on(fcInputHandleUpdateEvent.class, event -> checkOnOff());
 
         enabled = fTuner.add("freeVision", false, config, v -> enabled = v);
 
@@ -49,7 +45,7 @@ public class fFreeVision {
     }
 
     public static void checkOnOff() {
-        if (Core.input.keyTap(binding.freeVision) && inited && enabled) {
+        if (Core.input.keyTap(fcBindings.freeVision) && inited && enabled) {
             on = !on;
 
             if (lastFragment != null) lastFragment.remove();

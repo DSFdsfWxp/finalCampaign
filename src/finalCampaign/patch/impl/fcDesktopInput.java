@@ -11,10 +11,10 @@ import arc.input.*;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.util.*;
-import finalCampaign.feature.featureClass.binding.*;
+import finalCampaign.event.*;
 import finalCampaign.feature.featureClass.control.freeVision.*;
 import finalCampaign.feature.featureClass.control.setMode.*;
-import finalCampaign.feature.featureClass.fcDesktopInput.*;
+import mindustry.core.World;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.game.*;
@@ -64,6 +64,8 @@ public abstract class fcDesktopInput extends InputHandler {
     public Teamc lastTarget;
     public Vec2 targetPos = new Vec2();
     public float crosshairScale;
+    
+    private fcDrawWorldTopEvent drawTopEvent = new fcDrawWorldTopEvent();
 
     int maxLength = 100;
 
@@ -72,7 +74,7 @@ public abstract class fcDesktopInput extends InputHandler {
 
     @Inject(method = "drawTop", at = @At("HEAD"), remap = false)
     public void fcDrawTopInject(CallbackInfo ci) {
-        for (Runnable handle : fFcDesktopInput.drawTopHandleLst) handle.run();
+        Events.fire(drawTopEvent);
     }
 
     @Override
@@ -298,7 +300,6 @@ public abstract class fcDesktopInput extends InputHandler {
         }
 
         pollInput();
-        for (bindingHandle handle : fFcDesktopInput.bindingHandleLst) handle.run();
 
         //deselect if not placing
         if(!isPlacing() && mode == placing){
@@ -331,7 +332,7 @@ public abstract class fcDesktopInput extends InputHandler {
             }
         }
 
-        Tile cursor = fcInputHandleUtil.tileAt(Core.input.mouseX(), Core.input.mouseY());
+        Tile cursor = world.tile(fcTileX(Core.input.mouseX()), fcTileY(Core.input.mouseY()));
 
         if(cursor != null){
             if(cursor.build != null){
@@ -342,7 +343,7 @@ public abstract class fcDesktopInput extends InputHandler {
                 cursorType = SystemCursor.hand;
             }
 
-            if(!isPlacing() && fcInputHandleUtil.canMine(cursor)){
+            if(!isPlacing() && fcCanMine(cursor)){
                 cursorType = ui.drillCursor;
             }
 
@@ -354,7 +355,7 @@ public abstract class fcDesktopInput extends InputHandler {
                 cursorType = SystemCursor.hand;
             }
 
-            if(fcInputHandleUtil.canTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y)){
+            if(fcCanTapPlayer(Core.input.mouseWorld().x, Core.input.mouseWorld().y)){
                 cursorType = ui.unloadCursor;
             }
 
@@ -501,6 +502,33 @@ public abstract class fcDesktopInput extends InputHandler {
                 tryDropPayload();
             }
         }
+    }
+
+    private boolean fcCanMine(Tile tile){
+        return !Core.scene.hasMouse()
+            && player.unit().validMine(tile)
+            && player.unit().acceptsItem(player.unit().getMineResult(tile))
+            && !((!Core.settings.getBool("doubletapmine") && tile.floor().playerUnmineable) && tile.overlay().itemDrop == null);
+    }
+
+    private boolean fcCanTapPlayer(float x, float y){
+        return player.within(x, y, mobile ? 17f : 11f) && player.unit().stack.amount > 0;
+    }
+
+    private int fcTileX(float cursorX){
+        Vec2 vec = Core.input.mouseWorld(cursorX, 0);
+        if(control.input.selectedBlock()){
+            vec.sub(control.input.block.offset, control.input.block.offset);
+        }
+        return World.toTile(vec.x);
+    }
+
+    private int fcTileY(float cursorY){
+        Vec2 vec = Core.input.mouseWorld(0, cursorY);
+        if(control.input.selectedBlock()){
+            vec.sub(control.input.block.offset, control.input.block.offset);
+        }
+        return World.toTile(vec.y);
     }
 
 }
