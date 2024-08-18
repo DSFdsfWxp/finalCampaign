@@ -90,6 +90,7 @@ public class multiItemStack extends IFeature {
                             }
                         } else if (content instanceof Liquid liquid) {
                             for (Building building : selected) {
+                                if (building.liquids == null) continue;
                                 if (!building.block.consumesLiquid(liquid) && !building.acceptLiquid(building, liquid) && building.liquids.get(liquid) <= 0f) continue;
                                 if (building.liquids == null) continue;
                                 float amount = building.liquids.get(liquid) + setter.get().value();

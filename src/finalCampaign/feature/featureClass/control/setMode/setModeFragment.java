@@ -19,7 +19,6 @@ import mindustry.ui.*;
 public class setModeFragment extends Table {
 
     private ButtonGroup<ImageButton> group;
-    private boolean extandedSettingTable;
     protected ScrollPane pane;
     protected boolean forceSelectOpt;
     protected Seq<IFeature> features;
@@ -34,7 +33,6 @@ public class setModeFragment extends Table {
         group.setMaxCheckCount(-1);
         group.setMinCheckCount(0);
         forceSelectOpt = false;
-        extandedSettingTable = false;
         features = new Seq<>();
         categories = new Seq<>();
     }
@@ -118,22 +116,9 @@ public class setModeFragment extends Table {
                             }
                         }
                     }
-                }).scrollX(false).grow().get();
-            }).growY().width(327f).update(t -> {
-                if (pane == null) return;
-                if (pane.isScrollY()) {
-                    if (!extandedSettingTable) {
-                        extandedSettingTable = true;
-                        float w = 327f + pane.getScrollBarWidth() + Scl.scl(4f);
-                        getCell(t).width(w);
-                    }
-                } else {
-                    if (extandedSettingTable) {
-                        extandedSettingTable = false;
-                        getCell(t).width(327f);
-                    }
-                }
-            });
+                }).scrollX(false).style(Styles.smallPane).grow().get();
+                pane.setFadeScrollBars(true);
+            }).growY().width(327f);
         }
     }
 }

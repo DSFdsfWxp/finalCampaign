@@ -167,6 +167,10 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
             });
         };
 
+        Runnable findUnitTargetRaw = () -> {
+            target = Units.bestEnemy(team, x, y, range, e -> !e.dead() && (fcFilter.filters.size > 0 ? fcFilter.unitFilter.get(e) : fcTurretBlock.unitFilter.get(e)) && (e.isGrounded() || fcTurretBlock.targetAir) && (!e.isGrounded() || fcTurretBlock.targetGround), fcTurretBlock.unitSort);
+        };
+
         Runnable findBuildingTarget = () -> {
             if (!fcTurretBlock.targetGround) return;
             fcTargetScore = arrays.ensureLengthF(fcTargetScore, fcSortf.buildSortfs.size + 1);
@@ -188,11 +192,13 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
             if (target == null) target = canHeal() ? Units.findAllyTile(team, x, y, range, b -> b.damaged() && b != this) : null;
         };
 
+        Runnable currentFindUnitTarget = fcSortf.unitSortfs.size > 0 ? findUnitTarget : findUnitTargetRaw;
+
         if (fcPreferBuildingTarget) {
             findBuildingTarget.run();
-            if (target == null) findUnitTarget.run();
+            if (target == null) currentFindUnitTarget.run();
         } else {
-            findUnitTarget.run();
+            currentFindUnitTarget.run();
             if (target == null) findBuildingTarget.run();
         }
     }

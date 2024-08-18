@@ -38,13 +38,13 @@ public class fRoulette {
 
     public static void load() {
         enabled = fTuner.add("roulette", false, config, v -> enabled = v);
+        frag = new rouletteFragment();
 
         Events.on(fcInputHandleUpdateEvent.class, event -> {
             if (Core.input.keyDown(fcBindings.roulette) && !Core.scene.hasField() && !Core.scene.hasDialog() && !fSetMode.isOn()) {
                 if (!on) {
                     on = true;
                     Vec2 mPos = Core.input.mouse();
-                    if (frag == null) frag = new rouletteFragment();
                     frag.mouseX = mPos.x;
                     frag.mouseY = mPos.y;
                     Vars.ui.hudGroup.addChild(frag);
