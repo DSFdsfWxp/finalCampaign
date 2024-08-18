@@ -11,7 +11,7 @@ public class fcInput {
     }
 
     public static class inputHandleUpdater implements ApplicationListener {
-        public fcInputHandleUpdateEvent event = new fcInputHandleUpdateEvent();
+        private fcInputHandleUpdateEvent event = new fcInputHandleUpdateEvent();
 
         @Override
         public void update() {

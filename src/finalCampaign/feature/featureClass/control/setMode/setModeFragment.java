@@ -77,19 +77,6 @@ public class setModeFragment extends Table {
                         opt.add(button).width(75f).padBottom(4f).right();
                         updateButton.run();
                     }
-                    opt.row();
-
-                    opt.add(bundle.get("setMode.selecting.mode")).grow().wrap().left().padBottom(4f).padRight(4f);
-                    {
-                        TextButton button = new TextButton("null");
-                        Runnable updateButton = () -> button.setText(bundle.get(fSetMode.deselect ? "setMode.selecting.mode.deselect" : "setMode.selecting.mode.select"));
-                        button.clicked(() -> {
-                            fSetMode.deselect = !fSetMode.deselect;
-                            updateButton.run();
-                        });
-                        opt.add(button).width(75f).padBottom(4f).colspan(2).right();
-                        updateButton.run();
-                    }
                 }).width(295f);
             }).margin(16f).growX();
         } else {

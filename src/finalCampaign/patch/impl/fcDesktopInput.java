@@ -485,8 +485,6 @@ public abstract class fcDesktopInput extends InputHandler {
                     unit.aim(player.mouseX, player.mouseY);
                 }
             }
-
-            if (fSetMode.isOn()) player.shooting = false;
     
             unit.controlWeapons(true, player.shooting && !boosted);
 

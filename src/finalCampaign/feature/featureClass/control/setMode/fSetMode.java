@@ -9,7 +9,7 @@ import arc.struct.*;
 import finalCampaign.event.*;
 import finalCampaign.feature.featureClass.tuner.*;
 import finalCampaign.input.*;
-import finalCampaign.patch.*;
+import finalCampaign.input.fcInputHook.*;
 import mindustry.*;
 import mindustry.core.GameState.*;
 import mindustry.game.*;
@@ -74,6 +74,10 @@ public class fSetMode {
         enabled = fTuner.add("setMode", false, v -> enabled = v);
         features.add();
 
+        fcInputHook.installHook(inputHookPoint.pressed, fSetMode::keyHook);
+        fcInputHook.installHook(inputHookPoint.tapped, fSetMode::keyHook);
+        fcInputHook.installHook(inputHookPoint.released, fSetMode::keyHook);
+
         Events.on(StateChangeEvent.class, e -> {
             if (e.to == State.menu) {
                 selected.clear();
@@ -96,9 +100,6 @@ public class fSetMode {
             }
 
             if (Vars.control.input.commandMode) isOn = false;
-            if ((Core.input.keyDown(Binding.break_block) || Core.input.keyDown(Binding.schematic_select) || Core.input.keyDown(Binding.deselect) || Core.input.keyDown(Binding.pick) || Core.input.keyDown(Binding.pickupCargo)) && !Core.scene.hasMouse()) isOn = false;
-
-            if (!isOn) selecting = false;
             if (Vars.control.input.isDroppingItem() || Vars.control.input.config.isShown()) selecting = false;
 
             if (isOn) {
@@ -106,7 +107,7 @@ public class fSetMode {
                 Vars.control.input.selectPlans.clear();
             }
 
-            if (Core.input.keyDown(KeyCode.mouseLeft) && isOn) {
+            if (fcInputHook.realIsPressed(KeyCode.mouseLeft) && isOn) {
                 if (!mouseDown) {
                     mx = Core.input.mouseX();
                     my = Core.input.mouseY();
@@ -114,15 +115,16 @@ public class fSetMode {
                 }
             }
 
-            if (Core.input.keyDown(KeyCode.mouseLeft) && isOn && !Core.scene.hasMouse()) {
+            if ((fcInputHook.realIsPressed(Binding.select) || fcInputHook.realIsPressed(Binding.deselect)) && isOn && !Core.scene.hasMouse()) {
                 if (!selecting && !Vars.player.dead()) {
-                    if ((frag.forceSelectOpt || selected.size == 0 || (mouseDown && mx < frag.x)) && !Vars.control.input.isDroppingItem() && !Vars.control.input.config.isShown()) {
+                    if ((frag.forceSelectOpt || selected.size == 0 || (mx < frag.x)) && !Vars.control.input.isDroppingItem() && !Vars.control.input.config.isShown()) {
                         selecting = true;
                         x = Core.input.mouseWorldX();
                         y = Core.input.mouseWorldY();
                         selectedNumDelta = 0;
                         tmp.clear();
                         selectingBuilding.clear();
+                        deselect = fcInputHook.realIsPressed(Binding.deselect);
                     }
                 } else {
                     w = Core.input.mouseWorldX();
@@ -160,23 +162,22 @@ public class fSetMode {
                 }
             }
 
-            if (Core.input.keyRelease(KeyCode.mouseLeft) && mouseDown) {
+            if (fcInputHook.realIsReleased(KeyCode.mouseLeft) && mouseDown) {
                 mx = my = 0;
                 mouseDown = false;
             }
 
-            if (Core.input.keyRelease(KeyCode.mouseLeft) && selecting && isOn) {
-                selecting = false;
+            if ((fcInputHook.realIsReleased(Binding.select) || fcInputHook.realIsReleased(Binding.deselect)) && selecting && isOn) {
                 x = y = w = h = 0f;
                 dx = dy = dw = dh = 0;
 
                 for (Building b : selectingBuilding) {
-                    if (selected.contains(b)) continue;
                     if (deselect) {
                         selected.remove(b);
                         lastDeselected = b;
                         selectedNumDelta --;
                     } else {
+                        if (selected.contains(b)) continue;
                         selected.add(b);
                         lastSelected = b;
                         selectedNumDelta ++;
@@ -225,11 +226,11 @@ public class fSetMode {
                 if (selectedNumDelta == 0) frag.forceSelectOpt = !frag.forceSelectOpt;
                 if (selectedNumDelta != 0) frag.forceSelectOpt = false;
 
+                selecting = false;
                 frag.rebuild();
             }
 
             if (!isOn) {
-                for (Building b : selected) ((IFcBuilding) b).fcSetModeSelected(false);
                 selected.clear();
                 selectingBuilding.clear();
                 selectedNumDelta = 0;
@@ -297,6 +298,16 @@ public class fSetMode {
 
     public static boolean isOn() {
         return isOn && enabled;
+    }
+
+    private static boolean keyHook(KeyCode code, boolean v) {
+        if (!isOn()) return v;
+        if (code.equals(Core.keybinds.get(Binding.deselect).key) ||
+            code.equals(Core.keybinds.get(Binding.break_block).key) ||
+            code.equals(Core.keybinds.get(Binding.schematic_select).key) ||
+            code.equals(Core.keybinds.get(Binding.rebuild_select).key))
+                return false;
+        return v;
     }
 
     /** Set whether the setting pane can be flick scrolled */

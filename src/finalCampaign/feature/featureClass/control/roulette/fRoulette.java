@@ -40,7 +40,7 @@ public class fRoulette {
         enabled = fTuner.add("roulette", false, config, v -> enabled = v);
 
         Events.on(fcInputHandleUpdateEvent.class, event -> {
-            if (Core.input.keyDown(fcBindings.roulette) && !Core.scene.hasField() && !Core.scene.hasDialog()) {
+            if (Core.input.keyDown(fcBindings.roulette) && !Core.scene.hasField() && !Core.scene.hasDialog() && !fSetMode.isOn()) {
                 if (!on) {
                     on = true;
                     Vec2 mPos = Core.input.mouse();

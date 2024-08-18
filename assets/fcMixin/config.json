@@ -22,7 +22,8 @@
         "fcSaveFileReader",
         "fcConsumePower",
         "fcTurret",
-        "fcLiquidTurret"
+        "fcLiquidTurret",
+        "fcKeyboardDevice"
     ],
     "client": [
 	]
