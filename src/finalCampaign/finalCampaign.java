@@ -86,7 +86,7 @@ public class finalCampaign extends Mod{
 
         fcCall.register();
         fcNet.register();
-        fcInput.load();
+        if (!Vars.headless) fcInput.load();
 
         features.add();
         featureLoader.load();

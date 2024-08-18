@@ -279,9 +279,13 @@ public class fSetMode {
             for (Building b : selected) {
                 if (deselect) if (selectingBuilding.contains(b)) continue;
                 draw.get(b);
+                if (b.dead() || b.tile().build != b) selected.remove(b);
             }
 
-            if (!deselect) for (Building b : selectingBuilding) draw.get(b);
+            if (!deselect) for (Building b : selectingBuilding) {
+                draw.get(b);
+                if (b.dead() || b.tile().build != b) selectingBuilding.remove(b);
+            }
 
             if (selecting) {
                 Draw.color(deselect ? deselectRectColor : selectRectColor);

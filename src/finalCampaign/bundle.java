@@ -35,6 +35,7 @@ public class bundle {
     }
 
     public static void load() {
+        if (Core.bundle == null) Core.bundle = I18NBundle.createEmptyBundle();
         Locale locale = Locale.getDefault();
         String str = locale.getLanguage() + "_" + locale.getCountry();
         String fileName = str.isEmpty() ? "en_US" : str;
