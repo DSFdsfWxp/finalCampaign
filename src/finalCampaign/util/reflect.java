@@ -1,14 +1,26 @@
 package finalCampaign.util;
 
 import java.lang.reflect.*;
+import arc.util.*;
 
 public class reflect {
+    @Nullable
+    public static Class<?> findClass(String name) {
+        return findClass(name, reflect.class.getClassLoader());
+    }
+
+    @Nullable
     public static Class<?> findClass(String name, ClassLoader loader) {
         try {
             return loader.loadClass(name);
         } catch (Exception ignore) {
             return null;
         }
+    }
+
+    @Nullable
+    public static ClassLoader getClassLoader(@Nullable Class<?> c) {
+        return c == null ? null : c.getClassLoader();
     }
 
     public static <T> Constructor<T> getDeclaredConstructor(Class<T> c, Class<?> ...args) {

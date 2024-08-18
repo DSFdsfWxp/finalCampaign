@@ -13,19 +13,47 @@ import mindustry.mod.Mods.*;
 import mindustry.*;
 import mindustry.game.EventType.*;
 
-public class finalCampaign extends Mod{
-
+public class finalCampaign extends Mod {
     public static LoadedMod thisMod;
     public static ZipFi thisModFi;
     public static Fi dataDir;
+
+    public finalCampaign() {
+        dataDir = Vars.dataDirectory.child("finalCampaign");
+        if (!dataDir.exists()) dataDir.mkdirs();
+
+        checkLoad();
+    }
+
+    public void checkLoad() {
+        if (injector.inInjectedGame() &&
+            !finalCampaign.class.getClassLoader().equals(shareMixinService.getClassLoader()))
+        {
+            String path = Vars.dataDirectory.parent().child("mods").absolutePath();
+            if (Vars.launchIDFile.exists()) {
+                Log.err("Duplicated FinalCampaign mod load. Please check you import. FinalCampaign mod should only be placed in folder \"@\".", path);
+                Core.app.exit();
+            } else {
+                if (!Vars.headless && Vars.ui != null) {
+                    Core.app.post(() -> {
+                        thisMod = Vars.mods.getMod(finalCampaign.class);
+                        thisModFi = new ZipFi(thisMod.file);
+                        String thisFilePath = thisMod.file.absolutePath();
+
+                        bundle.init();
+                        bundle.load();
+
+                        Vars.ui.showOkText(bundle.get("error"), bundle.format("checkLoad.wrongImportWay", path, thisFilePath), () -> {});
+                    });
+                }
+            }
+        }
+    }
 
     @Override
     public void init() {
         thisMod = Vars.mods.getMod(finalCampaign.class);
         thisModFi = new ZipFi(thisMod.file);
-
-        dataDir = Vars.dataDirectory.child("finalCampaign");
-        if (!dataDir.exists()) dataDir.mkdirs();
 
         version.init();
 

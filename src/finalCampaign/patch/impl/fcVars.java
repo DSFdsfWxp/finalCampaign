@@ -26,11 +26,11 @@ public abstract class fcVars {
         Fi dataDir = Core.settings.getDataDirectory().child("finalCampaign");
         dataDir.mkdirs();
 
-        patchedFi patchedModsFi = new patchedFi(dataDir.child("mods"));
+        patchedFi patchedModsFi = new patchedFi(new patchedFi(dataDir.child("mods"), true));
         patchedModsFi.mkdirs();
         patchedFi patchedDataFi = new patchedFi(dataDir);
         patchedDataFi.addPatchLst("mods", patchedModsFi);
-        patchedModsFi.addPatchLst(shareMixinService.mod.name(), new Fi(shareMixinService.mod.file()));
+        patchedModsFi.addPatchLst(shareMixinService.mod.nameWithoutExtension() + ".jar", new Fi(shareMixinService.mod.file()));
 
         Core.settings.setDataDirectory(patchedDataFi);
 

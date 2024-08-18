@@ -11,11 +11,6 @@ import mindustry.core.*;
 public interface fcPlatform {
     default ClassLoader loadJar(Fi jar, ClassLoader parent) throws Exception{
         try {
-            /*
-            Class<?> shareMixinService = Class.forName("finalCampaign.launch.shareMixinService", true, Thread.currentThread().getContextClassLoader());
-            Fi mod = (Fi) shareMixinService.getDeclaredField("mod").get(null);
-            ClassLoader classLoader = (ClassLoader) shareMixinService.getDeclaredMethod("getClassLoader").invoke(null);
-            */
             ClassLoader classLoader = shareMixinService.getClassLoader();
             if (jar.absolutePath().equals(Vars.modDirectory.child(shareMixinService.mod.name()).absolutePath())) return classLoader;
         } catch(Exception ignore) {}

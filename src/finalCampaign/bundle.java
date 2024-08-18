@@ -8,9 +8,9 @@ import arc.files.*;
 import arc.struct.*;
 
 public class bundle {
-
     public static Fi bundleCacheDir;
-    public static final String bundleVersion = "0";
+    public static boolean loaded = false;
+    public static final String bundleVersion = "1.3";
 
     public static void init() {
         bundleCacheDir = finalCampaign.dataDir.child("fcBundle");
@@ -79,6 +79,8 @@ public class bundle {
 
             bundle = bundle.getParent();
         }
+
+        loaded = true;
     }
 
     public static String get(String name) {
