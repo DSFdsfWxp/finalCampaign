@@ -10,7 +10,7 @@ import arc.struct.*;
 public class bundle {
     public static Fi bundleCacheDir;
     public static boolean loaded = false;
-    public static final String bundleVersion = "1.3";
+    public static final String bundleVersion = "1.4";
 
     public static void init() {
         bundleCacheDir = finalCampaign.dataDir.child("fcBundle");
