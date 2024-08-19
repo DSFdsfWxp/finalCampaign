@@ -23,7 +23,8 @@
         "fcConsumePower",
         "fcTurret",
         "fcLiquidTurret",
-        "fcKeyboardDevice"
+        "fcKeyboardDevice",
+        "fcMods"
     ],
     "client": [
 	]

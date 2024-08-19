@@ -19,7 +19,6 @@ public abstract class fcVars {
 
     @Inject(method = "loadSettings", at = @At("HEAD"), remap = false)
     private static void fcLoadSettingsHead(CallbackInfo ci) {
-        if (OS.isAndroid) return;
         Core.settings.setJson(JsonIO.json);
         Core.settings.setAppName(Vars.appName);
 
@@ -30,7 +29,7 @@ public abstract class fcVars {
         patchedModsFi.mkdirs();
         patchedFi patchedDataFi = new patchedFi(dataDir);
         patchedDataFi.addPatchLst("mods", patchedModsFi);
-        patchedModsFi.addPatchLst(shareMixinService.mod.nameWithoutExtension() + ".jar", new Fi(shareMixinService.mod.file()));
+        patchedModsFi.addPatchLst("finalCampaign.jar", new Fi(shareMixinService.mod.file()));
 
         Core.settings.setDataDirectory(patchedDataFi);
 

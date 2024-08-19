@@ -25,31 +25,6 @@ public class finalCampaign extends Mod {
         checkLoad();
     }
 
-    public void checkLoad() {
-        if (injector.inInjectedGame() &&
-            !finalCampaign.class.getClassLoader().equals(shareMixinService.getClassLoader()))
-        {
-            String path = Vars.dataDirectory.parent().child("mods").absolutePath();
-            if (Vars.launchIDFile.exists()) {
-                Log.err("Duplicated FinalCampaign mod load. Please check you import. FinalCampaign mod should only be placed in folder \"@\".", path);
-                Core.app.exit();
-            } else {
-                if (!Vars.headless && Vars.ui != null) {
-                    Core.app.post(() -> {
-                        thisMod = Vars.mods.getMod(finalCampaign.class);
-                        thisModFi = new ZipFi(thisMod.file);
-                        String thisFilePath = thisMod.file.absolutePath();
-
-                        bundle.init();
-                        bundle.load();
-
-                        Vars.ui.showOkText(bundle.get("error"), bundle.format("checkLoad.wrongImportWay", path, thisFilePath), () -> {});
-                    });
-                }
-            }
-        }
-    }
-
     @Override
     public void init() {
         thisMod = Vars.mods.getMod(finalCampaign.class);
@@ -61,7 +36,7 @@ public class finalCampaign extends Mod {
         Log.info(" # " + version.toVersionString());
 
         if (!Vars.headless) {
-            if (injector.injected() && injector.inInjectedGame()) {
+            if (installer.inInstalledGame()) {
                 modStartup();
             } else {
                 Events.on(ClientLoadEvent.class, e -> {
@@ -74,41 +49,14 @@ public class finalCampaign extends Mod {
     }
 
     private void modStartup() {
-        if (injector.injected() && !injector.inInjectedGame()) {
-            thisMod = Vars.mods.getMod(finalCampaign.class);
-            thisMod.meta.hidden = true;
-            return;
-        }
-
         bundle.init();
         featureLoader.init();
         if (!Vars.headless) atlas.init();
 
         bundle.load();
 
-        if (!injector.inInjectedGame()) {
-            if (Vars.headless) {
-                Log.info("[finalCampaign] " + bundle.get("load.firstTimeInjection"));
-                try {
-                    injector.inject();
-                } catch(Exception e) {
-                    Log.err("[finalCampaign] " + bundle.get("error") + ": " + bundle.get("injector.fail"));
-                    safetyExit();
-                }
-            } else {
-                Core.app.post(() -> {
-                    Vars.ui.loadAnd(bundle.get("load.firstTimeInjection"), () -> {
-                        try {
-                            injector.inject();
-                        } catch(Exception e) {
-                            Log.err(e);
-                            Vars.ui.showOkText(bundle.get("error"), bundle.get("injector.fail"), finalCampaign::safetyExit);
-                            Vars.ui.showException(e);
-                        }
-                    });
-                });
-            }
-
+        if (!installer.inInstalledGame()) {
+            install();
             return;
         }
 
@@ -133,6 +81,44 @@ public class finalCampaign extends Mod {
     // stop threads, clean up here
     public static void safetyExit() {
         Core.app.exit();
+    }
+
+    private void checkLoad() {
+        if (installer.inInstalledGame() &&
+            !finalCampaign.class.getClassLoader().equals(shareMixinService.getClassLoader()))
+        {
+            String path = Vars.dataDirectory.parent().child("mods").absolutePath();
+            if (Vars.launchIDFile.exists()) {
+                Log.err("Duplicated FinalCampaign mod load. Please check you import. FinalCampaign mod should only be placed in folder \"@\".", path);
+                Core.app.exit();
+            }
+        }
+    }
+
+    private void install() {
+        if (Vars.headless) {
+            Log.info("[finalCampaign] " + bundle.get("load.install"));
+            try {
+                installer.install();
+            } catch(Exception e) {
+                Log.err("[finalCampaign] " + bundle.get("error") + ": " + bundle.get("installer.fail"));
+                safetyExit();
+            }
+        } else {
+            Core.app.post(() -> {
+                Vars.ui.showConfirm(bundle.format("load.installConfirm", version.toVersionString(), bothLauncherVersion.toVersionString()), () -> {
+                    Vars.ui.loadAnd(bundle.get("load.install"), () -> {
+                        try {
+                            installer.install();
+                        } catch(Exception e) {
+                            Log.err(e);
+                            Vars.ui.showOkText(bundle.get("error"), bundle.get("installer.fail"), finalCampaign::safetyExit);
+                            Vars.ui.showException(e);
+                        }
+                    });
+                });
+            });
+        }
     }
 
 }

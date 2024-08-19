@@ -9,20 +9,21 @@ import java.util.zip.*;
 
 /** 
  * (Modified from {@link arc.files.ZipFi})
+ * The ZipFi to used in both mod side and launcher side.
  * <p>
  * A FileHandle meant for easily representing and reading the contents of a zip/jar file.*/
-public class shareZipFi extends shareFi{
-    private @Nullable shareZipFi[] children;
-    private @Nullable shareZipFi parent;
+public class bothZipFi extends bothFi{
+    private @Nullable bothZipFi[] children;
+    private @Nullable bothZipFi parent;
     private String path;
 
-    private Seq<shareZipFi> allFiles, allDirectories;
+    private Seq<bothZipFi> allFiles, allDirectories;
 
     private final @Nullable ZipEntry entry;
     private final ZipFile zip;
 
     @SuppressWarnings("unchecked")
-    public shareZipFi(shareFi zipFileLoc){
+    public bothZipFi(bothFi zipFileLoc){
         super(new File(""), FileType.absolute);
         entry = null;
 
@@ -57,7 +58,7 @@ public class shareZipFi extends shareFi{
             for(String s : paths){
                 ZipEntry entry = byName.get(s);
 
-                shareZipFi file =  entry != null ? new shareZipFi(entry, zip, allFiles, allDirectories) : new shareZipFi(s, zip, allFiles, allDirectories);
+                bothZipFi file =  entry != null ? new bothZipFi(entry, zip, allFiles, allDirectories) : new bothZipFi(s, zip, allFiles, allDirectories);
                 allFiles.add(file);
 
                 if(file.isDirectory()){
@@ -82,7 +83,7 @@ public class shareZipFi extends shareFi{
         return sum;
     }
 
-    private shareZipFi(ZipEntry entry, ZipFile file, Seq<shareZipFi> allFiles, Seq<shareZipFi> allDirectories){
+    private bothZipFi(ZipEntry entry, ZipFile file, Seq<bothZipFi> allFiles, Seq<bothZipFi> allDirectories){
         super(new File(entry.getName()), FileType.absolute);
         this.allDirectories = allDirectories;
         this.allFiles = allFiles;
@@ -91,7 +92,7 @@ public class shareZipFi extends shareFi{
         this.zip = file;
     }
 
-    private shareZipFi(String path, ZipFile file, Seq<shareZipFi> allFiles, Seq<shareZipFi> allDirectories){
+    private bothZipFi(String path, ZipFile file, Seq<bothZipFi> allFiles, Seq<bothZipFi> allDirectories){
         super(new File(path), FileType.absolute);
         this.allDirectories = allDirectories;
         this.allFiles = allFiles;
@@ -117,17 +118,17 @@ public class shareZipFi extends shareFi{
     }
 
     @Override
-    public shareFi child(String name){
+    public bothFi child(String name){
         //trigger cache
         list();
 
-        for(shareZipFi child : children){
+        for(bothZipFi child : children){
             if(child.name().equals(name)){
                 return child;
             }
         }
 
-        return new shareFi(new File(file, name)){
+        return new bothFi(new File(file, name)){
             @Override
             public boolean exists(){
                 return false;
@@ -145,7 +146,7 @@ public class shareZipFi extends shareFi{
         return path;
     }
 
-    private static boolean isChild(shareZipFi file, shareZipFi dir){
+    private static boolean isChild(bothZipFi file, bothZipFi dir){
         return dir != file
             && file.path().startsWith(dir.path())
             && (file.path().substring(1 + dir.path().length()).indexOf('/') == -1 || //do not allow extra slashes in the path
@@ -153,7 +154,7 @@ public class shareZipFi extends shareFi{
     }
 
     @Override
-    public shareFi parent(){
+    public bothFi parent(){
         //root
         if(path.length() == 0) return null;
 
@@ -165,9 +166,9 @@ public class shareZipFi extends shareFi{
     }
 
     @Override
-    public shareFi[] list(){
+    public bothFi[] list(){
         if(children == null){
-            children = allFiles.select(f -> f.parent == this || isChild(f, this)).toArray(shareZipFi.class);
+            children = allFiles.select(f -> f.parent == this || isChild(f, this)).toArray(bothZipFi.class);
         }
 
         return children;

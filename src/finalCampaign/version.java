@@ -1,6 +1,7 @@
 package finalCampaign;
 
-import arc.files.Fi;
+import java.io.*;
+import arc.files.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.Log.*;
@@ -19,14 +20,16 @@ public class version {
 
     public static void init() {
         Fi versionFile = finalCampaign.thisModFi.child("version.properties");
-
         bothLauncherVersion.load(versionFile.reader());
 
         ObjectMap<String, String> map = new ObjectMap<>();
-        PropertiesUtils.load(map, versionFile.reader());
+        Reader reader = versionFile.reader();
+        PropertiesUtils.load(map, reader);
+        Streams.close(reader);
         major = Integer.parseInt(map.get("mod.major", "0"));
         minor = Integer.parseInt(map.get("mod.minor", "0"));
         type = map.get("mod.type", "debug");
+        bundle.bundleVersion = map.get("bundle", "0");
 
         Class<?> service = reflect.findClass("finalCampaign.launch.shareMixinService", version.class.getClassLoader());
         debug = service == null ? false : Reflect.get(service, "debug");
@@ -38,7 +41,24 @@ public class version {
     }
 
     public static String toVersionString() {
-        return String.format("v%d.%d %s", major, minor, type) + (debug ? " [debug]" : "");
+        return String.format("%d.%d-%s", major, minor, type);
+    }
+
+    public static String toVersionString(Reader reader) {
+        ObjectMap<String, String> map = new ObjectMap<>();
+        PropertiesUtils.load(map, reader);
+        int major = Integer.parseInt(map.get("mod.major", "0"));
+        int minor = Integer.parseInt(map.get("mod.minor", "0"));
+        String type = map.get("mod.type", "debug");
+        Streams.close(reader);
+        return String.format("%d.%d-%s", major, minor, type);
+    }
+
+    public static String toVersionString(Fi mod) {
+        ZipFi zip = new ZipFi(mod);
+        String str = toVersionString(zip.child("version.properties").reader());
+        zip.delete(); // close zip file
+        return str;
     }
     
 }

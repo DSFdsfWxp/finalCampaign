@@ -4,7 +4,6 @@ import java.net.*;
 import org.spongepowered.asm.mixin.*;
 import arc.files.*;
 import finalCampaign.launch.*;
-import mindustry.*;
 import mindustry.core.*;
 
 @Mixin(Platform.class)
@@ -12,7 +11,7 @@ public interface fcPlatform {
     default ClassLoader loadJar(Fi jar, ClassLoader parent) throws Exception{
         try {
             ClassLoader classLoader = shareMixinService.getClassLoader();
-            if (jar.absolutePath().equals(Vars.modDirectory.child(shareMixinService.mod.name()).absolutePath())) return classLoader;
+            if (jar.absolutePath().equals(bothVersionControl.currentMod().absolutePath())) return classLoader;
         } catch(Exception ignore) {}
 
         return new URLClassLoader(new URL[]{jar.file().toURI().toURL()}, parent){

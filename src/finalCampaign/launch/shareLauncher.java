@@ -9,7 +9,7 @@ import arc.util.Log.*;
 public abstract class shareLauncher {
     protected abstract void handleCrash(Throwable e, String msg);
     protected abstract shareClassLoader createClassLoader();
-    protected abstract shareFi[] getJar();
+    protected abstract bothFi[] getJar();
     protected abstract void launch() throws Exception;
 
     public void init() {
@@ -49,7 +49,7 @@ public abstract class shareLauncher {
 
         Log.info("[finalCampaign] launching mindustry");
         try {
-            for (shareFi jar : getJar()) classLoader.addJar(jar);
+            for (bothFi jar : getJar()) classLoader.addJar(jar);
             launch();
         } catch(Exception e) {
             handleCrash(e, "Failed to launch mindustry.");

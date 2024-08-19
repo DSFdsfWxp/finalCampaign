@@ -14,6 +14,10 @@ import java.util.zip.*;
 /**
  * (Modified from {@link arc.files.Fi})
  * <p>
+ * The Fi to used in both mod side and launcher side.
+ * <p>
+ * Notice: External file won't work in mod side unless it's in the "installed" game.
+ * <p>
  * Represents a file or directory on the filesystem, classpath, Android SD card, or Android assets directory. FileHandles are
  * created via a {@link Files} instance.
  * <p>
@@ -23,11 +27,11 @@ import java.util.zip.*;
  * @author mzechner
  * @author Nathan Sweet
  */
-public class shareFi{
+public class bothFi{
     protected File file;
     protected FileType type;
 
-    protected shareFi(){
+    protected bothFi(){
     }
 
     /**
@@ -35,7 +39,7 @@ public class shareFi{
      * Do not use this constructor in case you write something cross-platform. Use the {@link Files} interface instead.
      * @param fileName the filename.
      */
-    public shareFi(String fileName){
+    public bothFi(String fileName){
         this.file = new File(fileName);
         this.type = FileType.absolute;
     }
@@ -45,39 +49,39 @@ public class shareFi{
      * backends. Do not use this constructor in case you write something cross-platform. Use the {@link Files} interface instead.
      * @param file the file.
      */
-    public shareFi(File file){
+    public bothFi(File file){
         this.file = file;
         this.type = FileType.absolute;
     }
 
-    public shareFi(String fileName, FileType type){
+    public bothFi(String fileName, FileType type){
         this.type = type;
         file = new File(fileName);
     }
 
-    protected shareFi(File file, FileType type){
+    protected bothFi(File file, FileType type){
         this.file = file;
         this.type = type;
     }
 
-    public static shareFi get(String path){
-        return new shareFi(path);
+    public static bothFi get(String path){
+        return new bothFi(path);
     }
 
-    public static shareFi tempFile(String prefix){
+    public static bothFi tempFile(String prefix){
         try{
-            return new shareFi(File.createTempFile(prefix, null));
+            return new bothFi(File.createTempFile(prefix, null));
         }catch(IOException ex){
             throw new RuntimeException("Unable to create temp file.", ex);
         }
     }
 
-    public static shareFi tempDirectory(String prefix){
+    public static bothFi tempDirectory(String prefix){
         try{
             File file = File.createTempFile(prefix, null);
             if(!file.delete()) throw new IOException("Unable to delete temp file: " + file);
             if(!file.mkdir()) throw new IOException("Unable to create temp directory: " + file);
-            return new shareFi(file);
+            return new bothFi(file);
         }catch(IOException ex){
             throw new RuntimeException("Unable to create temp file.", ex);
         }
@@ -104,7 +108,7 @@ public class shareFi{
         return file.delete();
     }
 
-    private static void copyFile(shareFi source, shareFi dest){
+    private static void copyFile(bothFi source, bothFi dest){
         try{
             dest.write(source.read(), false);
         }catch(Exception ex){
@@ -113,11 +117,11 @@ public class shareFi{
         }
     }
 
-    private static void copyDirectory(shareFi sourceDir, shareFi destDir){
+    private static void copyDirectory(bothFi sourceDir, bothFi destDir){
         destDir.mkdirs();
-        shareFi[] files = sourceDir.list();
-        for(shareFi srcFile : files){
-            shareFi destFile = destDir.child(srcFile.name());
+        bothFi[] files = sourceDir.list();
+        for(bothFi srcFile : files){
+            bothFi destFile = destDir.child(srcFile.name());
             if(srcFile.isDirectory())
                 copyDirectory(srcFile, destFile);
             else
@@ -183,7 +187,7 @@ public class shareFi{
      * {@link FileType#absolute} and {@link FileType#external} file handles.
      */
     public File file(){
-        if(type == FileType.external) return new File(shareFiles.ExternalStoragePath, file.getPath());
+        if(type == FileType.external) return new File(bothFiles.ExternalStoragePath, file.getPath());
         return file;
     }
 
@@ -194,7 +198,7 @@ public class shareFi{
     public InputStream read(){
         if(type == FileType.classpath || (type == FileType.internal && !file().exists())
         || (type == FileType.local && !file().exists())){
-            InputStream input = shareFi.class.getResourceAsStream("/" + file.getPath().replace('\\', '/'));
+            InputStream input = bothFi.class.getResourceAsStream("/" + file.getPath().replace('\\', '/'));
             if(input == null) throw new RuntimeException("File not found: " + file + " (" + type + ")");
             return input;
         }
@@ -555,9 +559,9 @@ public class shareFi{
 
     /** Recursively iterates through all files in this directory.
      * Directories are not handled.*/
-    public void walk(Cons<shareFi> cons){
+    public void walk(Cons<bothFi> cons){
         if(isDirectory()){
-            for(shareFi file : list()){
+            for(bothFi file : list()){
                 file.walk(cons);
             }
         }else{
@@ -567,8 +571,8 @@ public class shareFi{
 
     /** Recursively iterates through all files in this directory and adds them to an array.
      * Directories are not handled. */
-    public Seq<shareFi> findAll(Boolf<shareFi> test){
-        Seq<shareFi> out = new Seq<>();
+    public Seq<bothFi> findAll(Boolf<bothFi> test){
+        Seq<bothFi> out = new Seq<>();
         walk(f -> {
             if(test.get(f)){
                 out.add(f);
@@ -578,14 +582,14 @@ public class shareFi{
     }
 
     /** Recursively iterates through all files in this directory and adds them to a newly allocated array.*/
-    public Seq<shareFi> findAll(){
-        Seq<shareFi> out = new Seq<>();
+    public Seq<bothFi> findAll(){
+        Seq<bothFi> out = new Seq<>();
         walk(out::add);
         return out;
     }
 
     /** Equivalent to {@link #list()}, but returns a Seq. */
-    public Seq<shareFi> seq(){
+    public Seq<bothFi> seq(){
         return Seq.with(list());
     }
 
@@ -595,11 +599,11 @@ public class shareFi{
      * array.
      * @throws RuntimeException if this file is an {@link FileType#classpath} file.
      */
-    public shareFi[] list(){
+    public bothFi[] list(){
         if(type == FileType.classpath) throw new RuntimeException("Cannot list a classpath directory: " + file);
         String[] relativePaths = file().list();
-        if(relativePaths == null) return new shareFi[0];
-        shareFi[] handles = new shareFi[relativePaths.length];
+        if(relativePaths == null) return new bothFi[0];
+        bothFi[] handles = new bothFi[relativePaths.length];
         for(int i = 0, n = relativePaths.length; i < n; i++)
             handles[i] = child(relativePaths[i]);
         return handles;
@@ -612,21 +616,21 @@ public class shareFi{
      * @param filter the {@link FileFilter} to filter files
      * @throws RuntimeException if this file is an {@link FileType#classpath} file.
      */
-    public shareFi[] list(FileFilter filter){
+    public bothFi[] list(FileFilter filter){
         if(type == FileType.classpath) throw new RuntimeException("Cannot list a classpath directory: " + file);
         File file = file();
         String[] relativePaths = file.list();
-        if(relativePaths == null) return new shareFi[0];
-        shareFi[] handles = new shareFi[relativePaths.length];
+        if(relativePaths == null) return new bothFi[0];
+        bothFi[] handles = new bothFi[relativePaths.length];
         int count = 0;
         for(String path : relativePaths){
-            shareFi child = child(path);
+            bothFi child = child(path);
             if(!filter.accept(child.file())) continue;
             handles[count] = child;
             count++;
         }
         if(count < relativePaths.length){
-            shareFi[] newHandles = new shareFi[count];
+            bothFi[] newHandles = new bothFi[count];
             System.arraycopy(handles, 0, newHandles, 0, count);
             handles = newHandles;
         }
@@ -640,12 +644,12 @@ public class shareFi{
      * @param filter the {@link FilenameFilter} to filter files
      * @throws RuntimeException if this file is an {@link FileType#classpath} file.
      */
-    public shareFi[] list(FilenameFilter filter){
+    public bothFi[] list(FilenameFilter filter){
         if(type == FileType.classpath) throw new RuntimeException("Cannot list a classpath directory: " + file);
         File file = file();
         String[] relativePaths = file.list();
-        if(relativePaths == null) return new shareFi[0];
-        shareFi[] handles = new shareFi[relativePaths.length];
+        if(relativePaths == null) return new bothFi[0];
+        bothFi[] handles = new bothFi[relativePaths.length];
         int count = 0;
         for(String path : relativePaths){
             if(!filter.accept(file, path)) continue;
@@ -653,7 +657,7 @@ public class shareFi{
             count++;
         }
         if(count < relativePaths.length){
-            shareFi[] newHandles = new shareFi[count];
+            bothFi[] newHandles = new bothFi[count];
             System.arraycopy(handles, 0, newHandles, 0, count);
             handles = newHandles;
         }
@@ -666,11 +670,11 @@ public class shareFi{
      * will return a zero length array.
      * @throws RuntimeException if this file is an {@link FileType#classpath} file.
      */
-    public shareFi[] list(String suffix){
+    public bothFi[] list(String suffix){
         if(type == FileType.classpath) throw new RuntimeException("Cannot list a classpath directory: " + file);
         String[] relativePaths = file().list();
-        if(relativePaths == null) return new shareFi[0];
-        shareFi[] handles = new shareFi[relativePaths.length];
+        if(relativePaths == null) return new bothFi[0];
+        bothFi[] handles = new bothFi[relativePaths.length];
         int count = 0;
         for(String path : relativePaths){
             if(!path.endsWith(suffix)) continue;
@@ -678,7 +682,7 @@ public class shareFi{
             count++;
         }
         if(count < relativePaths.length){
-            shareFi[] newHandles = new shareFi[count];
+            bothFi[] newHandles = new bothFi[count];
             System.arraycopy(handles, 0, newHandles, 0, count);
             handles = newHandles;
         }
@@ -696,29 +700,29 @@ public class shareFi{
     }
 
     /** Returns a handle to the child with the specified name. */
-    public shareFi child(String name){
-        if(file.getPath().length() == 0) return new shareFi(new File(name), type);
-        return new shareFi(new File(file, name), type);
+    public bothFi child(String name){
+        if(file.getPath().length() == 0) return new bothFi(new File(name), type);
+        return new bothFi(new File(file, name), type);
     }
 
     /**
      * Returns a handle to the sibling with the specified name.
      * @throws RuntimeException if this file is the root.
      */
-    public shareFi sibling(String name){
+    public bothFi sibling(String name){
         if(file.getPath().length() == 0) throw new RuntimeException("Cannot get the sibling of the root.");
-        return new shareFi(new File(file.getParent(), name), type);
+        return new bothFi(new File(file.getParent(), name), type);
     }
 
-    public shareFi parent(){
+    public bothFi parent(){
         File parent = file.getParentFile();
         if(parent == null){
             if(OS.isWindows){
-                return new shareFi("", type){
-                    shareFi[] children = Seq.with(File.listRoots()).map(shareFi::new).toArray(shareFi.class);
+                return new bothFi("", type){
+                    bothFi[] children = Seq.with(File.listRoots()).map(bothFi::new).toArray(bothFi.class);
 
                     @Override
-                    public shareFi parent(){
+                    public bothFi parent(){
                         return this;
                     }
 
@@ -733,18 +737,18 @@ public class shareFi{
                     }
 
                     @Override
-                    public shareFi child(String name){
-                        return new shareFi(new File(name));
+                    public bothFi child(String name){
+                        return new bothFi(new File(name));
                     }
 
                     @Override
-                    public shareFi[] list(){
+                    public bothFi[] list(){
                         return children;
                     }
 
                     @Override
-                    public shareFi[] list(FileFilter filter){
-                        return Seq.select(list(), f -> filter.accept(f.file)).toArray(shareFi.class);
+                    public bothFi[] list(FileFilter filter){
+                        return Seq.select(list(), f -> filter.accept(f.file)).toArray(bothFi.class);
                     }
                 };
             }else{
@@ -755,7 +759,7 @@ public class shareFi{
                 }
             }
         }
-        return new shareFi(parent, type);
+        return new bothFi(parent, type);
     }
 
     /** @throws RuntimeException if this file handle is a {@link FileType#classpath} or {@link FileType#internal} file. */
@@ -775,7 +779,7 @@ public class shareFi{
                 if(file().exists()) return true;
                 // Fall through.
             case classpath:
-                return shareFi.class.getResource("/" + file.getPath().replace('\\', '/')) != null;
+                return bothFi.class.getResource("/" + file.getPath().replace('\\', '/')) != null;
             default:
         }
         return file().exists();
@@ -829,7 +833,7 @@ public class shareFi{
      * @throws RuntimeException if the destination file handle is a {@link FileType#classpath} or {@link FileType#internal}
      * file, or copying failed.
      */
-    public void copyTo(shareFi dest){
+    public void copyTo(bothFi dest){
         if(!isDirectory()){
             if(dest.isDirectory()) dest = dest.child(name());
             copyFile(this, dest);
@@ -848,7 +852,7 @@ public class shareFi{
      * Copies the contents of this folder into another folder. Unlike copyTo, this only copies the *contents*, not this folder itself.
      * @throws RuntimeException if this or {@param dest} is not a valid directory, or copying fails.
      * */
-    public void copyFilesTo(shareFi dest){
+    public void copyFilesTo(bothFi dest){
         if(!isDirectory()) throw new RuntimeException("Source folder must be a directory: " + this);
         if(dest.exists() && !dest.isDirectory()) throw new RuntimeException("Destination folder must be a directory: " + dest);
 
@@ -862,7 +866,7 @@ public class shareFi{
      * @throws RuntimeException if the source or destination file handle is a {@link FileType#classpath} or
      * {@link FileType#internal} file.
      */
-    public void moveTo(shareFi dest){
+    public void moveTo(bothFi dest){
         switch(type){
             case classpath:
                 throw new RuntimeException("Cannot move a classpath file: " + file);
@@ -908,8 +912,8 @@ public class shareFi{
 
     @Override
     public boolean equals(Object obj){
-        if(!(obj instanceof shareFi)) return false;
-        shareFi other = (shareFi)obj;
+        if(!(obj instanceof bothFi)) return false;
+        bothFi other = (bothFi)obj;
         return type == other.type && path().equals(other.path());
     }
 

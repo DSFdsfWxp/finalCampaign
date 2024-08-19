@@ -18,8 +18,9 @@ public class shareMixinService extends MixinServiceAbstract implements ITransfor
     private static shareClassLoader classLoader;
     private static shareProvider provider;
 
-    public static shareFi mod;
-    public static shareFi thisJar;
+    public static bothFi mod;
+    public static bothFi thisJar;
+    public static bothFi gameJar;
     public static boolean log = false;
     public static boolean mixinLog = false;
     public static boolean debug = false;
@@ -76,7 +77,7 @@ public class shareMixinService extends MixinServiceAbstract implements ITransfor
 
     public InputStream getResourceAsStream(String name) {
         if (name.startsWith("fcMixin/") && mod != null) {
-            shareFi current = new shareZipFi(mod);
+            bothFi current = new bothZipFi(mod);
             for (String fn : name.split("/")) current = current.child(fn);
             return current.read();
         }
@@ -168,7 +169,8 @@ public class shareMixinService extends MixinServiceAbstract implements ITransfor
         return classLoader;
     }
 
+    /** returns the path of GAME jar */
     public static String getClassPath() {
-        return thisJar.absolutePath();
+        return gameJar.absolutePath();
     }
 }

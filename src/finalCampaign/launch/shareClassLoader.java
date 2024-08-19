@@ -7,7 +7,7 @@ import arc.util.*;
 
 public abstract class shareClassLoader extends ClassLoader {
     private ClassLoader parent;
-    private Seq<shareFi> jars;
+    private Seq<bothFi> jars;
     protected shareBytecodeTransformer transformer;
 
     public shareClassLoader() {
@@ -20,7 +20,7 @@ public abstract class shareClassLoader extends ClassLoader {
         transformer = new shareBytecodeTransformer(shareMixinService.getTransformer());
     }
 
-    public void addJar(shareFi jarFi) {
+    public void addJar(bothFi jarFi) {
         jars.add(jarFi);
     }
 
@@ -41,8 +41,8 @@ public abstract class shareClassLoader extends ClassLoader {
     public URL getResource(String name) {
         URL url = super.getResource(name);
         if (url == null) {
-            for (shareFi fi : jars) {
-                shareFi f = new shareZipFi(fi);
+            for (bothFi fi : jars) {
+                bothFi f = new bothZipFi(fi);
 
                 if (name.startsWith("/")) name = name.substring(1);
                 String[] path = name.split("/");
@@ -59,10 +59,10 @@ public abstract class shareClassLoader extends ClassLoader {
         return url;
     }
 
-    protected Seq<shareFi> getAllFilesInJarPath(String path) {
-        Seq<shareFi> res = new Seq<>();
-        for (shareFi fi : jars) {
-            shareFi f = new shareZipFi(fi);
+    protected Seq<bothFi> getAllFilesInJarPath(String path) {
+        Seq<bothFi> res = new Seq<>();
+        for (bothFi fi : jars) {
+            bothFi f = new bothZipFi(fi);
 
             if (path.startsWith("/")) path = path.substring(1);
             if (path.endsWith("/")) path = path.substring(0, path.length() - 1);
@@ -71,7 +71,7 @@ public abstract class shareClassLoader extends ClassLoader {
 
             if (f.exists()) {
                 try {
-                    if (f.isDirectory()) for (shareFi ff : f.list()) if (!ff.isDirectory()) res.add(ff);
+                    if (f.isDirectory()) for (bothFi ff : f.list()) if (!ff.isDirectory()) res.add(ff);
                     break;
                 } catch(Exception e) {
                     Log.err(e);
@@ -86,8 +86,8 @@ public abstract class shareClassLoader extends ClassLoader {
         InputStream stream = null;
 
         if (OS.isAndroid) {
-            for (shareFi fi : jars) {
-                shareFi f = new shareZipFi(fi);
+            for (bothFi fi : jars) {
+                bothFi f = new bothZipFi(fi);
 
                 if (name.startsWith("/")) name = name.substring(1);
                 String[] path = name.split("/");

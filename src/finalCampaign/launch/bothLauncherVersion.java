@@ -32,14 +32,37 @@ public class bothLauncherVersion {
             debugD = Integer.parseInt(map.get("launcher.desktop.debug", "0"));
         }
 
+        Streams.close(reader);
         loaded = true;
     }
 
-    public static String toDesktopVersionString() {
-        return String.format("%d.%d.%d", majorD, minorD, debugD);
+    public static String toVersionString() {
+        return OS.isAndroid ? String.format("%d.%d.%d", majorA, minorA, debugA) : String.format("%d.%d.%d", majorD, minorD, debugD);
     }
 
-    public static String toAndoridVersionString() {
-        return String.format("%d.%d.%d", majorA, minorA, debugA);
+    public static String toVersionString(Reader reader) {
+        ObjectMap<String, String> map = new ObjectMap<>();
+        PropertiesUtils.load(map, reader);
+        int[] thisVersion = new int[3];
+
+        if (OS.isAndroid) {
+            thisVersion[0] = Integer.parseInt(map.get("launcher.android.major", "0"));
+            thisVersion[1] = Integer.parseInt(map.get("launcher.android.minor", "0"));
+            thisVersion[2] = Integer.parseInt(map.get("launcher.android.debug", "0"));
+        } else {
+            thisVersion[0] = Integer.parseInt(map.get("launcher.desktop.major", "0"));
+            thisVersion[1] = Integer.parseInt(map.get("launcher.desktop.minor", "0"));
+            thisVersion[2] = Integer.parseInt(map.get("launcher.desktop.debug", "0"));
+        }
+
+        Streams.close(reader);
+        return String.format("%d.%d.%d", thisVersion[0], thisVersion[1], thisVersion[2]);
+    }
+
+    public static String toVersionString(String path) {
+        bothZipFi zip = new bothZipFi(new bothFi(path));
+        String res = toVersionString(zip.child("version.properties").reader());
+        zip.delete(); // close zip file
+        return res;
     }
 }

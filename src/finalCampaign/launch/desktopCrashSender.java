@@ -8,7 +8,7 @@ public class desktopCrashSender extends shareCrashSender {
         report += "It has crashed.\n\n";
 
         report += "OS: " + OS.osName + " x" + (OS.osArchBits) + " (" + OS.osArch + ")\n";
-        report += "Mod Desktop Launcher Version: " + bothLauncherVersion.toDesktopVersionString() + "\n";
+        report += "Mod Desktop Launcher Version: " + bothLauncherVersion.toVersionString() + "\n";
         report += "Java Version: " + OS.javaVersion + "\n";
         report += "Runtime Available Memory: " + (Runtime.getRuntime().maxMemory() / 1024 / 1024) + "mb\n";
         report += "Cores: " + Runtime.getRuntime().availableProcessors() + "\n";

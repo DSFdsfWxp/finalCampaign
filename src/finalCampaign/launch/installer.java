@@ -1,6 +1,5 @@
 package finalCampaign.launch;
 
-import java.net.*;
 import java.nio.charset.*;
 import java.util.zip.*;
 import arc.*;
@@ -13,21 +12,18 @@ import mindustry.*;
 import mindustry.gen.*;
 import mindustry.ui.dialogs.*;
 
-public class injector {
-    public static void inject() throws Exception {
+public class installer {
+    public static void install() throws Exception {
         if (Vars.ios) throw new RuntimeException("Wait...Java mod on ios? How can this happened?");
 
         if (Vars.mobile) {
-            injectAndroid();
+            installAndroid();
         } else {
-            injectDesktop();
+            installDesktop();
         }
-
-        setting.put("injector.injectedVersion", Vars.android ? bothLauncherVersion.toAndoridVersionString() : bothLauncherVersion.toDesktopVersionString());
-        Core.settings.manualSave();
     }
 
-    public static boolean inInjectedGame() {
+    public static boolean inInstalledGame() {
         try {
             Class.forName("finalCampaign.launch.shareLogger", true, Thread.currentThread().getContextClassLoader());
         } catch(Exception e) {
@@ -37,43 +33,7 @@ public class injector {
         return true;
     }
 
-    public static boolean injected() {
-        if (Vars.mobile) {
-            return ((String) setting.get("injector.injectedVersion", "")).equals(bothLauncherVersion.toAndoridVersionString());
-        }
-
-        URL url = mindustry.Vars.class.getProtectionDomain().getCodeSource().getLocation();
-        Fi gameJar;
-
-        if (url != null) {
-            gameJar = new Fi(url.getFile());
-        } else {
-            if (inInjectedGame()) {
-                gameJar = new Fi(shareMixinService.getClassPath());
-            } else {
-                throw new RuntimeException("Could not resolve class path.");
-            }
-        }
-
-        if (!gameJar.absolutePath().toLowerCase().endsWith(".jar"))
-            throw new RuntimeException("Could not locate mindustry jar file form class path.");
-            
-        Fi configFi = gameJar.parent().child("fcConfig.properties");
-        if (configFi.exists()) {
-            try {
-                var config = bothConfigUtil.read(configFi.reader());
-                String currentVersion = bothLauncherVersion.toDesktopVersionString();
-                return ((String) setting.get("injector.injectedVersion", "")).equals(currentVersion) && config.version.equals(currentVersion);
-            } catch(Exception e) {
-                Log.err(e);
-                return false;
-            }
-        } else {
-            return false;
-        }
-    }
-
-    private static void injectAndroid() throws Exception {
+    private static void installAndroid() throws Exception {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         Object applicationInfo = Core.app.getClass().getMethod("getApplicationInfo").invoke(Core.app);
         Object packageManager = Core.app.getClass().getMethod("getPackageManager").invoke(Core.app);
@@ -83,7 +43,7 @@ public class injector {
         String className = Core.app.getClass().getName();
         String apkPath = (String) applicationInfo.getClass().getDeclaredField("sourceDir").get(applicationInfo);
 
-        Fi tmpDir = finalCampaign.dataDir.child("injector");
+        Fi tmpDir = finalCampaign.dataDir.child("installer");
         if (!tmpDir.exists()) tmpDir.mkdirs();
 
         ZipFi gameApk = new ZipFi(new Fi(apkPath));
@@ -241,19 +201,19 @@ public class injector {
         apkSigner.init();
         Fi signedApk = apkSigner.sign(patchedApk);
 
-        Vars.ui.showOkText(bundle.get("injector.exportPatchedApk.title"), bundle.get("injector.exportPatchedApk.hint"), () -> {
-            BaseDialog dialog = new BaseDialog(bundle.get("injector.exportPatchedApk.title"));
+        Vars.ui.showOkText(bundle.get("installer.exportPatchedApk.title"), bundle.get("installer.exportPatchedApk.hint"), () -> {
+            BaseDialog dialog = new BaseDialog(bundle.get("installer.exportPatchedApk.title"));
 
             dialog.hidden(finalCampaign::safetyExit);
             dialog.addCloseButton();
             dialog.addCloseListener();
 
-            dialog.cont.add(bundle.get("injector.exportPatchedApk.hint"));
+            dialog.cont.add(bundle.get("installer.exportPatchedApk.hint"));
             dialog.buttons.button(bundle.get("export"), Icon.export, () -> {
-                Vars.platform.showFileChooser(false, bundle.get("injector.exportPatchedApk.title"), "apk", f -> {
+                Vars.platform.showFileChooser(false, bundle.get("installer.exportPatchedApk.title"), "apk", f -> {
                     signedApk.copyTo(f);
                     patchedApk.delete();
-                    setting.put("injector.injectedVersion", bothLauncherVersion.toAndoridVersionString());
+                    setting.put("installer.installedVersion", bothLauncherVersion.toVersionString());
                     dialog.hide();
                 });
             });
@@ -263,57 +223,35 @@ public class injector {
         
     }
 
-    private static void injectDesktop() throws Exception {
+    private static void installDesktop() throws Exception {
         Fi gameJar = new Fi(mindustry.Vars.class.getProtectionDomain().getCodeSource().getLocation().getFile());
         if (!gameJar.absolutePath().toLowerCase().endsWith(".jar"))
             throw new RuntimeException("Could not locate mindustry jar file form class path.");
         
-        ZipFi gameJarAsZip = new ZipFi(gameJar);
-        ZipFi modJar = finalCampaign.thisModFi;
         Fi path = gameJar.parent();
-
-        Fi tmp = path.child("fcTmp");
-        if (tmp.exists()) tmp.delete();
-        tmp.write(modJar.child("class").child("preMain.desktop.jar").read(), false);
-        ZipFi preMainJar = new ZipFi(tmp);
-
-        Fi patchedFile = path.child("fcMindustry.patched.jar");
         Fi configFi = path.child("fcConfig.properties");
 
-        if (patchedFile.exists()) patchedFile.delete();
-        jarWriter writer = new jarWriter(patchedFile, false);
-
-        writer.add("", preMainJar);
-
-        for (Fi file : gameJarAsZip.list()) {
-            if (file.isDirectory()) {
-                if (!file.name().equals("mindustry") &&
-                    !file.name().equals("arc") &&
-                    !file.name().equals("net") &&
-                    !file.name().equals("rhino")) writer.add(file.name(), file);
-            } else {
-                writer.add(file.name(), file.readBytes());
-            }
-        }
-        
-        writer.close();
-        preMainJar.delete();
-        tmp.delete();
+        bothVersionControl.init(inInstalledGame());
+        bothVersionControl.install(finalCampaign.thisMod.file.absolutePath(), version.toVersionString());
 
         String script = """
 @echo off
 title finalCampaign Mod - Mindustry
-java -jar ./fcMindustry.patched.jar %*
+setlocal
+set /p ver=<finalCampaign/launcher/current
+java -jar ./finalCampaign/launcher/%ver%/launcher.jar %*
 if %ERRORLEVEL% EQU 0 goto f
 echo.
 echo The game crash or your java is not installed correctly.
 :f
 pause
+endlocal
         """;
         if (!OS.isWindows) 
             script = """
 #!/bin/sh
-java -jar ./fcMindustry.patched.jar "$@"
+ver=`cat ./finalCampaign/launcher/current`
+java -jar ./finalCampaign/launcher/$ver/launcher.jar "$@"
             """;
 
         Fi scriptFile = path.child("fcLaunch." + (OS.isWindows ? "bat" : "sh"));
@@ -321,22 +259,17 @@ java -jar ./fcMindustry.patched.jar "$@"
         scriptFile.writeString(script);
 
         config configSrc = new config();
-        configSrc.appName = Core.settings.getAppName();
-        configSrc.version = bothLauncherVersion.toDesktopVersionString();
-        configSrc.modName = finalCampaign.thisMod.file.name();
         configSrc.gameJarName = gameJar.name();
         configSrc.dataDir = Core.settings.getDataDirectory().absolutePath();
         configSrc.isServer = Vars.headless;
         bothConfigUtil.write(configSrc, configFi.writer(false));
 
-        Log.info("injector:  -> " + patchedFile.absolutePath());
-        Log.info("injector: done.");
+        Log.info("installer: done.");
 
         if (!Vars.headless) {
-            Vars.ui.showOkText(bundle.get("info"), String.format(bundle.get("injector.finishHint"), scriptFile.absolutePath()), finalCampaign::safetyExit);
+            Vars.ui.showOkText(bundle.get("info"), String.format(bundle.get("installer.finishHint"), scriptFile.absolutePath()), () -> {});
         } else {
-            Log.info("[finalCampaign] " + bundle.get("info") + ": " + String.format(bundle.get("injector.finishHint"), scriptFile.absolutePath()));
-            finalCampaign.safetyExit();
+            Log.info("[finalCampaign] " + bundle.get("info") + ": " + String.format(bundle.get("installer.finishHint"), scriptFile.absolutePath()));
         }
     }
 }

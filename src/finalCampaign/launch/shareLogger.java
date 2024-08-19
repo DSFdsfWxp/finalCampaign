@@ -15,7 +15,7 @@ public class shareLogger {
 
         if (shareMixinService.log) {
             try {
-                shareFi logFi = shareFiles.instance.dataDirectory().child("fc_mod_launcher_log.txt");
+                bothFi logFi = bothFiles.instance.dataDirectory().child("fc_mod_launcher_log.txt");
                 if (!logFi.exists()) logFi.writeString("init");
                 logFileStream = new PrintStream(logFi.write());
             } catch(Throwable ignore) {}

@@ -5,8 +5,8 @@ import arc.struct.*;
 
 public class androidVersionChecker {
     public static boolean modNeedUpdate() {
-        shareFi currentVersion = shareFiles.instance.dataDirectory().child("mod.version");
-        shareFi inPackVersion = shareFiles.instance.internalFile("fcLaunch/mod.version");
+        bothFi currentVersion = bothFiles.instance.dataDirectory().child("mod.version");
+        bothFi inPackVersion = bothFiles.instance.internalFile("fcLaunch/mod.version");
         if (!currentVersion.exists()) return true;
 
         String[] currentVers = currentVersion.readString().split("\\.");
@@ -26,13 +26,13 @@ public class androidVersionChecker {
     }
 
     public static void registerCurrentModVersion(int major, int minor, String type) {
-        shareFi currentVersion = shareFiles.instance.dataDirectory().child("mod.version");
+        bothFi currentVersion = bothFiles.instance.dataDirectory().child("mod.version");
         currentVersion.writeString(String.format("%d.%d.%s", major, minor, type));
     }
 
     public static boolean checkNeedUpdate(String name) {
-        shareFi currentVersion = shareFiles.instance.dataDirectory().child(name + ".sha256");
-        shareFi inPackVersion = shareFiles.instance.internalFile("fcLaunch/" + name + ".sha256");
+        bothFi currentVersion = bothFiles.instance.dataDirectory().child(name + ".sha256");
+        bothFi inPackVersion = bothFiles.instance.internalFile("fcLaunch/" + name + ".sha256");
         if (!currentVersion.exists()) return true;
         if (!Arrays.equals(currentVersion.readBytes(), inPackVersion.readBytes())) return true;
 
@@ -40,8 +40,8 @@ public class androidVersionChecker {
     }
 
     public static void registerCurrentVersion(String name) {
-        shareFi currentVersion = shareFiles.instance.dataDirectory().child(name + ".sha256");
-        shareFi inPackVersion = shareFiles.instance.internalFile("fcLaunch/" + name + ".sha256");
+        bothFi currentVersion = bothFiles.instance.dataDirectory().child(name + ".sha256");
+        bothFi inPackVersion = bothFiles.instance.internalFile("fcLaunch/" + name + ".sha256");
         if (currentVersion.exists()) currentVersion.delete();
         inPackVersion.copyTo(currentVersion);
     }

@@ -6,30 +6,28 @@ import arc.util.*;
 public class desktopLauncher extends shareLauncher {
     private static shareLauncher instance;
     private static boolean isServer;
-    private static shareFi dataDir;
-    private static shareFi mindustryCore;
+    private static bothFi dataDir;
 
     public static void main(String[] arg) {
         instance = new desktopLauncher();
-
         shareMixinService.parseArg(arg);
 
-        shareFiles.ExternalStoragePath = OS.userHome + File.separator;
-        shareFiles.LocalStoragePath = new File("").getAbsolutePath() + File.separator;
+        bothFiles.ExternalStoragePath = OS.userHome + File.separator;
+        bothFiles.LocalStoragePath = new File("../../../").getAbsolutePath() + File.separator;
         
-        shareFiles.instance = new shareFiles() {
-            public shareFi internalFile(String path) {
-                return new shareFi(path, shareFi.FileType.internal);
+        bothFiles.instance = new bothFiles() {
+            public bothFi internalFile(String path) {
+                return new bothFi(path, bothFi.FileType.internal);
             }
 
-            public shareFi dataDirectory() {
+            public bothFi dataDirectory() {
                 return dataDir.child("finalCampaign");
             }
         };
 
-        shareMixinService.thisJar = new shareFi(desktopLauncher.class.getProtectionDomain().getCodeSource().getLocation().getFile());
-        shareFi path = shareMixinService.thisJar.parent();
-        shareFi configFi = path.child("fcConfig.properties");
+        shareMixinService.thisJar = new bothFi(desktopLauncher.class.getProtectionDomain().getCodeSource().getLocation().getFile());
+        bothFi path = shareMixinService.thisJar.parent().parent().parent().parent();
+        bothFi configFi = path.child("fcConfig.properties");
 
         checkFiExists(configFi, "FinalCampaign Mod Launcher Config File");
 
@@ -42,34 +40,30 @@ public class desktopLauncher extends shareLauncher {
             System.exit(1);
         }
 
-        mindustryCore = path.child(config.gameJarName);
-        dataDir = new shareFi(config.dataDir);
+        shareMixinService.gameJar = path.child(config.gameJarName);
+        dataDir = new bothFi(config.dataDir);
         isServer = config.isServer;
-        
-        shareMixinService.mod = dataDir.child("mods/").child(config.modName);
-        shareFi modsFi = dataDir.child("finalCampaign").child("mods/");
-        shareFi mod = modsFi.child(config.modName);
+        bothVersionControl.init(true);
+        bothVersionControl.clean();
+        shareMixinService.mod = bothVersionControl.currentMod();
 
-        checkFiExists(mindustryCore, "Mindustry Game Jar File");
+        checkFiExists(shareMixinService.gameJar, "Mindustry Game Jar File");
         checkFiExists(dataDir, "Game's Data Directory");
         checkFiExists(shareMixinService.mod, "FinalCampaign Mod Jar File");
 
-        bothLauncherVersion.load((new shareZipFi(shareMixinService.mod)).child("version.properties").reader());
-        if (!config.version.equals(bothLauncherVersion.toDesktopVersionString())) {
-            Log.err("[finalCampaign] An update is needed. Run patch again.");
-            System.exit(1);
-        }
-
+        bothFi modsFi = dataDir.child("finalCampaign").child("mods/");
+        bothFi mod = modsFi.child("finalCampaign.jar");
         modsFi.mkdirs();
-        if (!mod.exists()) mod.writeString("NOTICE: This file is a placeholder for finalCampaign mod. The one in ../../mods/ will be loaded. ");
+        if (!mod.exists()) mod.writeString("NOTICE: This file is a placeholder for finalCampaign mod. ");
 
+        bothLauncherVersion.load((new bothZipFi(shareMixinService.mod)).child("version.properties").reader());
         shareCrashSender.setDefaultUncaughtExceptionHandler(new desktopCrashSender());
 
         instance.init();
         instance.startup();
     }
 
-    private static void checkFiExists(shareFi fi, String name) {
+    private static void checkFiExists(bothFi fi, String name) {
         if (!fi.exists()) {
             Log.err("[finalCampaign] " + name + " is NOT existed: " + fi.absolutePath());
             Log.err("[finalCampaign] Move it back or run patch again or correct the mod launcher config file.");
@@ -87,8 +81,8 @@ public class desktopLauncher extends shareLauncher {
         return new desktopClassLoader();
     }
 
-    protected shareFi[] getJar() {
-        return new shareFi[] {mindustryCore, shareMixinService.mod};
+    protected bothFi[] getJar() {
+        return new bothFi[] {shareMixinService.gameJar, shareMixinService.mod};
     }
 
     protected void launch() throws Exception {

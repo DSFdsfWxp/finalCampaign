@@ -159,12 +159,12 @@ public class androidClassLoader extends shareClassLoader {
     static class continuousLoadContext {
         String packageName;
         Dex dex;
-        Seq<shareFi> lst;
+        Seq<bothFi> lst;
         Seq<String> classNameLst;
         DexOptions dexOptions;
         CfOptions cfOptions;
 
-        public continuousLoadContext(String PackageName, Seq<shareFi> classLst) {
+        public continuousLoadContext(String PackageName, Seq<bothFi> classLst) {
             packageName = PackageName;
             lst = new Seq<>();
             classNameLst = new Seq<>();
@@ -172,7 +172,7 @@ public class androidClassLoader extends shareClassLoader {
             dexOptions.minSdkVersion = android.os.Build.VERSION.SDK_INT;
             cfOptions = new CfOptions();
 
-            for (shareFi f : classLst) {
+            for (bothFi f : classLst) {
                 if (f.extension().equals("class") && classNameLst.indexOf(f.nameWithoutExtension()) == -1) {
                     lst.add(f);
                     classNameLst.add(f.nameWithoutExtension());
@@ -184,7 +184,7 @@ public class androidClassLoader extends shareClassLoader {
             for (int i=0; i<classNameLst.size; i++) {
                 String name = classNameLst.get(i);
                 String fullName = packageName + "." + name;
-                shareFi file = lst.get(i);
+                bothFi file = lst.get(i);
 
                 byte[] classBytecode = transformer.transform(fullName, file == null ? null : file.readBytes());
 
@@ -233,7 +233,7 @@ public class androidClassLoader extends shareClassLoader {
                             // simply make sure it's what we need
                             if (pos > -1) continue;
                             classNameLst.add(className);
-                            lst.add((shareFi) null);
+                            lst.add((bothFi) null);
                         }
                     }
                 }

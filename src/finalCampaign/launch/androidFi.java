@@ -15,7 +15,7 @@ import java.nio.channels.FileChannel;
  * @author mzechner
  * @author Nathan Sweet
  */
-public class androidFi extends shareFi{
+public class androidFi extends bothFi{
     // The asset manager, or null if this is not an internal file.
     private final AssetManager assets;
 
@@ -30,19 +30,19 @@ public class androidFi extends shareFi{
     }
 
     @Override
-    public shareFi child(String name){
+    public bothFi child(String name){
         name = name.replace('\\', '/');
         if(file.getPath().length() == 0) return new androidFi(assets, new File(name), type);
         return new androidFi(assets, new File(file, name), type);
     }
 
     @Override
-    public shareFi sibling(String name){
+    public bothFi sibling(String name){
         throw new RuntimeException("Not support");
     }
 
     @Override
-    public shareFi parent(){
+    public bothFi parent(){
         File parent = file.getParentFile();
         if(parent == null){
             if(type == FileType.absolute)
@@ -87,11 +87,11 @@ public class androidFi extends shareFi{
     }
 
     @Override
-    public shareFi[] list(){
+    public bothFi[] list(){
         if(type == FileType.internal){
             try{
                 String[] relativePaths = assets.list(file.getPath());
-                shareFi[] handles = new shareFi[relativePaths.length];
+                bothFi[] handles = new bothFi[relativePaths.length];
                 for(int i = 0, n = handles.length; i < n; i++)
                     handles[i] = new androidFi(assets, new File(file, relativePaths[i]), type);
                 return handles;
@@ -103,21 +103,21 @@ public class androidFi extends shareFi{
     }
 
     @Override
-    public shareFi[] list(FileFilter filter){
+    public bothFi[] list(FileFilter filter){
         if(type == FileType.internal){
             try{
                 String[] relativePaths = assets.list(file.getPath());
-                shareFi[] handles = new shareFi[relativePaths.length];
+                bothFi[] handles = new bothFi[relativePaths.length];
                 int count = 0;
                 for(int i = 0, n = handles.length; i < n; i++){
                     String path = relativePaths[i];
-                    shareFi child = new androidFi(assets, new File(file, path), type);
+                    bothFi child = new androidFi(assets, new File(file, path), type);
                     if(!filter.accept(child.file())) continue;
                     handles[count] = child;
                     count++;
                 }
                 if(count < relativePaths.length){
-                    shareFi[] newHandles = new shareFi[count];
+                    bothFi[] newHandles = new bothFi[count];
                     System.arraycopy(handles, 0, newHandles, 0, count);
                     handles = newHandles;
                 }
@@ -130,11 +130,11 @@ public class androidFi extends shareFi{
     }
 
     @Override
-    public shareFi[] list(FilenameFilter filter){
+    public bothFi[] list(FilenameFilter filter){
         if(type == FileType.internal){
             try{
                 String[] relativePaths = assets.list(file.getPath());
-                shareFi[] handles = new shareFi[relativePaths.length];
+                bothFi[] handles = new bothFi[relativePaths.length];
                 int count = 0;
                 for(int i = 0, n = handles.length; i < n; i++){
                     String path = relativePaths[i];
@@ -143,7 +143,7 @@ public class androidFi extends shareFi{
                     count++;
                 }
                 if(count < relativePaths.length){
-                    shareFi[] newHandles = new shareFi[count];
+                    bothFi[] newHandles = new bothFi[count];
                     System.arraycopy(handles, 0, newHandles, 0, count);
                     handles = newHandles;
                 }
@@ -156,11 +156,11 @@ public class androidFi extends shareFi{
     }
 
     @Override
-    public shareFi[] list(String suffix){
+    public bothFi[] list(String suffix){
         if(type == FileType.internal){
             try{
                 String[] relativePaths = assets.list(file.getPath());
-                shareFi[] handles = new shareFi[relativePaths.length];
+                bothFi[] handles = new bothFi[relativePaths.length];
                 int count = 0;
                 for(int i = 0, n = handles.length; i < n; i++){
                     String path = relativePaths[i];
@@ -169,7 +169,7 @@ public class androidFi extends shareFi{
                     count++;
                 }
                 if(count < relativePaths.length){
-                    shareFi[] newHandles = new shareFi[count];
+                    bothFi[] newHandles = new bothFi[count];
                     System.arraycopy(handles, 0, newHandles, 0, count);
                     handles = newHandles;
                 }
@@ -225,7 +225,7 @@ public class androidFi extends shareFi{
 
     @Override
     public File file(){
-        if(type == FileType.local) return new File(shareFiles.LocalStoragePath, file.getPath());
+        if(type == FileType.local) return new File(bothFiles.LocalStoragePath, file.getPath());
         return super.file();
     }
 

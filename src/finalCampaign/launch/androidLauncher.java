@@ -11,11 +11,11 @@ import arc.util.*;
 public class androidLauncher extends Activity {
     private AssetManager fcAssets;
     private shareLauncher fcInstance;
-    private shareFi fcDataDir;
-    private shareFi fcMindustryCore;
-    private shareFi fcJavaJar;
-    private shareFi fcAndroidJar;
-    private shareFi fcPreMainJar;
+    private bothFi fcDataDir;
+    private bothFi fcMindustryCore;
+    private bothFi fcJavaJar;
+    private bothFi fcAndroidJar;
+    private bothFi fcPreMainJar;
     private boolean fcFirstOnCreate;
 
     public static Activity fcActivity;
@@ -73,30 +73,30 @@ public class androidLauncher extends Activity {
     }
 
     private void main(Bundle savedInstanceState) {
-        shareFiles.ExternalStoragePath = "/sdcard/";
+        bothFiles.ExternalStoragePath = "/sdcard/";
         try {
             File externalFileRootDir = getExternalFilesDir(null);
             do {
                 externalFileRootDir = Objects.requireNonNull(externalFileRootDir).getParentFile();
             } while (Objects.requireNonNull(externalFileRootDir).getAbsolutePath().contains("/Android"));
-            shareFiles.ExternalStoragePath = externalFileRootDir.getAbsolutePath() + "/";
+            bothFiles.ExternalStoragePath = externalFileRootDir.getAbsolutePath() + "/";
         } catch(Throwable ignore) {}
 
         getFilesDir();
-        shareFiles.LocalStoragePath = getExternalFilesDir(null).getAbsolutePath();
-        if (!shareFiles.LocalStoragePath.endsWith("/")) shareFiles.LocalStoragePath += "/";
+        bothFiles.LocalStoragePath = getExternalFilesDir(null).getAbsolutePath();
+        if (!bothFiles.LocalStoragePath.endsWith("/")) bothFiles.LocalStoragePath += "/";
         
         fcAssets = getAssets();
 
-        fcDataDir = new androidFi(fcAssets, getExternalFilesDir(null), shareFi.FileType.absolute);
+        fcDataDir = new androidFi(fcAssets, getExternalFilesDir(null), bothFi.FileType.absolute);
         if (!fcDataDir.exists()) fcDataDir.mkdirs();
 
-        shareFiles.instance = new shareFiles() {
-            public shareFi internalFile(String path) {
-                return new androidFi(fcAssets, path, shareFi.FileType.internal);
+        bothFiles.instance = new bothFiles() {
+            public bothFi internalFile(String path) {
+                return new androidFi(fcAssets, path, bothFi.FileType.internal);
             }
 
-            public shareFi dataDirectory() {
+            public bothFi dataDirectory() {
                 return fcDataDir;
             }
         };
@@ -114,9 +114,9 @@ public class androidLauncher extends Activity {
                 return new androidClassLoader(getCacheDir(), getCodeCacheDir(), androidLauncher.this.getApplicationInfo().nativeLibraryDir);
             }
 
-            protected shareFi[] getJar() {
+            protected bothFi[] getJar() {
                 ((androidClassLoader) shareMixinService.getClassLoader()).createModClassLoader(androidLauncher.this);
-                return new shareFi[] {fcMindustryCore, fcJavaJar, fcPreMainJar, shareMixinService.mod, fcAndroidJar};
+                return new bothFi[] {fcMindustryCore, fcJavaJar, fcPreMainJar, shareMixinService.mod, fcAndroidJar};
             }
 
             protected void launch() throws Exception {
@@ -134,7 +134,7 @@ public class androidLauncher extends Activity {
     }
 
     private void update() {
-        shareFi modDir = fcDataDir.child("mods");
+        bothFi modDir = fcDataDir.child("mods");
         if (!modDir.exists()) modDir.mkdirs();
 
         shareMixinService.mod = modDir.child("finalCampaign.jar");
@@ -150,33 +150,33 @@ public class androidLauncher extends Activity {
         if (androidVersionChecker.checkNeedUpdate("preMain") && fcPreMainJar.exists()) fcPreMainJar.delete();
 
         if (!shareMixinService.mod.exists()) {
-            shareFi file = shareFiles.instance.internalFile("fcLaunch/mod.jar");
+            bothFi file = bothFiles.instance.internalFile("fcLaunch/mod.jar");
             file.copyTo(shareMixinService.mod);
             if (fcJavaJar.exists()) fcJavaJar.delete();
         }
 
-        shareZipFi mod = new shareZipFi(shareMixinService.mod);
+        bothZipFi mod = new bothZipFi(shareMixinService.mod);
 
         if (!fcMindustryCore.exists()) {
-            shareFi src = shareFiles.instance.internalFile("fcLaunch/game.jar");
+            bothFi src = bothFiles.instance.internalFile("fcLaunch/game.jar");
             src.copyTo(fcMindustryCore);
             androidVersionChecker.registerCurrentVersion("game");
         }
 
         if (!fcJavaJar.exists()) {
-            shareFi src = mod.child("class").child("java.jar");
+            bothFi src = mod.child("class").child("java.jar");
             src.copyTo(fcJavaJar);
             androidVersionChecker.registerCurrentVersion("java");
         }
 
         if (!fcAndroidJar.exists()) {
-            shareFi src = mod.child("class").child("android.jar");
+            bothFi src = mod.child("class").child("android.jar");
             src.copyTo(fcAndroidJar);
             androidVersionChecker.registerCurrentVersion("android");
         }
 
         if (!fcPreMainJar.exists()) {
-            shareFi src = shareFiles.instance.internalFile("fcLaunch/preMain.jar");
+            bothFi src = bothFiles.instance.internalFile("fcLaunch/preMain.jar");
             src.copyTo(fcPreMainJar);
             androidVersionChecker.registerCurrentVersion("preMain");
         }

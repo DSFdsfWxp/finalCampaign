@@ -6,11 +6,11 @@ import mindustry.world.blocks.defense.turrets.*;
 
 @Mixin(Turret.class)
 public abstract class fcTurret implements IFcTurret {
-    private byte[] fcSortfData;
+    private byte[] fcSortfData = new byte[0];
     private boolean fcPreferBuildingTarget = false;
 
     public byte[] fcSortfData() {
-        return fcSortfData;
+        return fcSortfData.length == 0 ? null : fcSortfData;
     }
 
     public void fcSortf(byte[] v) {

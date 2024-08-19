@@ -26,7 +26,7 @@ public class dex2jar {
         dex2jarFiSrc.copyTo(dex2jarFi);
         
         try {
-            ClassLoader dex2jarLoader = Vars.platform.loadJar(dex2jarFi, injector.class.getClassLoader());
+            ClassLoader dex2jarLoader = Vars.platform.loadJar(dex2jarFi, installer.class.getClassLoader());
             Class<?> dex2jar = Class.forName("com.googlecode.d2j.dex.Dex2jar", true, dex2jarLoader);
 
             from = dex2jar.getDeclaredMethod("from", byte[].class);
