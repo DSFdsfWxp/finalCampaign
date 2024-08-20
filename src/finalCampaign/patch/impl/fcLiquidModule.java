@@ -4,7 +4,6 @@ import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
 import arc.util.io.*;
-import finalCampaign.feature.featureClass.mapVersion.*;
 import finalCampaign.patch.*;
 import mindustry.*;
 import mindustry.io.*;
@@ -26,7 +25,7 @@ public abstract class fcLiquidModule extends BlockModule implements IFcLiquidMod
 
     @Inject(method = "read", at = @At("RETURN"), remap = false)
     public void fcRead(Reads read, boolean legacy, CallbackInfo ci) {
-        if (fMapVersion.currentVersion() < 1) return;
+        if (finalCampaign.map.fcMap.currentVersion < 1) return;
         Liquid fcCurrent = TypeIO.readLiquid(read);
         if (fcCurrent == null) return;
         if (get(fcCurrent) <= 0f) return;

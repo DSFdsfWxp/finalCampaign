@@ -202,7 +202,7 @@ public class load extends BaseDialog implements PlanetInterfaceRenderer {
             public void draw() {
                 planets.render(state);
 
-                if (version.debug) {
+                if (version.isDebuging) {
                     posLabel.setText("pos: \nx:" + Float.toString(state.camPos.x) + "\ny:" + Float.toString(state.camPos.y) + "\nz:" + Float.toString(state.camPos.z) + 
                         "\nserpulo pos: \nx:" + Float.toString(Planets.serpulo.position.x) + "\ny:" + Float.toString(Planets.serpulo.position.y) + "\nz:" + Float.toString(Planets.serpulo.position.z));
                     zoomLabel.setText("zoom: " + Float.toString(state.zoom));

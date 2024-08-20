@@ -10,11 +10,11 @@ public class fSpritePacker {
     }
 
     public static void init() {
-        if (!version.debug) return;
+        if (!version.isDebuging) return;
     }
 
     public static void load() {
-        if (!version.debug) return;
+        if (!version.isDebuging) return;
         
         Vars.ui.settings.addCategory("Sprite Packer", Icon.file, t -> {
             new spritePackerDialog(t);

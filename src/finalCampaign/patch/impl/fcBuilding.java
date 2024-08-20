@@ -6,7 +6,6 @@ import org.spongepowered.asm.mixin.injection.callback.*;
 import arc.math.*;
 import arc.util.*;
 import arc.util.io.*;
-import finalCampaign.feature.featureClass.mapVersion.*;
 import finalCampaign.patch.*;
 import mindustry.gen.*;
 import mindustry.logic.*;
@@ -80,7 +79,7 @@ public abstract class fcBuilding implements IFcBuilding {
 
     @Inject(method = "readBase", at = @At("RETURN"), remap = false)
     public void fcReadBase(Reads read, CallbackInfo ci) {
-        if (fMapVersion.currentVersion() < 1) return;
+        if (finalCampaign.map.fcMap.currentVersion < 1) return;
         fcForceDisable = read.bool();
         fcForceEnable = read.bool();
         fcInfinityPower = read.bool();

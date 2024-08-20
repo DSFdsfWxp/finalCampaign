@@ -4,6 +4,7 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import finalCampaign.bundle.*;
 import finalCampaign.feature.featureClass.control.setMode.*;
+import finalCampaign.map.*;
 import finalCampaign.net.*;
 import finalCampaign.ui.*;
 import finalCampaign.util.*;
@@ -25,7 +26,7 @@ public class multiItemStack extends IFeature {
     }
 
     public boolean isSupported(Building[] selected) {
-        return selected.length > 1 && Vars.state.rules.mode() == Gamemode.sandbox;
+        return selected.length > 1 && ((Vars.state.rules.mode() == Gamemode.sandbox && fcMap.initialMode == null) || fcMap.initialMode == Gamemode.sandbox);
     }
 
     public void buildUI(Building[] selected, Table table, bundleNS bundleNS) {

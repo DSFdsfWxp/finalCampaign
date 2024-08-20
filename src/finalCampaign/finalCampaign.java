@@ -7,6 +7,7 @@ import finalCampaign.feature.*;
 import finalCampaign.graphics.*;
 import finalCampaign.input.*;
 import finalCampaign.launch.*;
+import finalCampaign.map.*;
 import finalCampaign.net.*;
 import mindustry.mod.*;
 import mindustry.mod.Mods.*;
@@ -60,8 +61,8 @@ public class finalCampaign extends Mod {
             return;
         }
 
-        fcCall.register();
         fcNet.register();
+        fcMap.init();
         if (!Vars.headless) fcInput.load();
 
         features.add();

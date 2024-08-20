@@ -98,6 +98,7 @@ public class fcNet implements ApplicationListener {
         if (Vars.netClient != null) Vars.netClient.addPacketHandler(type, fcNet::clientReceive);
         if (Vars.netServer != null) Vars.netServer.addPacketHandler(type, fcNet::serverReceive);
         Core.app.addListener(new fcNet());
+        fcCall.register();
     }
 
     public static enum PacketSource {

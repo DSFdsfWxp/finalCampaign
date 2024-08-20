@@ -24,7 +24,10 @@
         "fcTurret",
         "fcLiquidTurret",
         "fcKeyboardDevice",
-        "fcMods"
+        "fcMods",
+        "fcMap",
+        "fcWorld",
+        "fcMapIO"
     ],
     "client": [
 	]

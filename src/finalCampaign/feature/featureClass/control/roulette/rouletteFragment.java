@@ -30,7 +30,7 @@ public class rouletteFragment extends fragment {
     }
 
     private boolean invalidBlock(Block block) {
-        return !block.isPlaceable() || (!block.unlocked() && !((Vars.state == null || Vars.state.rules.infiniteResources) || Vars.state.rules.editor)) || !block.environmentBuildable();
+        return !block.isPlaceable() || (!block.unlockedNow() && !((Vars.state == null || Vars.state.rules.infiniteResources) || Vars.state.rules.editor)) || !block.environmentBuildable() || !block.placeablePlayer;
     }
 
     @Override

@@ -3,6 +3,7 @@ package finalCampaign.net;
 import java.lang.reflect.*;
 import arc.util.*;
 import finalCampaign.feature.featureClass.buildTargeting.*;
+import finalCampaign.map.*;
 import finalCampaign.net.fcNet.*;
 import finalCampaign.patch.*;
 import finalCampaign.util.*;
@@ -24,7 +25,7 @@ public class fcAction {
     }
 
     private static boolean sandbox() {
-        return Vars.state.rules.mode() == Gamemode.sandbox;
+        return (Vars.state.rules.mode() == Gamemode.sandbox && fcMap.initialMode == null) || fcMap.initialMode == Gamemode.sandbox;
     }
 
     @CallFrom(PacketSource.both)

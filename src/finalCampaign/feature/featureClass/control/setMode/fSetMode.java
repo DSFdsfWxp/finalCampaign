@@ -10,6 +10,7 @@ import finalCampaign.event.*;
 import finalCampaign.feature.featureClass.tuner.*;
 import finalCampaign.input.*;
 import finalCampaign.input.fcInputHook.*;
+import finalCampaign.map.*;
 import mindustry.*;
 import mindustry.core.GameState.*;
 import mindustry.game.*;
@@ -147,14 +148,14 @@ public class fSetMode {
                     selectingBuilding.clear();
                     for (Team team : Team.all) {
                         if (team.data().buildingTree == null) continue;
-                        if (!team.equals(Vars.player.team()) && Vars.state.rules.mode() != Gamemode.sandbox) continue;
+                        if (!team.equals(Vars.player.team()) && !((Vars.state.rules.mode() == Gamemode.sandbox && fcMap.initialMode == null) || fcMap.initialMode == Gamemode.sandbox)) continue;
                         tmp.clear();
 
                         team.data().buildingTree.intersect(x, y, w, h, tmp);
                         for (Building b :tmp) {
                             if (!selectFilter.contains(b.block.category) && selectFilter.size > 0) continue;
                             if (!deselect) {
-                                if (b.block.privileged && !Vars.state.isEditor() && Vars.state.rules.mode() != Gamemode.sandbox) continue;
+                                if (b.block.privileged && !Vars.state.isEditor() && !((Vars.state.rules.mode() == Gamemode.sandbox && fcMap.initialMode == null) || fcMap.initialMode == Gamemode.sandbox)) continue;
                             }
                             selectingBuilding.add(b);
                         }

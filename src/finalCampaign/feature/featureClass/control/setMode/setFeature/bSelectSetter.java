@@ -5,6 +5,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import finalCampaign.bundle.*;
 import finalCampaign.feature.featureClass.control.setMode.*;
+import finalCampaign.map.*;
 import finalCampaign.ui.*;
 import finalCampaign.util.*;
 import mindustry.*;
@@ -22,7 +23,7 @@ public abstract class bSelectSetter<T> extends IFeature {
     }
 
     public boolean isSupported(Building[] selected) {
-        return sandboxOnly ? Vars.state.rules.mode() == Gamemode.sandbox : true;
+        return sandboxOnly ? (Vars.state.rules.mode() == Gamemode.sandbox && fcMap.initialMode == null) || fcMap.initialMode == Gamemode.sandbox : true;
     }
 
     public void buildUI(Building[] selected, Table table, bundleNS bundleNS) {

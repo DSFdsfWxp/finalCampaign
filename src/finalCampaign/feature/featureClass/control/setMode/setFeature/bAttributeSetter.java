@@ -4,6 +4,7 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import finalCampaign.bundle.*;
 import finalCampaign.feature.featureClass.control.setMode.*;
+import finalCampaign.map.*;
 import mindustry.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -25,7 +26,7 @@ public abstract class bAttributeSetter extends IFeature {
     }
 
     public boolean isSupported(Building[] selected) {
-        if (sandboxOnly && Vars.state.rules.mode() != Gamemode.sandbox) return false;
+        if (sandboxOnly && !((Vars.state.rules.mode() == Gamemode.sandbox && fcMap.initialMode == null) || fcMap.initialMode == Gamemode.sandbox)) return false;
         return init(selected);
     }
 

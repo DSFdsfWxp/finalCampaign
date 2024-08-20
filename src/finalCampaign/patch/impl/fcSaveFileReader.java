@@ -5,7 +5,6 @@ import org.spongepowered.asm.mixin.*;
 import arc.struct.*;
 import arc.struct.ObjectMap.*;
 import arc.util.*;
-import finalCampaign.feature.featureClass.mapVersion.*;
 import mindustry.io.*;
 
 @Mixin(SaveFileReader.class)
@@ -17,7 +16,7 @@ public class fcSaveFileReader {
             String name = stream.readUTF();
             String value = stream.readUTF();
             map.put(name, value);
-            if (name.equals("finalCampaign.mapVersion") && Strings.canParsePositiveInt(value)) fMapVersion.currentVersion(Integer.parseInt(value));
+            if (name.equals("finalCampaign.mapVersion") && Strings.canParsePositiveInt(value)) finalCampaign.map.fcMap.currentVersion = Integer.parseInt(value);
         }
         return map;
     }
@@ -29,6 +28,6 @@ public class fcSaveFileReader {
             stream.writeUTF(entry.value);
         }
         stream.writeUTF("finalCampaign.mapVersion");
-        stream.writeUTF(Integer.toString(fMapVersion.version));
+        stream.writeUTF(Integer.toString(finalCampaign.map.fcMap.version));
     }
 }

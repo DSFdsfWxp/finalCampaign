@@ -7,7 +7,6 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
-import finalCampaign.feature.featureClass.mapVersion.*;
 import finalCampaign.patch.*;
 import mindustry.*;
 import mindustry.game.*;
@@ -91,7 +90,7 @@ public abstract class fcBeamDrillBuild extends Building implements IFcDrillBuild
 
     @Inject(method = "read", at = @At("RETURN"), remap = false)
     public void fcRead(Reads read, byte revision, CallbackInfo ci) {
-        if (fMapVersion.currentVersion() < 1) return;
+        if (finalCampaign.map.fcMap.currentVersion < 1) return;
         fcPreferItem = TypeIO.readItem(read);
     }
 

@@ -9,6 +9,7 @@ import arc.struct.*;
 import arc.util.*;
 import finalCampaign.bundle.*;
 import finalCampaign.feature.featureClass.control.setMode.*;
+import finalCampaign.map.*;
 import finalCampaign.net.*;
 import finalCampaign.patch.*;
 import finalCampaign.ui.*;
@@ -36,6 +37,7 @@ public class basicInfo extends IFeature {
     public void buildUI(Building[] selected, Table table, bundleNS bundleNS) {
         Building building = selected[0];
         IFcBlock block = (IFcBlock) building.block;
+        boolean sandbox = (Vars.state.rules.mode() == Gamemode.sandbox && fcMap.initialMode == null) || fcMap.initialMode == Gamemode.sandbox;
 
         table.table(bars -> {
             OrderedMap<String, Func<Building, Bar>> map = block.fcBarMap();
@@ -52,7 +54,7 @@ public class basicInfo extends IFeature {
                     if (m != null) for (StatValue v : m) if (v instanceof IFcStatNumberValue numVal) if (numVal.unit() == StatUnit.heatUnits) consHeat = true;
                 }
                 
-                if (key.equals("health") && Vars.state.rules.mode() == Gamemode.sandbox) {
+                if (key.equals("health") && sandbox) {
                     barSetter setter = new barSetter(bundleNS.get("health"), 264f, building.maxHealth, 0, building.health, false, true, false, true, true);
                     Collapser col = new Collapser(new Table(ct -> {
                         ct.setBackground(Tex.sliderBack);
@@ -75,7 +77,7 @@ public class basicInfo extends IFeature {
                     bar.addListener(new HandCursorListener());
                     bars.row();
                     bars.add(col).growX().center();
-                } else if (key.equals("heat") && Vars.state.rules.mode() == Gamemode.sandbox && (building instanceof HeatConsumer || (building.block instanceof Turret tb &&  tb.heatRequirement > 0f) || consHeat)) {
+                } else if (key.equals("heat") && sandbox && (building instanceof HeatConsumer || (building.block instanceof Turret tb &&  tb.heatRequirement > 0f) || consHeat)) {
 
                     // wait for design
 

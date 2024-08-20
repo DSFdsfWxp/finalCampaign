@@ -12,12 +12,11 @@ import arc.struct.*;
 import arc.util.*;
 import finalCampaign.bundle.*;
 import finalCampaign.feature.featureClass.control.setMode.*;
+import finalCampaign.map.*;
 import finalCampaign.net.*;
 import finalCampaign.patch.*;
 import finalCampaign.ui.*;
-import finalCampaign.ui.layout.dragHandle;
-import finalCampaign.ui.layout.dragLayout;
-import finalCampaign.ui.layout.dragLayoutX;
+import finalCampaign.ui.layout.*;
 import finalCampaign.util.*;
 import mindustry.*;
 import mindustry.ctype.*;
@@ -216,6 +215,7 @@ public class itemStack extends IFeature {
                 contentLst.clear();
                 hasPower.set(false);
                 t.clear();
+                boolean sandbox = (Vars.state.rules.mode() == Gamemode.sandbox && fcMap.initialMode == null) || fcMap.initialMode == Gamemode.sandbox;
                 int count = 0;
                 if (building.items != null) {
                     for (int i=0; i<building.items.length(); i++) {
@@ -354,7 +354,7 @@ public class itemStack extends IFeature {
                     }
                 }
 
-                if (Vars.state.rules.mode() == Gamemode.sandbox) {
+                if (sandbox) {
                     Image image = t.image(Icon.add).size(32f).scaling(Scaling.fit).padRight(8f).get();
                     image.clicked(() -> {
                         currentItem.set(null);
@@ -424,7 +424,7 @@ public class itemStack extends IFeature {
                         Player player = Vars.player;
                         if (player.dead()) return;
                         Unit unit = player.unit();
-                        boolean sandbox = Vars.state.rules.mode() == Gamemode.sandbox;
+                        boolean sandbox = (Vars.state.rules.mode() == Gamemode.sandbox && fcMap.initialMode == null) || fcMap.initialMode == Gamemode.sandbox;
                         float capacity = sandbox ? (currentAmountInfinity.get() ? unit.type.itemCapacity : currentAmount.get()) : unit.type.itemCapacity;
     
                         if (capacity <= 0) {
