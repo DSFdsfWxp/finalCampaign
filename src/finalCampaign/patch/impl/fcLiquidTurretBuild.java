@@ -70,7 +70,7 @@ public abstract class fcLiquidTurretBuild extends Building implements IFcLiquidT
                     }
                 }
     
-                if (result != null) turretBuild.target = result;
+                turretBuild.target = result;
             }
         };
 

@@ -25,6 +25,7 @@ import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.BaseTurret.*;
+import mindustry.world.blocks.defense.turrets.ContinuousTurret.*;
 import mindustry.world.blocks.defense.turrets.ItemTurret.*;
 import mindustry.world.blocks.defense.turrets.LiquidTurret.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
@@ -38,12 +39,7 @@ public class itemStack extends IFeature {
 
     public boolean isSupported(Building[] selected) {
         Building building = selected[0];
-        if (building instanceof BaseTurretBuild) {
-            if (!(building instanceof ItemTurretBuild) && !(building instanceof LiquidTurretBuild) && building.power == null) return false;
-        } else {
-            if (building.items == null && building.liquids == null && building.power == null) return false;
-        }
-        return true;
+        return !(building.items == null && building.liquids == null && building.power == null);
     }
 
     public void buildUI(Building[] selected, Table table, bundleNS bundleNS) {
@@ -113,8 +109,8 @@ public class itemStack extends IFeature {
                     });
                 }
 
-                if (building instanceof LiquidTurretBuild ilb) {
-                    Liquid current = ilb.liquids.current();
+                if (building instanceof LiquidTurretBuild || building instanceof ContinuousTurretBuild) {
+                    Liquid current = building.liquids.current();
                     Liquid[] lst = new Liquid[Vars.content.liquids().size];
                     ObjectMap<Element, Liquid> map = new ObjectMap<>();
                     
@@ -126,7 +122,7 @@ public class itemStack extends IFeature {
 
                     for (Liquid liquid : lst) {
                         Table lt = new Table();
-                        float amount = ilb.liquids.get(liquid);
+                        float amount = building.liquids.get(liquid);
                         if (amount <= 0f) continue;
                         if (amount == Float.POSITIVE_INFINITY) amount = building.block.liquidCapacity;
                         lt.setBackground(Tex.whiteui);

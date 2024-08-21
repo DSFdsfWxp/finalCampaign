@@ -34,7 +34,7 @@ public class categoryOfBuilding extends baseSortf<Category> {
     }
 
     public float calc(Building building) {
-        return block.category == config ? 1f : 0f;
+        return building.block.category.equals(config) ? 1f : 0f;
     }
 
 
