@@ -37,6 +37,7 @@ public class fSetMode {
     private static Color deselectRectColor;
 
     protected static Seq<Building> selected;
+    protected static Seq<Block> selectedBlock;
     protected static Seq<Building> selectingBuilding;
     protected static Seq<Category> selectFilter;
     protected static boolean selectSameBlockBuilding;
@@ -60,6 +61,7 @@ public class fSetMode {
         mx = my = 0;
         dx = dy = dw = dh = 0;
         selected = new Seq<>();
+        selectedBlock = new Seq<>();
         selectFilter = new Seq<>();
         selectingBuilding = new Seq<>();
         selectSameBlockBuilding = false;
@@ -225,7 +227,10 @@ public class fSetMode {
                 }
 
                 if (selectedNumDelta == 0) frag.forceSelectOpt = !frag.forceSelectOpt;
-                if (selectedNumDelta != 0) frag.forceSelectOpt = false;
+                if (selectedNumDelta != 0) {
+                    frag.forceSelectOpt = false;
+                    selectedBlock.clear();
+                }
 
                 selecting = false;
                 frag.rebuild();
@@ -233,6 +238,7 @@ public class fSetMode {
 
             if (!isOn) {
                 selected.clear();
+                selectedBlock.clear();
                 selectingBuilding.clear();
                 selectedNumDelta = 0;
                 selecting = false;
@@ -279,6 +285,7 @@ public class fSetMode {
 
             for (Building b : selected) {
                 if (deselect) if (selectingBuilding.contains(b)) continue;
+                if (selectedBlock.size > 0 && !selectedBlock.contains(b.block)) continue;
                 draw.get(b);
                 if (b.dead() || b.tile().build != b) selected.remove(b);
             }

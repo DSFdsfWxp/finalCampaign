@@ -9,12 +9,14 @@ import arc.util.*;
 import finalCampaign.*;
 import finalCampaign.bundle.*;
 import finalCampaign.feature.featureClass.wiki.*;
+import finalCampaign.util.*;
 import mindustry.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.game.EventType.*;
 import mindustry.ui.*;
+import mindustry.world.*;
 
 public class setModeFragment extends Table {
 
@@ -87,35 +89,101 @@ public class setModeFragment extends Table {
 
                     boolean multiSelect = fSetMode.selected.size > 1;
                     Building firstBuilding = fSetMode.selected.get(0);
-                    Building[] selected = fSetMode.selected.toArray(Building.class);
+                    fakeFinal<Building[]> selected = new fakeFinal<>(fSetMode.selected.toArray(Building.class));
     
                     if (!multiSelect) cont.button("?", Styles.flatBordert, () -> {
                         Vars.ui.content.show(firstBuilding.block);
                         Events.fire(new BlockInfoEvent());
                     }).size(8 * 5).padBottom(4f).right().row();
     
-                    cont.image(firstBuilding.block.fullIcon).center().scaling(Scaling.fit).size(128f).row();
-                    if (multiSelect) cont.add("+" + Integer.toString(fSetMode.selected.size - 1)).center().padTop(-5f).padRight(-118f).color(Pal.accent).row();
-    
-                    if (!multiSelect) cont.add(firstBuilding.block.localizedName).center().color(Pal.accent).fontScale(1.2f).padTop(4f).row();
-                    
-                    for (String cat : categories) {
-                        bundleNS bundle = new bundleNS("setMode.feature." + cat);
-                        boolean inited = false;
+                    Image icon = cont.image(firstBuilding.block.fullIcon).center().scaling(Scaling.fit).size(128f).get();
+                    cont.row();
+                    Table it = cont.table().growX().get();
+                    cont.row();
+                    Table ft = cont.table().growX().get();
 
-                        for (IFeature feature : features) {
-                            if (!cat.equals(feature.category)) continue;
-                            if (selected.length > 1 && !feature.supportMultiSelect) continue;
-                            if (feature.isSupported(selected)) {
-                                if (!inited) {
-                                    cont.image().color(Pal.accent).growX().padTop(8f).padBottom(4f).row();
-                                    cont.add(bundle.get("name")).center().color(Pal.accent).padBottom(8f).row();
-                                    inited = true;
+                    Runnable rebuiltFeatures = () -> {
+                        ft.clear();
+                        for (String cat : categories) {
+                            bundleNS bundle = new bundleNS("setMode.feature." + cat);
+                            boolean inited = false;
+    
+                            for (IFeature feature : features) {
+                                if (!cat.equals(feature.category)) continue;
+                                if (selected.get().length > 1 && !feature.supportMultiSelect) continue;
+                                if (feature.isSupported(selected.get())) {
+                                    if (!inited) {
+                                        ft.image().color(Pal.accent).growX().padTop(8f).padBottom(4f).row();
+                                        ft.add(bundle.get("name")).center().color(Pal.accent).padBottom(8f).row();
+                                        inited = true;
+                                    }
+                                    ft.table(table -> feature.buildUI(selected.get(), table, bundle.appendNS(feature.name))).padBottom(8f).growX().row();
                                 }
-                                cont.table(table -> feature.buildUI(selected, table, bundle.appendNS(feature.name))).padBottom(8f).growX().row();
                             }
                         }
+                    };
+
+                    if (multiSelect) {
+                        Label numLabel = it.add("+" + Integer.toString(fSetMode.selected.size - 1)).center().padTop(-5f).padRight(-118f).expandX().color(Pal.accent).padBottom(8f).get();
+                        it.row();
+                        Table ibt = it.table().growX().padBottom(4f).get();
+                        ibt.left();
+
+                        ButtonGroup<Button> group = new ButtonGroup<>();
+                        ObjectIntMap<Block> map = new ObjectIntMap<>();
+                        int c = 0;
+                        group.setMinCheckCount(0);
+                        group.setMaxCheckCount(0);
+                        for (Building b : selected.get()) if (b.block != null) map.increment(b.block, 0, 1);
+
+                        Runnable updateSelected = () -> {
+                            Seq<Button> allChecked = group.getAllChecked();
+                            Building[] allSelected = fSetMode.selected.toArray(Building.class);
+                            Seq<Building> currentSelected = new Seq<>();
+                            fSetMode.selectedBlock.clear();
+
+                            if (allSelected.length == 0) {
+                                rebuild();
+                            } else {
+                                for (Button b : allChecked) {
+                                    Block block = Vars.content.block(b.name);
+                                    if (block != null && !fSetMode.selectedBlock.contains(block)) fSetMode.selectedBlock.add(block);
+                                }
+
+                                if (allChecked.size > 0) {
+                                    int bc = 0;
+                                    for (Building b : allSelected) {
+                                        if (b.block == null || !fSetMode.selectedBlock.contains(b.block)) continue;
+                                        currentSelected.add(b);
+                                        bc ++;
+                                    }
+                                    selected.set(currentSelected.toArray(Building.class));
+                                    numLabel.setText("+" + Integer.toString(bc - 1));
+                                    icon.setDrawable(currentSelected.size == 0 || currentSelected.get(0).block == null ? Core.atlas.find("error") : currentSelected.get(0).block.fullIcon);
+                                } else {
+                                    selected.set(allSelected);
+                                    numLabel.setText("+" + Integer.toString(allSelected.length - 1));
+                                    icon.setDrawable(allSelected[0].block == null ? Core.atlas.find("error") : allSelected[0].block.fullIcon);
+                                }
+                                rebuiltFeatures.run();
+                            }
+                        };
+
+                        for (Block b : map.keys()) {
+                            Button butt = new Button(Styles.selecti);
+                            ItemImage image = new ItemImage(b.uiIcon, map.get(b));
+                            butt.add(image).center().size(32f).scaling(Scaling.fit).grow();
+                            butt.clicked(() -> Core.app.post(updateSelected));
+                            ibt.add(butt).size(46f).name(b.name).group(group).left().tooltip(b.localizedName);
+                            butt.setChecked(fSetMode.selectedBlock.contains(b));
+                            if (++ c % 6 == 0) ibt.row();
+                        }
+                        updateSelected.run();
+                    } else {
+                        it.add(firstBuilding.block.localizedName).center().color(Pal.accent).fontScale(1.2f).padTop(4f).row();
+                        rebuiltFeatures.run();
                     }
+                    
                 }).scrollX(false).style(Styles.smallPane).grow().get();
                 pane.setFadeScrollBars(true);
             }).growY().width(327f);

@@ -38,9 +38,24 @@ public class multiItemStack extends IFeature {
 
             ct.table(t -> {
                 contentSelecter selecter = new contentSelecter();
-                for (Item item : Vars.content.items()) selecter.add(item);
-                for (Liquid liquid : Vars.content.liquids()) selecter.add(liquid);
-                selecter.add(Vars.ui.getIcon(Category.power.name()), "power");
+                for (Item item : Vars.content.items()) {
+                    for (Building b : selected) if (b.block != null && b.items != null && (b.block.consumesItem(item) || b.acceptItem(b, item))) {
+                        selecter.add(item);
+                        break;
+                    }
+                }
+                for (Liquid liquid : Vars.content.liquids()) {
+                    for (Building b : selected) if (b.block != null && b.liquids != null && (b.block.consumesLiquid(liquid) || b.acceptLiquid(b, liquid))) {
+                        selecter.add(liquid);
+                        break;
+                    }
+                }
+                for (Building b : selected) {
+                    if (b.power != null && b.block != null && b.block.consPower != null) {
+                        selecter.add(Vars.ui.getIcon(Category.power.name()), "power");
+                        break;
+                    }
+                }
 
                 t.add(selecter).width(248f).center().colspan(2).row();
                 fakeFinal<barSetter> setter = new fakeFinal<>();

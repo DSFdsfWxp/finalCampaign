@@ -54,7 +54,7 @@ public class version {
         debug = Integer.parseInt(map.get("mod.debug", "0"));
         String type = map.get("mod.type", "debug");
         Streams.close(reader);
-        return String.format("%d.%d-%s", major, minor, type);
+        return String.format("%d.%d.%d-%s", major, minor, debug, type);
     }
 
     public static String toVersionString(Fi mod) {
