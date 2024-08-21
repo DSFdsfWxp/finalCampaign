@@ -8,6 +8,7 @@ import finalCampaign.net.fcNet.*;
 import finalCampaign.patch.*;
 import finalCampaign.util.*;
 import mindustry.*;
+import mindustry.entities.bullet.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.type.*;
@@ -31,25 +32,30 @@ public class fcAction {
     @CallFrom(PacketSource.both)
     public static boolean takeTurretAmmo(Player player, Unit unit, Building building, Item item, int amount) {
         if (player == null || unit == null || building == null || amount <= 0f) return false;
+        if (building.block == null) return false;
         if (player.dead() || unit.dead() || building.dead()) return false;
         if (unit.stack.amount > 0 && unit.stack.item != item) return false;
         if (!checkTeam(unit, building) || player.team() != unit.team()) return false;
         if (!(building instanceof IFcTurretBuild)) return false;
 
         if (building instanceof ItemTurretBuild itb) {
+            ItemTurret it = (ItemTurret) itb.block;
+            BulletType bt = it.ammoTypes.get(item);
+            if (bt == null) return false;
+
             for (AmmoEntry ae : itb.ammo) {
                 ItemEntry ie = (ItemEntry) ae;
                 if (ie.item != item) continue;
 
-                int capacity = unit.type.itemCapacity - unit.stack.amount;
-                amount = Math.min(capacity, amount);
                 amount = Math.min(amount, ie.amount);
-                amount = Math.min(amount, unit.maxAccepted(item));
+                int capacity = unit.type.itemCapacity - unit.stack.amount;
+                amount = Math.min((int)(capacity * bt.ammoMultiplier), amount);
+                amount = Math.min(amount, (int)(unit.maxAccepted(item) * bt.ammoMultiplier));
                 if (ie.amount < Short.MAX_VALUE) {
                     ie.amount -= amount;
                     itb.totalAmmo -= amount;
                 }
-                unit.addItem(item, amount);
+                unit.addItem(item, (int)(amount / bt.ammoMultiplier));
                 if (ie.amount <= 0f) itb.ammo.remove(ie);
                 return true;
             }
