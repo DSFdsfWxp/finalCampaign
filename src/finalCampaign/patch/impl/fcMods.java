@@ -21,7 +21,10 @@ public abstract class fcMods {
     @Inject(method = "importMod", at = @At("HEAD"), remap = false, cancellable = true)
     public void importMod(Fi file, CallbackInfoReturnable<LoadedMod> ci) throws IOException {
         if (file.isDirectory()) throw new RuntimeException("Directory is not supported.");
-        ZipFi zip = new ZipFi(file);
+        Fi zip = new ZipFi(file);
+        if(zip.list().length == 1 && zip.list()[0].isDirectory()){
+            zip = zip.list()[0];
+        }
         ModMeta meta = findMeta(zip);
         if (meta == null) throw new RuntimeException("Failed to resolve mod meta.");
         if (meta.name.equals("final-campaign")) {
