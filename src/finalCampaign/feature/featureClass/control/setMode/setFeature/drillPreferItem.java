@@ -16,15 +16,17 @@ import mindustry.world.*;
 public class drillPreferItem extends bAttributeSetter {
     public drillPreferItem() {
         super("drillPreferItem", "set", false);
-        supportMultiSelect = false;
+        supportMultiSelect = true;
     }
 
     public boolean init(Building[] selected) {
-        return selected[0] instanceof IFcDrillBuild;
+        for (Building b : selected) if (b instanceof IFcDrillBuild) return true;
+        return false;
     }
 
     public void buildUI(Building[] selected, Table table) {
-        IFcDrillBuild target = (IFcDrillBuild) selected[0];
+        Seq<IFcDrillBuild> target = new Seq<>();
+        for (Building b : selected) if (b instanceof IFcDrillBuild drillBuild) target.add(drillBuild);
         choicesTable choicesTable = new choicesTable(target);
         table.add(choicesTable).growX().pad(2f);
     }
@@ -32,17 +34,35 @@ public class drillPreferItem extends bAttributeSetter {
     public static class choicesTable extends Table {
         choiceItem selected;
 
-        public choicesTable(IFcDrillBuild target) {
+        public choicesTable(Seq<IFcDrillBuild> target) {
             selected = null;
             left();
 
-            ObjectIntMap<Item> outs = target.fcScanOutput();
-            int count = 0;
-            for (Item item : outs.keys()) {
-                int amount = outs.get(item);
-                choiceItem cItem = new choiceItem(item, amount, target.fcCalcDrillSpeed(item, amount));
+            ObjectIntMap<Item> ores = new ObjectIntMap<>();
+            ObjectFloatMap<Item> speeds = new ObjectFloatMap<>();
 
-                if (target.fcDrillTarget() == item) {
+            for (IFcDrillBuild b : target) {
+                ObjectIntMap<Item> outs = b.fcScanOutput();
+                for (Item item : outs.keys()) {
+                    ores.increment(item, 0, outs.get(item));
+                    speeds.increment(item, 0, b.fcCalcDrillSpeed(item, outs.get(item)));
+                }
+            }
+
+            Item current = target.get(0).fcDrillTarget();
+            for (IFcDrillBuild b : target) {
+                if (!b.fcDrillTarget().equals(current)) {
+                    current = null;
+                    break;
+                }
+            }
+
+            int count = 0;
+            for (Item item : ores.keys()) {
+                int amount = ores.get(item);
+                choiceItem cItem = new choiceItem(item, amount, speeds.get(item, 0f));
+
+                if (current == item) {
                     selected = cItem;
                     cItem.setSelected(true);
                 }
@@ -51,7 +71,10 @@ public class drillPreferItem extends bAttributeSetter {
                     if (selected != null && selected != cItem) selected.setSelected(false);
                     selected = cItem;
 
-                    fcCall.setDrillBuildingPreferItem((Building) target, item);
+                    for(IFcDrillBuild b : target) {
+                        if (!b.fcScanOutput().containsKey(item)) continue;
+                        fcCall.setDrillBuildingPreferItem((Building) b, item);
+                    }
                 });
 
                 add(cItem).growX().maxWidth(140f).left();

@@ -14,7 +14,7 @@ public class hpLessThanTripleDamagePerShot extends baseFilter<NoneConfig> {
     }
 
     public boolean get(Building building) {
-        return build.peekAmmo().damage * 3f >= building.maxHealth;
+        return build.peekAmmo().damage * 3f >= building.health;
     }
 
     public NoneConfig defaultConfig() {
