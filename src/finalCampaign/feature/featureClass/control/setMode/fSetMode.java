@@ -102,7 +102,7 @@ public class fSetMode {
                 if (isOn) frag.rebuild();
             }
 
-            if (Vars.control.input.commandMode) isOn = false;
+            if (Vars.control.input.commandMode || Vars.ui.minimapfrag.shown()) isOn = false;
             if (Vars.control.input.isDroppingItem() || Vars.control.input.config.isShown()) selecting = false;
 
             if (isOn) {

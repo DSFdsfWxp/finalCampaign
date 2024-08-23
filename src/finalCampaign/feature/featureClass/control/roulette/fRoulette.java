@@ -33,7 +33,7 @@ public class fRoulette {
     }
 
     public static boolean isOn() {
-        return inited && on && enabled && !Vars.control.input.commandMode && !fSetMode.isOn();
+        return inited && on && enabled && !Vars.control.input.commandMode && !Vars.ui.minimapfrag.shown() && !fSetMode.isOn();
     }
 
     public static void load() {

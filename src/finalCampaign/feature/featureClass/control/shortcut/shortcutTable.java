@@ -24,7 +24,7 @@ public class shortcutTable extends Table {
     
     public shortcutTable() {
         this.name = "fcShortcut";
-        super.visibility = () -> Vars.ui.hudfrag.shown && fShortcut.isOn() && !Vars.control.input.commandMode;
+        super.visibility = () -> Vars.ui.hudfrag.shown && fShortcut.isOn() && !Vars.control.input.commandMode && !Vars.ui.minimapfrag.shown();
         setBackground(Tex.pane);
         setSize(Scl.scl(248f), Scl.scl(110f));
         blank = Core.atlas.find("clear-effect");
