@@ -38,7 +38,7 @@ allprojects{
     }
 
     ext{
-        asmVersion = "9.5"
+        asmVersion = "9.7"
         //the build number that this mod is made for
         mindustryVersion = 'v146'
         jabelVersion = "93fde537c7"
