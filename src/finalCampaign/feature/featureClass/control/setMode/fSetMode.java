@@ -20,6 +20,7 @@ import mindustry.graphics.*;
 import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.world.*;
+import mindustry.world.blocks.ConstructBlock.*;
 
 public class fSetMode {
     private static boolean enabled;
@@ -155,6 +156,7 @@ public class fSetMode {
 
                         team.data().buildingTree.intersect(x, y, w, h, tmp);
                         for (Building b :tmp) {
+                            if (b instanceof ConstructBuild) continue;
                             if (!selectFilter.contains(b.block.category) && selectFilter.size > 0) continue;
                             if (!deselect) {
                                 if (b.block.privileged && !Vars.state.isEditor() && !((Vars.state.rules.mode() == Gamemode.sandbox && fcMap.initialMode == null) || fcMap.initialMode == Gamemode.sandbox)) continue;
