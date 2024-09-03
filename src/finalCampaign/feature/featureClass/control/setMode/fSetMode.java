@@ -265,8 +265,7 @@ public class fSetMode {
                 float tb = s / 6f;
 
                 Draw.color(Pal.accent);
-                Lines.stroke(1f);
-                Lines.circle(cx, cy, 1.44f);
+                Draw.rect("circle", cx, cy, 1.94f, 1.94f);
 
                 Lines.stroke(1.28f);
 

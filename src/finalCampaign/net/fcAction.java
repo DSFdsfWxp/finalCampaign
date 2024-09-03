@@ -78,6 +78,7 @@ public class fcAction {
             if (!checkTeam(unit, building)) return false;
 
             if (building instanceof ItemTurretBuild itb) {
+                ItemTurret it = (ItemTurret) itb.block;
                 itb.noSleep();
                 for (AmmoEntry ae : itb.ammo) {
                     ItemEntry ie = (ItemEntry) ae;
@@ -87,6 +88,8 @@ public class fcAction {
                     amount = Math.min(capacity, amount);
                     amount = Math.min(amount, ie.amount);
                     ie.amount -= amount;
+                    itb.totalAmmo -= amount;
+                    itb.totalAmmo = Math.min(itb.totalAmmo, it.maxAmmo);
                     if (ie.amount <= 0f) itb.ammo.remove(ie);
                     return true;
                 }
