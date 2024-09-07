@@ -27,9 +27,9 @@ public class barSetter extends Table {
         if (infinitable) {
             slider.softLimit(100f, 124.99f, limitSide.left);
             slider.line(100f);
-            slider.transformer(f -> f == 125f ? Float.POSITIVE_INFINITY : f / 100f * max);
         }
 
+        slider.transformer(f -> f == 125f ? Float.POSITIVE_INFINITY : f / 100f * max);
         slider.modified(() -> modify(isInt ? (int) slider.value() : slider.value()));
 
         add(slider).center().width(width).pad(4f).colspan(3).row();

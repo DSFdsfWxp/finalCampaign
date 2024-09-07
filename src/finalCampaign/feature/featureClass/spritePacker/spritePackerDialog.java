@@ -8,6 +8,7 @@ import mindustry.graphics.*;
 
 public class spritePackerDialog {
     private String rawAssetPath = "", outputPath = "";
+    private zoomPreviewDialog zoomPreviewDialog = new zoomPreviewDialog();
 
     public spritePackerDialog(Table table) {
         table.add("Raw Asset Path").color(Pal.accent).left().wrap().width(500f);
@@ -27,11 +28,14 @@ public class spritePackerDialog {
                     Vars.ui.showException(e);
                 }
             });
-        }).width(100f).padTop(10f).center();
+        }).width(200f).padTop(10f).center();
         table.row();
         table.button("Clear Status", () -> {
             spritePacker.clear();
             Vars.ui.showOkText("Pack", "Cleared.", () -> {});
-        }).width(100f).padTop(10f).center();
+        }).width(200f).padTop(10f).center().row();
+        table.button("Zoom Preview", () -> {
+            zoomPreviewDialog.show();
+        }).width(200f).padTop(10f).center();
     }
 }
