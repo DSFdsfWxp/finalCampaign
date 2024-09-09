@@ -1,11 +1,12 @@
 package finalCampaign.feature.featureClass.spritePacker;
 
+import finalCampaign.*;
 import mindustry.*;
 import mindustry.gen.*;
 
 public class fSpritePacker {
     public static boolean supported() {
-        return !Vars.headless;
+        return !Vars.headless && version.type.equals("debug");
     }
 
     public static void init() {}

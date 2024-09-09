@@ -8,8 +8,6 @@ import finalCampaign.feature.featureClass.control.setMode.*;
 import finalCampaign.map.*;
 import finalCampaign.ui.*;
 import finalCampaign.util.*;
-import mindustry.*;
-import mindustry.game.*;
 import mindustry.gen.*;
 
 public abstract class bSelectSetter<T> extends IFeature {
@@ -23,7 +21,7 @@ public abstract class bSelectSetter<T> extends IFeature {
     }
 
     public boolean isSupported(Building[] selected) {
-        return sandboxOnly ? (Vars.state.rules.mode() == Gamemode.sandbox && fcMap.initialMode == null) || fcMap.initialMode == Gamemode.sandbox : true;
+        return sandboxOnly ? fcMap.sandbox() : true;
     }
 
     public void buildUI(Building[] selected, Table table, bundleNS bundleNS) {

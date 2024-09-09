@@ -10,11 +10,10 @@ import finalCampaign.ui.*;
 import finalCampaign.util.*;
 import mindustry.*;
 import mindustry.ctype.*;
-import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.ui.*;
-import mindustry.world.blocks.defense.turrets.ItemTurret;
+import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.defense.turrets.ItemTurret.*;
 import mindustry.world.blocks.defense.turrets.Turret.*;
 
@@ -26,7 +25,7 @@ public class multiItemStack extends IFeature {
     }
 
     public boolean isSupported(Building[] selected) {
-        return selected.length > 1 && ((Vars.state.rules.mode() == Gamemode.sandbox && fcMap.initialMode == null) || fcMap.initialMode == Gamemode.sandbox);
+        return selected.length > 1 && fcMap.sandbox();
     }
 
     public void buildUI(Building[] selected, Table table, bundleNS bundleNS) {

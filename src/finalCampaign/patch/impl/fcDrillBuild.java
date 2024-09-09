@@ -66,6 +66,8 @@ public abstract class fcDrillBuild extends Building implements IFcDrillBuild {
     public void fcCheckItem() {
         if (!fcInited) fcInit();
         if (fcPreferItem == null) return;
+        reflect.invoke(fcCountOre, fcDrill, tile);
+        
         int amount = fcOreCount.get(fcPreferItem, 0);
 
         if (amount > 0) {

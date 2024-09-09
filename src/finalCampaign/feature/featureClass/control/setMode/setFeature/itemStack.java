@@ -20,7 +20,6 @@ import finalCampaign.ui.layout.*;
 import finalCampaign.util.*;
 import mindustry.*;
 import mindustry.ctype.*;
-import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.world.blocks.defense.turrets.*;
@@ -211,7 +210,7 @@ public class itemStack extends IFeature {
                 contentLst.clear();
                 hasPower.set(false);
                 t.clear();
-                boolean sandbox = (Vars.state.rules.mode() == Gamemode.sandbox && fcMap.initialMode == null) || fcMap.initialMode == Gamemode.sandbox;
+                boolean sandbox = fcMap.sandbox();
                 int count = 0;
                 if (building.items != null) {
                     for (int i=0; i<building.items.length(); i++) {
@@ -420,7 +419,7 @@ public class itemStack extends IFeature {
                         Player player = Vars.player;
                         if (player.dead()) return;
                         Unit unit = player.unit();
-                        boolean sandbox = (Vars.state.rules.mode() == Gamemode.sandbox && fcMap.initialMode == null) || fcMap.initialMode == Gamemode.sandbox;
+                        boolean sandbox = fcMap.sandbox();
                         float capacity = sandbox ? (currentAmountInfinity.get() ? unit.type.itemCapacity : currentAmount.get()) : unit.type.itemCapacity;
     
                         if (capacity <= 0) {

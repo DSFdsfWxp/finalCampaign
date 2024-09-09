@@ -14,7 +14,6 @@ import finalCampaign.net.*;
 import finalCampaign.patch.*;
 import finalCampaign.ui.*;
 import mindustry.*;
-import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
@@ -37,14 +36,24 @@ public class basicInfo extends IFeature {
     public void buildUI(Building[] selected, Table table, bundleNS bundleNS) {
         Building building = selected[0];
         IFcBlock block = (IFcBlock) building.block;
-        boolean sandbox = (Vars.state.rules.mode() == Gamemode.sandbox && fcMap.initialMode == null) || fcMap.initialMode == Gamemode.sandbox;
+        boolean sandbox = fcMap.sandbox();
 
         table.table(bars -> {
             OrderedMap<String, Func<Building, Bar>> map = block.fcBarMap();
+            float barTopWidth = Core.atlas.find("bar-top").width;
             for (String key : map.keys()) {
                 Bar bar = map.get(key).get(building);
                 if (bar == null) continue;
                 bars.add(bar).growX().height(18f).pad(4);
+
+                // maybe a bug in Bar
+                // disappear when topWidth <= (Core.atlas.find("bar-top")).width
+                Floatp originalFraction = Reflect.get(bar, "fraction");
+                Floatp fraction = () -> {
+                    float fv = originalFraction.get();
+                    return fv <= 0 ? 0 : Math.max(fv, barTopWidth / bar.getWidth() + 0.001f);
+                };
+                Reflect.set(bar, "fraction", fraction);
 
                 boolean consHeat = false;
                 building.block.checkStats();
@@ -75,6 +84,7 @@ public class basicInfo extends IFeature {
                         bar.outline(Pal.accent, col.isCollapsed() ? 0f : 2f);
                     });
                     bar.addListener(new HandCursorListener());
+
                     bars.row();
                     bars.add(col).growX().center();
                 } else if (key.equals("heat") && sandbox && (building instanceof HeatConsumer || (building.block instanceof Turret tb &&  tb.heatRequirement > 0f) || consHeat)) {

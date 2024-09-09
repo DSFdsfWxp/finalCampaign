@@ -2,6 +2,7 @@ package finalCampaign.map;
 
 import arc.*;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.core.GameState.*;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
@@ -24,5 +25,9 @@ public class fcMap {
     public static void reset() {
         currentVersion = 0;
         initialMode = null;
+    }
+
+    public static boolean sandbox() {
+        return (Vars.state.rules.mode() == Gamemode.sandbox && initialMode == null) || initialMode == Gamemode.sandbox;
     }
 }
