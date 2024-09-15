@@ -22,6 +22,11 @@ public abstract class fcPowerGraph {
         for (Building b : consumers) if (((IFcBuilding) b).fcInfinityPower()) b.power.status = Float.POSITIVE_INFINITY;
     }
 
+    @Inject(method = "chargeBatteries", at = @At("RETURN"), remap = false)
+    private void fcChargeBatteries(float excess, CallbackInfoReturnable<Float> ci) {
+        for (Building b : batteries) if (((IFcBuilding) b).fcInfinityPower()) b.power.status = Float.POSITIVE_INFINITY;
+    }
+
     @Inject(method = "useBatteries", at = @At("RETURN"), remap = false)
     public void fcUseBatteries(float needed, CallbackInfoReturnable<Float> ci) {
         for (Building b : batteries) if (b.power != null) {

@@ -1,6 +1,8 @@
 package finalCampaign.patch.impl;
 
 import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.callback.*;
 import finalCampaign.patch.*;
 import mindustry.gen.*;
 import mindustry.world.consumers.*;
@@ -14,10 +16,8 @@ public abstract class fcConsumePower extends Consume {
     @Shadow(remap = false)
     public boolean buffered;
 
-    public float requestedPower(Building entity){
-        if (entity instanceof IFcBuilding building) if (building.fcInfinityPower()) return 0f;
-        return buffered ?
-            (1f - entity.power.status) * capacity :
-            usage * (entity.shouldConsume() ? 1f : 0f);
+    @Inject(method = "requestedPower", remap = false, at = @At("RETURN"), cancellable = true)
+    private void fcRequestedPower(Building entity, CallbackInfoReturnable<Float> ci) {
+        if (entity instanceof IFcBuilding building) if (building.fcInfinityPower()) ci.setReturnValue(0f);
     }
 }
