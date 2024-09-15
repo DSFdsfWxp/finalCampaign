@@ -71,8 +71,9 @@ public class multiItemStack extends IFeature {
                         if (name.equals("power")) {
                             for (Building building : selected) {
                                 if (building.power == null || building.block.consPower == null) continue;
-                                float amount = building.power.status * building.block.consPower.capacity + setter.get().value();
-                                if (amount != Float.POSITIVE_INFINITY) amount = Math.min(amount, building.block.consPower.capacity);
+                                float capacity = Math.max(building.block.consPower.capacity, building.block.consPower.usage);
+                                float amount = building.power.status * capacity + setter.get().value();
+                                if (amount != Float.POSITIVE_INFINITY) amount = Math.min(amount, capacity);
                                 fcCall.setPower(building, amount);
                             }
                         }
