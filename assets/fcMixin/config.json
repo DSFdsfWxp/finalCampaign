@@ -27,7 +27,8 @@
         "fcMods",
         "fcMap",
         "fcWorld",
-        "fcMapIO"
+        "fcMapIO",
+        "fcSdlApplication"
     ],
     "client": [
 	]
