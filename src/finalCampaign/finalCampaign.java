@@ -68,8 +68,11 @@ public class finalCampaign extends Mod {
         features.add();
         featureLoader.load();
 
-        if (!Vars.headless) shaders.load();
-        if (!Vars.headless) atlas.load();
+        if (!Vars.headless) {
+            shaders.load();
+            atlas.load();
+            icons.load();
+        }
 
         System.gc();
     }

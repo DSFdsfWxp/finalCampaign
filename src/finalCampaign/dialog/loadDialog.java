@@ -22,7 +22,7 @@ import mindustry.graphics.*;
 import mindustry.graphics.g3d.PlanetRenderer.*;
 import mindustry.type.*;
 
-public class load extends BaseDialog implements PlanetInterfaceRenderer {
+public class loadDialog extends BaseDialog implements PlanetInterfaceRenderer {
 
     public fcPlanetRenderer planets = new fcPlanetRenderer();
     public fcPlanetParams state = new fcPlanetParams();
@@ -45,7 +45,7 @@ public class load extends BaseDialog implements PlanetInterfaceRenderer {
     private final float rawFakeDelta = 250f;
     private final float rawZoom = 9.7f;
 
-    public load() {
+    public loadDialog() {
         super("", Styles.fullDialog);
         titleTable.clear();
         shouldPause = true;
@@ -85,7 +85,7 @@ public class load extends BaseDialog implements PlanetInterfaceRenderer {
         addListener(new InputListener(){
             @Override
             public boolean scrolled(InputEvent event, float x, float y, float amountX, float amountY){
-                if(event.targetActor == load.this){
+                if(event.targetActor == loadDialog.this){
                     state.zoom = Mathf.clamp(state.zoom + amountY / 10f, state.planet.minZoom, 10f);
                     state.uiAlpha = Mathf.clamp(-1.66667f * (state.zoom - 9.7f) + 0.5f);
                 }
@@ -123,14 +123,14 @@ public class load extends BaseDialog implements PlanetInterfaceRenderer {
                 "\nserpulo pos: \nx:" + Float.toString(Planets.serpulo.position.x) + "\ny:" + Float.toString(Planets.serpulo.position.y) + "\nz:" + Float.toString(Planets.serpulo.position.z)).left().padLeft(15f).growX().get();
 
             t.setHeight(zoomLabel.getHeight() * 9);
-            t.setPosition(load.this.x, layout.getSceneHeight() - zoomLabel.getHeight() * 9);
+            t.setPosition(loadDialog.this.x, layout.getSceneHeight() - zoomLabel.getHeight() * 9);
         });
 
         progressTable = new Table(t -> {
             t.parent = this;
             t.fillParent = false;
             t.setSize(layout.getSceneWidth(), 100f);
-            t.setPosition(load.this.x, load.this.y);
+            t.setPosition(loadDialog.this.x, loadDialog.this.y);
 
             progressLabel = t.add(this.stepName).center().get();
             t.row();
@@ -147,8 +147,8 @@ public class load extends BaseDialog implements PlanetInterfaceRenderer {
         stack(new Element() {
             @Override
             public void act(float delta) {
-                if (Core.scene.getDialog() == load.this && !Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true).isDescendantOf(e -> e instanceof ScrollPane)) {
-                    Core.scene.setScrollFocus(load.this);
+                if (Core.scene.getDialog() == loadDialog.this && !Core.scene.hit(Core.input.mouseX(), Core.input.mouseY(), true).isDescendantOf(e -> e instanceof ScrollPane)) {
+                    Core.scene.setScrollFocus(loadDialog.this);
                 }
 
                 super.act(delta);
@@ -191,7 +191,7 @@ public class load extends BaseDialog implements PlanetInterfaceRenderer {
 
                         if (planets.cam.fov - targetFov < 5f) {
                             Time.run(30f, () -> {
-                                load.this.hide();
+                                loadDialog.this.hide();
                             });
                         }
                     }
