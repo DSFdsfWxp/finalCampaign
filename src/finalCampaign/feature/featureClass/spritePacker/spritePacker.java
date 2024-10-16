@@ -41,6 +41,8 @@ public class spritePacker {
             if (pageFi.exists()) {
                 JsonReader reader = new JsonReader();
                 JsonValue value = reader.parse(pageFi);
+                JsonValue generateOption = value.get("generate");
+
                 PixmapPacker packer = newPacker(value.getInt("width"), value.getInt("height"));
                 boolean prefix = value.getBoolean("prefix");
                 Seq<Pixmap> rawPixmap = new Seq<>();
@@ -53,6 +55,25 @@ public class spritePacker {
                         Pixmaps.bleed(pixmap, 2);
                         rawPixmap.add(pixmap);
                         packer.pack(name, pixmap);
+
+                        if (generateOption.getBoolean("outline", false)) {
+                            JsonValue outlineOption = value.get("outline");
+                            String outlineName = name + "-outline";
+                            Log.info("spritePacker:   " + outlineName);
+
+                            Pixmap src = new Pixmap(subFi);
+                            Pixmap tmp = new Pixmap(src.width + 8, src.height + 8);
+                            tmp.draw(src, 4, 4);
+
+                            Pixmap outlinePixmap = Pixmaps.outline(new PixmapRegion(tmp), Color.valueOf(outlineOption.getString("colorHex")), outlineOption.getInt("radius"));
+                            Pixmaps.bleed(outlinePixmap, 2);
+
+                            src.dispose();
+                            tmp.dispose();
+
+                            rawPixmap.add(outlinePixmap);
+                            packer.pack(outlineName, outlinePixmap);
+                        }
                     }
                 });
 
@@ -80,7 +101,7 @@ public class spritePacker {
                         info.width = (int) rect.width;
                         info.height = (int) rect.height;
 
-                        if(rect.splits != null){
+                        if (rect.splits != null) {
                             info.splits = rect.splits;
                             info.pads = rect.pads;
                         }

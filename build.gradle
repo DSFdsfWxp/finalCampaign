@@ -363,6 +363,10 @@ jar {
 
     exclude("finalCampaign/tool/**")
 
+    // not needed now (no android supported)
+    exclude("cert/**")
+    exclude("class/**")
+
     from(rootDir){
         include "mod.hjson"
     }

@@ -1,5 +1,12 @@
 {
     "prefix": true,
     "width": 1920,
-    "height": 1920
+    "height": 1080,
+    "generate": {
+        "outline": true
+    },
+    "outline": {
+        "colorHex": "3f3f3f",
+        "radius": 4
+    }
 }

@@ -72,6 +72,8 @@ public class finalCampaign extends Mod {
             shaders.load();
             atlas.load();
             icons.load();
+            outlineIcons.load();
+            Events.on(ClientLoadEvent.class, e -> outlineIcons.generate());
         }
 
         System.gc();
