@@ -32,6 +32,7 @@ public class atlas {
             regions = Core.atlas.getRegions();
         } catch(Exception e) {
             Log.err(e);
+            throw new RuntimeException(e);
         }
 
         spritePackerDataDir = finalCampaign.dataDir.child("spritePacker");

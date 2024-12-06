@@ -10,7 +10,6 @@ import finalCampaign.ui.*;
 import mindustry.*;
 import mindustry.gen.*;
 import mindustry.type.*;
-import mindustry.ui.*;
 import mindustry.world.*;
 
 public class drillPreferItem extends bAttributeSetter {
@@ -94,7 +93,7 @@ public class drillPreferItem extends bAttributeSetter {
                 fireSelectedChanged();
             });
             Block block = Vars.content.block("ore-" + item.name);
-            ItemImage image = new ItemImage(block == null ? item.uiIcon : block.uiIcon, amount);
+            itemImage image = new itemImage(block == null ? item.uiIcon : block.uiIcon, amount);
             inner.add(image).left();
             inner.add(Double.toString(Math.floor(speed / 60f * 100f) / 100f) + "/s").padLeft(4f).wrap().grow().right().labelAlign(Align.right);
         }
