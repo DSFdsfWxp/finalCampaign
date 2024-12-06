@@ -126,7 +126,7 @@ public abstract class fcDesktopInput extends InputHandler {
 
         shouldShoot = !Core.scene.hasMouse() && !locked && !fSetMode.isOn();
 
-        if (Core.input.keyRelease(Binding.select) || (Vars.player.shooting && !canShoot()) || fSetMode.isOn()) {
+        if (Core.input.keyRelease(Binding.select) || fSetMode.isOn()) {
             Vars.player.shooting = false;
         }
     }
