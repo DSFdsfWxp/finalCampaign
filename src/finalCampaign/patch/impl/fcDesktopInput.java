@@ -43,6 +43,14 @@ public abstract class fcDesktopInput extends InputHandler {
         Events.fire(drawTopEvent);
     }
 
+    @Inject(method = "updateState", at = @At("RETURN"), remap = false)
+    private void fcUpdateState(CallbackInfo ci) {
+        if (Vars.state.isMenu()) {
+            target = lastTarget = null;
+            crosshairScale = 0f;
+        }
+    }
+
     @Override
     public void drawOverSelect() {
         if (!fFreeVision.isOn())
