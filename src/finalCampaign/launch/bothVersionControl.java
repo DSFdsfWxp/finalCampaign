@@ -1,5 +1,6 @@
 package finalCampaign.launch;
 
+import java.io.*;
 import arc.util.*;
 
 public class bothVersionControl {
@@ -18,8 +19,12 @@ public class bothVersionControl {
                 bothFi classPath = new bothFi(shareMixinService.getClassPath());
                 return classPath.parent().child("finalCampaign");
             } else {
-                bothFi classPath = new bothFi(mindustry.Vars.class.getProtectionDomain().getCodeSource().getLocation().getFile());
-                return classPath.parent().child("finalCampaign");
+                try {
+                    bothFi classPath = new bothFi(new File(mindustry.Vars.class.getProtectionDomain().getCodeSource().getLocation().toURI()));
+                    return classPath.parent().child("finalCampaign");
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
@@ -76,10 +81,10 @@ public class bothVersionControl {
         inited = true;
     }
 
-    public static void install(String path, String modVersion) {
+    public static void install(File file, String modVersion) {
         bothFi rootDir = rootDirPath();
-        bothFi modFi = new bothFi(path);
-        String launcherVersion = bothLauncherVersion.toVersionString(path);
+        bothFi modFi = new bothFi(file);
+        String launcherVersion = bothLauncherVersion.toVersionString(file);
 
         bothFi modDir = rootDir.child("mod").child(modVersion);
         modDir.mkdirs();

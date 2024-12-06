@@ -14,15 +14,18 @@ import mindustry.io.*;
 
 @Mixin(Vars.class)
 public abstract class fcVars {
-    private static boolean steam;
-    private static String versionModifier;
+    private static boolean fcSteam;
+    private static String fcVersionModifier;
 
     @Inject(method = "loadSettings", at = @At("HEAD"), remap = false)
     private static void fcLoadSettingsHead(CallbackInfo ci) {
+        if (OS.isAndroid)
+            return;
+
         Core.settings.setJson(JsonIO.json);
         Core.settings.setAppName(Vars.appName);
 
-        Fi dataDir = Core.settings.getDataDirectory().child("finalCampaign");
+        Fi dataDir = new Fi(shareMixinService.dataDir.file()).child("finalCampaign/saves").child(Version.type);
         dataDir.mkdirs();
 
         patchedFi patchedModsFi = new patchedFi(new patchedFi(dataDir.child("mods"), true));
@@ -31,18 +34,25 @@ public abstract class fcVars {
         patchedDataFi.addPatchLst("mods", patchedModsFi);
         patchedModsFi.addPatchLst("finalCampaign.jar", new Fi(shareMixinService.mod.file()));
 
+        Fi modPlaceholder = dataDir.child("mods/finalCampaign.jar");
+        if (!modPlaceholder.exists())
+            modPlaceholder.writeString("NOTICE: This file is a placeholder for finalCampaign mod. ");
+
         Core.settings.setDataDirectory(patchedDataFi);
 
-        steam = Vars.steam;
-        versionModifier = Version.modifier;
+        fcSteam = Vars.steam || (Version.modifier != null && Version.modifier.contains("steam"));
+        fcVersionModifier = Version.modifier;
+
         Vars.steam = false;
         Version.modifier = "";
     }
 
     @Inject(method = "loadSettings", at = @At("RETURN"), remap = false)
     private static void fcLoadSettingsReturn(CallbackInfo ci) {
-        if (OS.isAndroid) return;
-        Vars.steam = steam;
-        Version.modifier = versionModifier;
+        if (OS.isAndroid)
+            return;
+
+        Vars.steam = fcSteam;
+        Version.modifier = fcVersionModifier;
     }
 }

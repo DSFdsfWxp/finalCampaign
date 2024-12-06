@@ -58,7 +58,7 @@ public class fRoulette {
                 if (frag.selectedBlock != null) {
                     Vars.control.input.block = frag.selectedBlock;
                     Vars.ui.hudfrag.blockfrag.currentCategory = frag.selectedBlock.category;
-                    Reflect.invoke(Vars.ui.hudfrag.blockfrag, "rebuildCategory");
+                    Reflect.invoke(Vars.ui.hudfrag.blockfrag, "fcRebuildCategory");
                 }
             }
         });

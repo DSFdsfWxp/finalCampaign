@@ -24,11 +24,11 @@ public abstract class fcItemModule extends BlockModule {
     private static float[] cacheSums;
 
     @Nullable
-    public Item take(){
-        for(int i = 0; i < items.length; i++){
+    public Item take() {
+        for (int i=0; i<items.length; i++) {
             int index = (i + takeRotation);
-            if(index >= items.length) index -= items.length;
-            if(items[index] > 0){
+            if (index >= items.length) index -= items.length;
+            if (items[index] > 0) {
                 if (items[index] != Integer.MAX_VALUE) {
                     items[index] --;
                     total --;

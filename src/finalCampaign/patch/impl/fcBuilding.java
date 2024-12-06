@@ -86,9 +86,10 @@ public abstract class fcBuilding implements IFcBuilding {
         if (read.bool()) health = Float.POSITIVE_INFINITY;
     }
 
-    public void control(LAccess type, double p1, double p2, double p3, double p4){
-        if(type == LAccess.enabled && !fcForceDisable && !fcForceEnable){
-            enabled = !Mathf.zero((float)p1);
+    @Inject(method = "control(Lmindustry/logic/LAccess;DDDD)V", at = @At("RETURN"), remap = false)
+    private void fcControl(LAccess type, double p1, double p2, double p3, double p4, CallbackInfo ci) {
+        if (type == LAccess.enabled && !fcForceDisable && !fcForceEnable) {
+            enabled = !Mathf.zero((float) p1);
         }
     }
 

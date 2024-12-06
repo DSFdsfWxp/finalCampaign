@@ -58,7 +58,7 @@ public class shortcutTable extends Table {
                             if (!invalidBlock(blocks[pos])) Vars.control.input.block = Vars.control.input.block == blocks[pos] ? null : blocks[pos];
                             if (Vars.control.input.block != null) {
                                 Vars.ui.hudfrag.blockfrag.currentCategory = Vars.control.input.block.category;
-                                Reflect.invoke(Vars.ui.hudfrag.blockfrag, "rebuildCategory");
+                                Reflect.invoke(Vars.ui.hudfrag.blockfrag, "fcRebuildCategory");
                             }
                         }
                     }

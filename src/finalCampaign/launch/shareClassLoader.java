@@ -39,23 +39,26 @@ public abstract class shareClassLoader extends ClassLoader {
 
     @Override
     public URL getResource(String name) {
-        URL url = super.getResource(name);
-        if (url == null) {
-            for (bothFi fi : jars) {
-                bothFi f = new bothZipFi(fi);
+        URL url = null;
 
-                if (name.startsWith("/")) name = name.substring(1);
-                String[] path = name.split("/");
-                for (String n : path) f = f.child(n);
+        for (bothFi fi : jars) {
+            bothFi f = new bothZipFi(fi);
 
-                if (f.exists()) {
-                    try {
-                        url = new URL("jar:file:/" + fi.toString() + "!/" + name);
-                        break;
-                    } catch(Exception e) {}
-                }
+            if (name.startsWith("/")) name = name.substring(1);
+            String[] path = name.split("/");
+            for (String n : path) f = f.child(n);
+
+            if (f.exists()) {
+                try {
+                    url = new URL("jar:file:/" + fi.toString() + "!/" + name);
+                    break;
+                } catch(Exception e) {}
             }
         }
+
+        if (url == null)
+            url = super.getResource(name);
+
         return url;
     }
 

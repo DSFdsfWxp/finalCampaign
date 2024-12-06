@@ -24,7 +24,7 @@ public abstract class fcLiquidModule extends BlockModule implements IFcLiquidMod
 
 
     @Inject(method = "read", at = @At("RETURN"), remap = false)
-    public void fcRead(Reads read, boolean legacy, CallbackInfo ci) {
+    private void fcRead(Reads read, boolean legacy, CallbackInfo ci) {
         if (finalCampaign.map.fcMap.currentVersion < 1) return;
         Liquid fcCurrent = TypeIO.readLiquid(read);
         if (fcCurrent == null) return;
@@ -33,7 +33,7 @@ public abstract class fcLiquidModule extends BlockModule implements IFcLiquidMod
     }
 
     @Inject(method = "write", at = @At("RETURN"), remap = false)
-    public void fcWrite(Writes write, CallbackInfo ci) {
+    private void fcWrite(Writes write, CallbackInfo ci) {
         TypeIO.writeLiquid(write, current);
     }
 

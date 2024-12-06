@@ -59,8 +59,8 @@ public class bothLauncherVersion {
         return String.format("%d.%d.%d", thisVersion[0], thisVersion[1], thisVersion[2]);
     }
 
-    public static String toVersionString(String path) {
-        bothZipFi zip = new bothZipFi(new bothFi(path));
+    public static String toVersionString(File file) {
+        bothZipFi zip = new bothZipFi(new bothFi(file));
         String res = toVersionString(zip.child("version.properties").reader());
         zip.delete(); // close zip file
         return res;

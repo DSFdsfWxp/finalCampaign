@@ -28,7 +28,7 @@ public abstract class fcMods {
         ModMeta meta = findMeta(zip);
         if (meta == null) throw new RuntimeException("Failed to resolve mod meta.");
         if (meta.name.equals("final-campaign")) {
-            bothVersionControl.install(file.absolutePath(), version.toVersionString(file));
+            bothVersionControl.install(file.file(), version.toVersionString(file));
             requiresReload = true;
             ci.setReturnValue(new LoadedMod(file, zip, null, null, meta));
         }

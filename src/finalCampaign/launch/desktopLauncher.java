@@ -6,9 +6,8 @@ import arc.util.*;
 public class desktopLauncher extends shareLauncher {
     private static shareLauncher instance;
     private static boolean isServer;
-    private static bothFi dataDir;
 
-    public static void main(String[] arg) {
+    public static void main(String[] arg) throws Exception {
         instance = new desktopLauncher();
         shareMixinService.parseArg(arg);
 
@@ -21,11 +20,11 @@ public class desktopLauncher extends shareLauncher {
             }
 
             public bothFi dataDirectory() {
-                return dataDir.child("finalCampaign");
+                return shareMixinService.dataDir.child("finalCampaign");
             }
         };
 
-        shareMixinService.thisJar = new bothFi(desktopLauncher.class.getProtectionDomain().getCodeSource().getLocation().getFile());
+        shareMixinService.thisJar = new bothFi(new File(desktopLauncher.class.getProtectionDomain().getCodeSource().getLocation().toURI()));
         bothFi path = shareMixinService.thisJar.parent().parent().parent().parent();
         bothFi configFi = path.child("fcConfig.properties");
 
@@ -41,20 +40,15 @@ public class desktopLauncher extends shareLauncher {
         }
 
         shareMixinService.gameJar = path.child(config.gameJarName);
-        dataDir = new bothFi(config.dataDir);
+        shareMixinService.dataDir = new bothFi(config.dataDir);
         isServer = config.isServer;
         bothVersionControl.init(true);
         bothVersionControl.clean();
         shareMixinService.mod = bothVersionControl.currentMod();
 
         checkFiExists(shareMixinService.gameJar, "Mindustry Game Jar File");
-        checkFiExists(dataDir, "Game's Data Directory");
+        checkFiExists(shareMixinService.dataDir, "Game's Data Directory");
         checkFiExists(shareMixinService.mod, "FinalCampaign Mod Jar File");
-
-        bothFi modsFi = dataDir.child("finalCampaign").child("mods/");
-        bothFi mod = modsFi.child("finalCampaign.jar");
-        modsFi.mkdirs();
-        if (!mod.exists()) mod.writeString("NOTICE: This file is a placeholder for finalCampaign mod. ");
 
         bothLauncherVersion.load((new bothZipFi(shareMixinService.mod)).child("version.properties").reader());
         shareCrashSender.setDefaultUncaughtExceptionHandler(new desktopCrashSender());
@@ -87,6 +81,6 @@ public class desktopLauncher extends shareLauncher {
 
     protected void launch() throws Exception {
         Class<?> main = shareMixinService.getClassLoader().loadClass("finalCampaign.launch.sideDesktopMain");
-        main.getDeclaredMethod("main", String.class, boolean.class, String[].class).invoke(null, dataDir.absolutePath(), isServer, (Object) shareMixinService.startupArgs);
+        main.getDeclaredMethod("main", String.class, boolean.class, String[].class).invoke(null, shareMixinService.dataDir.absolutePath(), isServer, (Object) shareMixinService.startupArgs);
     }
 }

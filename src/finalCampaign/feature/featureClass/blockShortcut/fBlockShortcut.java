@@ -8,7 +8,6 @@ import finalCampaign.input.*;
 import mindustry.*;
 import mindustry.core.GameState.*;
 import mindustry.game.EventType.*;
-import mindustry.input.*;
 import mindustry.world.*;
 import arc.*;
 import arc.KeyBinds.*;
@@ -21,7 +20,6 @@ public class fBlockShortcut {
     private static Seq<KeyBind> keyLst;
     private static boolean isOn;
     private static config config;
-    private static Binding[] bindings;
     public static boolean forceIgnoreCheck;
 
     public static class config {
@@ -55,15 +53,8 @@ public class fBlockShortcut {
         Events.on(stateChangeEvent.class, e -> {
             boolean isOn = false;
             for (String sub : subFeatures) if (fTuner.isOn(sub)) isOn = true;
-            if (isOn != fBlockShortcut.isOn && config.disableGameBlockSelect) {
-                if (isOn) {
-                    bindings = Reflect.get(Vars.ui.hudfrag.blockfrag, "blockSelect");
-                    Reflect.set(Vars.ui.hudfrag.blockfrag, "blockSelect", new Binding[] {});
-                } else {
-                    if (bindings != null) Reflect.set(Vars.ui.hudfrag.blockfrag, "blockSelect", bindings);
-                }
+            if (isOn != fBlockShortcut.isOn && config.disableGameBlockSelect)
                 fBlockShortcut.isOn = isOn;
-            }
         });
     }
 
@@ -101,6 +92,11 @@ public class fBlockShortcut {
             Events.fire(new shortcutChangeEvent(blockLst[id], id));
         } else {
             if (blockLst[id] != null) Vars.control.input.block = Vars.control.input.block == blockLst[id] ? null : blockLst[id];
+            
+            if (Vars.control.input.block != null) {
+                Vars.ui.hudfrag.blockfrag.currentCategory = Vars.control.input.block.category;
+                Reflect.invoke(Vars.ui.hudfrag.blockfrag, "fcRebuildCategory");
+            }
         }
     }
 
@@ -128,7 +124,7 @@ public class fBlockShortcut {
         return isOn;
     }
 
-    public static boolean disabledGameBlockSelect() {
-        return config.disableGameBlockSelect;
+    public static boolean disableGameBlockSelect() {
+        return config == null ? false : config.disableGameBlockSelect;
     }
 }

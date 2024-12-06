@@ -21,6 +21,7 @@ public class shareMixinService extends MixinServiceAbstract implements ITransfor
     public static bothFi mod;
     public static bothFi thisJar;
     public static bothFi gameJar;
+    public static bothFi dataDir;
     public static boolean log = false;
     public static boolean mixinLog = false;
     public static boolean debug = false;

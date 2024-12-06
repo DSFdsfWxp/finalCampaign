@@ -55,7 +55,7 @@ public abstract class fcDrillBuild extends Building implements IFcDrillBuild {
         return speed * speed * amount / fcDrill.getDrillTime(item) * Math.max(1f, timeScale) * 3600f;
     }
 
-    public void fcInit() {
+    private void fcInit() {
         if (fcInited) return;
         fcOreCount = Reflect.get(Drill.class, fcDrill, "oreCount");
         fcCountOre = reflect.getDeclaredMethod(Drill.class, "countOre", Tile.class);
@@ -77,18 +77,18 @@ public abstract class fcDrillBuild extends Building implements IFcDrillBuild {
     }
 
     @Inject(method = "onProximityUpdate", at = @At("RETURN"), remap = false)
-    public void fcOnProximityUpdate(CallbackInfo ci) {
+    private void fcOnProximityUpdate(CallbackInfo ci) {
         fcCheckItem();
     }
 
     @Inject(method = "read", at = @At("RETURN"), remap = false)
-    public void fcRead(Reads read, byte revision, CallbackInfo ci) {
+    private void fcRead(Reads read, byte revision, CallbackInfo ci) {
         if (finalCampaign.map.fcMap.currentVersion < 1) return;
         fcPreferItem = TypeIO.readItem(read);
     }
 
     @Inject(method = "write", at = @At("RETURN"), remap = false)
-    public void fcWrite(Writes write, CallbackInfo ci) {
+    private void fcWrite(Writes write, CallbackInfo ci) {
         TypeIO.writeItem(write, fcPreferItem);
     }
 }

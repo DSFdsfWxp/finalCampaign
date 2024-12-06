@@ -48,12 +48,17 @@ public class basicInfo extends IFeature {
 
                 // maybe a bug in Bar
                 // disappear when topWidth <= (Core.atlas.find("bar-top")).width
-                Floatp originalFraction = Reflect.get(bar, "fraction");
-                Floatp fraction = () -> {
-                    float fv = originalFraction.get();
-                    return fv <= 0 ? 0 : Math.max(fv, barTopWidth / bar.getWidth() + 0.001f);
-                };
-                Reflect.set(bar, "fraction", fraction);
+                // Notice: some mod may inherit from Bar
+                try {
+                    Floatp originalFraction = Reflect.get(bar, "fraction");
+                    Floatp fraction = () -> {
+                        float fv = originalFraction.get();
+                        return fv <= 0 ? 0 : Math.max(fv, barTopWidth / bar.getWidth() + 0.001f);
+                    };
+                    Reflect.set(bar, "fraction", fraction);
+                } catch(Throwable e) {
+                    Log.err(e);
+                }
 
                 boolean consHeat = false;
                 building.block.checkStats();

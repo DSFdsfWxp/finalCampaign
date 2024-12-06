@@ -9,6 +9,7 @@ import arc.util.*;
 import finalCampaign.*;
 import finalCampaign.bundle.*;
 import finalCampaign.feature.featureClass.wiki.*;
+import finalCampaign.ui.*;
 import finalCampaign.util.*;
 import mindustry.*;
 import mindustry.gen.*;
@@ -171,7 +172,7 @@ public class setModeFragment extends Table {
 
                         for (Block b : map.keys()) {
                             Button butt = new Button(Styles.selecti);
-                            ItemImage image = new ItemImage(b.uiIcon, map.get(b));
+                            itemImage image = new itemImage(b.uiIcon, map.get(b));
                             butt.add(image).center().size(32f).scaling(Scaling.fit).grow();
                             butt.clicked(() -> Core.app.post(updateSelected));
                             ibt.add(butt).size(46f).name(b.name).group(group).left().tooltip(b.localizedName);
@@ -183,7 +184,7 @@ public class setModeFragment extends Table {
                         it.add(firstBuilding.block.localizedName).center().color(Pal.accent).fontScale(1.2f).padTop(4f).row();
                         rebuiltFeatures.run();
                     }
-                    
+
                 }).scrollX(false).style(Styles.smallPane).grow().get();
                 pane.setFadeScrollBars(true);
             }).growY().width(327f);
