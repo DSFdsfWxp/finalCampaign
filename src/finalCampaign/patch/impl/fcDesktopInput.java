@@ -29,7 +29,7 @@ public abstract class fcDesktopInput extends InputHandler {
     @Shadow(remap = false)
     public float panSpeed, panBoostSpeed;
     @Shadow(remap = false)
-    public boolean shouldShoot;
+    public boolean shouldShoot, panning;
 
     public Teamc target;
     public Teamc lastTarget;
@@ -48,6 +48,7 @@ public abstract class fcDesktopInput extends InputHandler {
         if (Vars.state.isMenu()) {
             target = lastTarget = null;
             crosshairScale = 0f;
+            Vars.player.shooting = false;
         }
     }
 
@@ -103,18 +104,23 @@ public abstract class fcDesktopInput extends InputHandler {
     @Inject(method = "update", at = @At("RETURN"), remap = false)
     private void fcUpdate(CallbackInfo ci) {
         boolean locked = locked();
+        Unit spectating = null;
 
-        if (!locked && fFreeVision.isOn()) {
-            if (!Vars.player.dead() && !Vars.state.isPaused() && !Vars.ui.chatfrag.shown() && !Core.scene.hasField() && !Core.scene.hasDialog() && !Vars.ui.consolefrag.shown()) {
+        try {
+            spectating = Reflect.get(InputHandler.class, this, "spectating");
+        } catch (Throwable ignore) {}
+
+        if (!locked && fFreeVision.isOn() && !panning) {
+            if ((!Vars.player.dead() || spectating != null) && !Vars.state.isPaused() && !Vars.ui.chatfrag.shown() && !Core.scene.hasField() && !Core.scene.hasDialog() && !Vars.ui.consolefrag.shown()) {
                 // un-lerpDelta of Vec2
                 Team corePanTeam = Vars.state.won ? Vars.state.rules.waveTeam : Vars.player.team();
                 Position coreTarget = Vars.state.gameOver && !Vars.state.rules.pvp && corePanTeam.data().lastCore != null ? corePanTeam.data().lastCore : null;
-                Position target = coreTarget != null ? coreTarget : Vars.player;
+                Position panTarget = coreTarget != null ? coreTarget : (spectating != null ? spectating : Vars.player);
                 float alpha = Mathf.clamp((Core.settings.getBool("smoothcamera") ? 0.08f : 1f) * Time.delta);
                 float invAlpha = 1.0f - alpha;
 
-                Core.camera.position.x -= target.getX() * alpha;
-                Core.camera.position.y -= target.getY() * alpha;
+                Core.camera.position.x -= panTarget.getX() * alpha;
+                Core.camera.position.y -= panTarget.getY() * alpha;
                 Core.camera.position.x /= invAlpha;
                 Core.camera.position.y /= invAlpha;
 

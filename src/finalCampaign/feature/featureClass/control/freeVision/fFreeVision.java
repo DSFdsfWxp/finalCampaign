@@ -1,6 +1,7 @@
 package finalCampaign.feature.featureClass.control.freeVision;
 
 import arc.*;
+import finalCampaign.setting;
 import finalCampaign.event.*;
 import finalCampaign.feature.featureClass.tuner.*;
 import finalCampaign.input.*;
@@ -23,7 +24,7 @@ public class fFreeVision {
     }
 
     public static void init() throws Exception {
-        on = false;
+        on = setting.getAndCast("feature.control.freeVision.on", false);
         enabled = false;
         config = new config();
     }
@@ -47,6 +48,7 @@ public class fFreeVision {
     public static void checkOnOff() {
         if (Core.input.keyTap(fcBindings.freeVision) && inited && enabled) {
             on = !on;
+            setting.put("feature.control.freeVision.on", on);
 
             if (lastFragment != null) lastFragment.remove();
             infoFragment info = new infoFragment();

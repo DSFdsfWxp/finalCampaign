@@ -27,11 +27,11 @@ public class crosshairFragment extends fragment {
         Unit unit = Vars.player.unit();
         moving = Vars.mobile ? unit.moving() : Core.input.axis(Binding.move_x) != 0 || Core.input.axis(Binding.move_y) != 0 || Core.input.keyDown(Binding.mouse_move);
     }
-    
+
     @Override
     public void draw() {
         super.draw();
-        if (!fCrosshair.isOn()) return;
+        if (!fCrosshair.isOn() || Vars.ui.minimapfrag.shown()) return;
 
         if ((moving || Vars.state.isPaused()) != lastMoving) {
             lastMoving = !lastMoving;
