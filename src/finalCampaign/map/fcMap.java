@@ -10,7 +10,7 @@ import mindustry.io.*;
 
 public class fcMap {
     public static int currentVersion;
-    public static final int version = 1;
+    public static final int version = 2;
     public static @Nullable Gamemode initialMode;
 
     public static void init() {

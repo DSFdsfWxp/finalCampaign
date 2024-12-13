@@ -59,7 +59,7 @@ public class fTuner {
     }
 
     public static boolean isOn(String name) {
-        if (!map.containsKey(name)) throw new RuntimeException("The tuner item not exsited: " + name);
+        if (!map.containsKey(name)) return false;
         return map.get(name);
     }
 

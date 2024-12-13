@@ -60,14 +60,16 @@ public abstract class fcLiquidTurretBuild extends Building implements IFcLiquidT
         if (liquids.currentAmount() <= 0f) fcLiquidModule.fcFindNextAvailable();
     }
 
-    @Inject(method = "read", at = @At("RETURN"), remap = false)
-    public void fcRead(Reads read, byte revision, CallbackInfo ci) {
-        if (finalCampaign.map.fcMap.currentVersion < 1) return;
+    @Override
+    public void read(Reads read, byte revision) {
+        super.read(read, revision);
+        if (finalCampaign.map.fcMap.currentVersion < 2) return;
         fcPreferExtinguish = read.bool();
     }
 
-    @Inject(method = "write", at = @At("RETURN"), remap = false)
-    public void fcWrite(Writes write, CallbackInfo ci) {
+    @Override
+    public void write(Writes write) {
+        super.write(write);
         write.bool(fcPreferExtinguish);
     }
 }

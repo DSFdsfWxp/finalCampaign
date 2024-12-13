@@ -25,7 +25,7 @@ public class crosshairFragment extends fragment {
 
     public void checkMoving() {
         Unit unit = Vars.player.unit();
-        moving = Vars.mobile ? unit.moving() : Core.input.axis(Binding.move_x) != 0 || Core.input.axis(Binding.move_y) != 0 || Core.input.keyDown(Binding.mouse_move);
+        moving = Vars.mobile ? unit!=null && unit.moving() : Core.input.axis(Binding.move_x) != 0 || Core.input.axis(Binding.move_y) != 0 || Core.input.keyDown(Binding.mouse_move);
     }
 
     @Override

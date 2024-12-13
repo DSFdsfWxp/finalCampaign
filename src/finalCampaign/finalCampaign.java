@@ -23,7 +23,8 @@ public class finalCampaign extends Mod {
         dataDir = Vars.dataDirectory.child("finalCampaign");
         if (!dataDir.exists()) dataDir.mkdirs();
 
-        checkLoad();
+        if (!OS.isAndroid)
+            checkLoad();
     }
 
     @Override
