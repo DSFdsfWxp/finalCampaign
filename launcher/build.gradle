@@ -1,0 +1,69 @@
+
+sourceSets.main.java.srcDirs = ["src"]
+
+dependencies {
+    implementation "com.github.Anuken.Arc:arc-core:$mindustryVersion"
+    compileOnly "com.github.Anuken.Arc:backend-sdl:$mindustryVersion"
+    compileOnly "com.github.Anuken.Arc:backend-android:$mindustryVersion"
+    compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
+
+    compileOnly(files("$rootDir/dependencies/mtd.android.jar"))
+    compileOnly(files("$rootDir/dependencies/mtd.desktop.jar"))
+    compileOnly(files("$rootDir/dependencies/mtd.server.jar"))
+
+    compileOnly(files((new File(androidPlatformRoot, "android.jar").path)))
+
+    implementation "com.github.google.guava:guava:v21.0"
+    implementation "com.google.code.gson:gson:2.2.4"
+
+    if (Float.parseFloat(asmVersion) < 6) {
+        implementation "org.ow2.asm:asm-debug-all:$asmVersion"
+    }
+    implementation "org.ow2.asm:asm-tree:$asmVersion"
+    implementation "org.ow2.asm:asm-commons:$asmVersion"
+    implementation "org.ow2.asm:asm-util:$asmVersion"
+
+    implementation "com.github.DSFdsfWxp:Mixin:v0.8.5.3"
+
+    annotationProcessor "com.github.Anuken:jabel:$jabelVersion"
+
+    implementation 'com.github.DSFdsfWxp:dx:v9.0.0'
+
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    annotationProcessor "org.ow2.asm:asm-tree:$asmVersion"
+    annotationProcessor "com.github.google.guava:guava:v21.0"
+}
+
+jar {
+    exclude("META-INF/maven/**")
+    exclude("META-INF/*.SF")
+    exclude("META-INF/*.RSA")
+    exclude("module-info.class")
+
+    exclude("org/spongepowered/asm/launch/MixinLaunchPlugin*")
+    exclude("org/spongepowered/asm/launch/MixinTransformationService*")
+    exclude("org/spongepowered/asm/launch/platform/container/ContainerHandleModLauncherEx*")
+    exclude("org/spongepowered/tools/**")
+    exclude("org/spongepowered/asm/mixin/transformer/debug/**")
+    exclude("org/spongepowered/asm/service/modlauncher/**")
+    exclude("org/spongepowered/asm/service/mojang/**")
+    exclude("org/spongepowered/asm/launch/platform/MixinPlatformAgentFMLLegacy*")
+    exclude("org/spongepowered/asm/launch/MixinTweaker*")
+    exclude("org/spongepowered/asm/mixin/EnvironmentStateTweaker*")
+    exclude("org/spongepowered/asm/mixin/transformer/Proxy*")
+
+    exclude("arc/assets/**")
+    exclude("arc/audio/**")
+    exclude("arc/files/**")
+    exclude("arc/graphics/**")
+    exclude("arc/input/**")
+    exclude("arc/mock/**")
+    exclude("arc/scene/**")
+    exclude("arc/Application**")
+    exclude("arc/Core**")
+    exclude("arc/Events**")
+    exclude("arc/Graphics**")
+    exclude("arc/Input**")
+    exclude("arc/KeyBinds**")
+    exclude("arc/Settings**")
+}

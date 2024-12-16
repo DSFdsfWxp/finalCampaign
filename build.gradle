@@ -1,29 +1,11 @@
-apply plugin: "java"
-
-version '1.0'
-
-sourceSets.main.java.srcDirs = ["src"]
-
-repositories{
-    mavenCentral()
-    maven{ url "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
-    maven{ url 'https://www.jitpack.io' }
-    maven {
-        name = 'Sponge / Mixin'
-        url = 'https://repo.spongepowered.org/repository/maven-public/'
-    }
-    maven{ url "https://oss.sonatype.org/content/repositories/releases/" }
-}
-
-java{
-    targetCompatibility = JavaVersion.VERSION_1_8
-    sourceCompatibility = JavaVersion.VERSION_17
-}
 
 //java 8 backwards compatibility flag
-allprojects{
+allprojects {
+    apply plugin: "java"
+
     tasks.withType(JavaCompile){
-        options.compilerArgs.addAll(['--release', '8', '-AdisableOverwriteChecker=true'])
+        targetCompatibility = 8
+        sourceCompatibility = JavaVersion.VERSION_17
     }
 
     repositories{
@@ -39,9 +21,11 @@ allprojects{
 
     ext{
         asmVersion = "9.7"
-        //the build number that this mod is made for
-        mindustryVersion = 'v146'
+        mindustryVersion = "v146"
+        arcVersion = "v146"
+        rhinoVersion = "73a812444a"
         jabelVersion = "93fde537c7"
+
         //windows sucks
         isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
         sdkRoot = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
@@ -84,40 +68,10 @@ allprojects{
     }
 }
 
-dependencies{
-    implementation "com.github.Anuken.Arc:arc-core:$mindustryVersion"
-    compileOnly "com.github.Anuken.Arc:backend-sdl:$mindustryVersion"
-    compileOnly "com.github.Anuken.Arc:backend-android:$mindustryVersion"
-    compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
-    compileOnly(files("$projectRootDir/dependencies/mtd.android.jar"))
-    compileOnly(files("$projectRootDir/dependencies/mtd.desktop.jar"))
-    compileOnly(files("$projectRootDir/dependencies/mtd.server.jar"))
-
-    compileOnly(files((new File(androidPlatformRoot, "android.jar").path)))
-    compileOnly "com.github.Anuken:rhino:73a812444a"
-
-    compileOnly "com.jakewharton.android.repackaged:dalvik-dx:9.0.0_r3"
-    
-    implementation "com.github.google.guava:guava:v21.0"
-    implementation "com.google.code.gson:gson:2.2.4"
-    
-    if (Float.parseFloat(asmVersion) < 6) {
-        implementation "org.ow2.asm:asm-debug-all:$asmVersion"
-    }
-    implementation "org.ow2.asm:asm-tree:$asmVersion"
-    implementation "org.ow2.asm:asm-commons:$asmVersion"
-    implementation "org.ow2.asm:asm-util:$asmVersion"
-
-    implementation "com.github.DSFdsfWxp:Mixin:v0.8.5.3"
-
-    annotationProcessor "com.github.Anuken:jabel:$jabelVersion"
-
-    implementation 'com.github.DSFdsfWxp:dx:v9.0.0'
-
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-    annotationProcessor "org.ow2.asm:asm-tree:$asmVersion"
-    annotationProcessor "com.github.google.guava:guava:v21.0"
-}
+project(":launcher")
+project(":annotation")
+project(":core")
+project(":tool")
 
 //force arc version
 configurations.all{
@@ -400,7 +354,7 @@ task genNet {
         def dependencies = (configurations.compileClasspath.asList()).collect{ "$it.path" }.join(";")
         def dir = new File("$buildDir/genNet")
         mkdir("$buildDir/genNet")
-        "javac -g -parameters -cp $dependencies;$runtimeBinDir -d $buildDir/genNet ./src/finalCampaign/net/fcAction.java"
+        "javac -g -parameters -cp $dependencies;$runtimeBinDir -d $buildDir/genNet ./core/finalCampaign/net/fcAction.java"
             .execute(null, new File("$projectRootDir")).waitForProcessOutput(System.out, System.err)
         "java -cp $dependencies;$buildDir/genNet;$runtimeBinDir finalCampaign.tool.genNet"
             .execute(null, new File("$projectRootDir")).waitForProcessOutput(System.out, System.err)
