@@ -98,8 +98,9 @@ public class finalCampaign extends Mod {
         } else if (Vars.headless) {
             Log.info("[finalCampaign] " + bundle.get("load.install"));
             try {
-                mixinRuntime runtime = new mixinRuntime(null);
+                mixinRuntime runtime = new mixinRuntime();
                 runtime.install(thisLoadedMod.file);
+                Log.info(bundle.format("installer.finishHint", runtime.getRootPath().child("fcLaunch." + (OS.isWindows ? "bat" : "sh")).absolutePath()));
             } catch(Exception e) {
                 Log.err("[finalCampaign] " + bundle.get("error") + ": " + bundle.get("installer.fail"));
             }
@@ -108,8 +109,9 @@ public class finalCampaign extends Mod {
                 Vars.ui.showConfirm(bundle.format("load.installConfirm", version.inPackage.getVersionFull("mod"), version.inPackage.getVersionFull("launcher")), () -> {
                     Vars.ui.loadAnd(bundle.get("load.install"), () -> {
                         try {
-                            mixinRuntime runtime = new mixinRuntime(null);
+                            mixinRuntime runtime = new mixinRuntime();
                             runtime.install(thisLoadedMod.file);
+                            Vars.ui.showOkText(bundle.get("info"), bundle.format((Vars.steam ? "installer.finishHintSteam" : "installer.finishHint"), runtime.getRootPath().child("fcLaunch." + (OS.isWindows ? "bat" : "sh")).absolutePath()), () -> {});
                         } catch(Exception e) {
                             Log.err(e);
                             Vars.ui.showOkText(bundle.get("error"), bundle.get("installer.fail"), finalCampaign::safetyExit);

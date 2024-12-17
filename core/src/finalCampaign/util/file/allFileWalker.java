@@ -1,4 +1,4 @@
-package finalCampaign.util;
+package finalCampaign.util.file;
 
 import arc.func.*;
 import arc.files.*;

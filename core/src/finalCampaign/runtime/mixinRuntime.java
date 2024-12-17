@@ -12,23 +12,32 @@ import mindustry.*;
 
 public class mixinRuntime implements IRuntime {
 
-    private Fi rootDir;
-    private Fi gameJar;
+    private Fi rootDir, dataDir;
+    private Fi gameJar, modJar;
     private Fi modVersion, launcherVersion;
 
-    public mixinRuntime(File gameJar) {
+    public mixinRuntime() {
+        this(null, null);
+    }
+
+    public mixinRuntime(File gameJar, File dataDir) {
         if (rootDir == null) {
             try {
                 gameJar = new File(mixinRuntime.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             } catch (Exception e) {
                 throw new RuntimeException("Should be ok.", e);
             }
+            this.modJar = finalCampaign.thisLoadedMod.file;
         }
 
         this.rootDir = new Fi(gameJar.getParentFile());
+        this.dataDir = new Fi(dataDir);
         this.gameJar = new Fi(gameJar);
         modVersion = this.rootDir.child("finalCampaign/mod/current");
         launcherVersion = this.rootDir.child("finalCampaign/launcher/current");
+
+        if (modJar == null && modVersion.exists())
+            modJar = modVersion.parent().child(modVersion.readString()).child("mod.jar");
 
         clear();
     }
@@ -40,18 +49,22 @@ public class mixinRuntime implements IRuntime {
 
     @Override
     public Fi getRootPath() {
-        if (OS.isAndroid)
-            throw new RuntimeException("Mixin runtime is not available for Android");
-        
         return rootDir;
     }
 
     @Override
-    public Fi getGameJar() {
-        if (OS.isAndroid)
-            throw new RuntimeException("Mixin runtime is not available for Android");
+    public Fi getDataPath() {
+        return dataDir;
+    }
 
+    @Override
+    public Fi getGameJar() {
         return gameJar;
+    }
+
+    @Override
+    public Fi getModJar() {
+        return modJar;
     }
 
     @Override

@@ -5,9 +5,9 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
 import arc.*;
 import arc.files.*;
-import arc.util.*;
-import finalCampaign.launch.*;
-import finalCampaign.util.*;
+import finalCampaign.*;
+import finalCampaign.runtime.*;
+import finalCampaign.util.file.*;
 import mindustry.*;
 import mindustry.core.*;
 import mindustry.io.*;
@@ -19,20 +19,20 @@ public abstract class fcVars {
 
     @Inject(method = "loadSettings", at = @At("HEAD"), remap = false)
     private static void fcLoadSettingsHead(CallbackInfo ci) {
-        if (OS.isAndroid)
+        if (finalCampaign.runtime != null || !(finalCampaign.runtime instanceof mixinRuntime))
             return;
 
         Core.settings.setJson(JsonIO.json);
         Core.settings.setAppName(Vars.appName);
 
-        Fi dataDir = new Fi(shareMixinService.dataDir.file()).child("finalCampaign/saves").child(Version.type);
+        Fi dataDir = finalCampaign.runtime.getDataPath().child("finalCampaign/saves").child(Version.type);
         dataDir.mkdirs();
 
         patchedFi patchedModsFi = new patchedFi(new patchedFi(dataDir.child("mods"), true));
         patchedModsFi.mkdirs();
         patchedFi patchedDataFi = new patchedFi(dataDir);
         patchedDataFi.addPatchLst("mods", patchedModsFi);
-        patchedModsFi.addPatchLst("finalCampaign.jar", new Fi(shareMixinService.mod.file()));
+        patchedModsFi.addPatchLst("finalCampaign.jar", finalCampaign.runtime.getModJar());
 
         Fi modPlaceholder = dataDir.child("mods/finalCampaign.jar");
         if (!modPlaceholder.exists())
@@ -49,7 +49,7 @@ public abstract class fcVars {
 
     @Inject(method = "loadSettings", at = @At("RETURN"), remap = false)
     private static void fcLoadSettingsReturn(CallbackInfo ci) {
-        if (OS.isAndroid)
+        if (finalCampaign.runtime != null || !(finalCampaign.runtime instanceof mixinRuntime))
             return;
 
         Vars.steam = fcSteam;

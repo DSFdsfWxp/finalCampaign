@@ -44,8 +44,18 @@ public class standAloneRuntime implements IRuntime {
     }
 
     @Override
+    public Fi getDataPath() {
+        return Core.settings.getDataDirectory();
+    }
+
+    @Override
     public Fi getGameJar() {
         return gameJar;
+    }
+
+    @Override
+    public Fi getModJar() {
+        return Vars.modDirectory.child("finalCampaign.jar");
     }
 
     @Override

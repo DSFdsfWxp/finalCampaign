@@ -16,7 +16,6 @@ public abstract class shareLauncher {
 
     public void init() {
         shareLogger.setup();
-        if (OS.isAndroid) shareMixinPatcher.patch();
         Log.info("[finalCampaign] pre-main bootstrap");
     }
 

@@ -1,4 +1,4 @@
-package finalCampaign.util;
+package finalCampaign.util.io;
 
 import java.io.*;
 import arc.util.serialization.*;

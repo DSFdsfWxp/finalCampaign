@@ -1,4 +1,4 @@
-package finalCampaign.util;
+package finalCampaign.util.file;
 
 import java.io.*;
 import arc.files.*;

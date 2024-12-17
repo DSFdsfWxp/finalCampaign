@@ -1,5 +1,8 @@
 package finalCampaign.util;
 
+import finalCampaign.util.io.littleEndianDataInputStream;
+import finalCampaign.util.io.littleEndianDataOutputStream;
+
 public class arscPatcher {
     private static final short RES_TABLE_TYPE = 0x2;
     private static final short RES_PACKAGE_TABLE_TYPE = 0x200;
