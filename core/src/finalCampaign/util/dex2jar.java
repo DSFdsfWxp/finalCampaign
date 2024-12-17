@@ -20,7 +20,7 @@ public class dex2jar {
         if (cacheDir.exists()) cacheDir.deleteDirectory();
         cacheDir.mkdirs();
 
-        Fi libPath = finalCampaign.thisModFi.child("class");
+        Fi libPath = finalCampaign.thisModZip.child("class");
         Fi dex2jarFiSrc = Core.app.getVersion() >= 24 ? libPath.child("dex2jar.24.jar") : libPath.child("dex2jar.14.jar");
         Fi dex2jarFi = cacheDir.child("dex2jar.jar");
         dex2jarFiSrc.copyTo(dex2jarFi);

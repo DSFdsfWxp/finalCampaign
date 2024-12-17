@@ -43,7 +43,7 @@ public class bundle {
         Fi bundleFile = bundleCacheDir.child(fileName + ".properties");
 
         if (!bundleFile.exists()) {
-            Fi rawBundleFile = finalCampaign.thisModFi.child("fcBundle").child(bundleFile.name());
+            Fi rawBundleFile = finalCampaign.thisModZip.child("fcBundle").child(bundleFile.name());
             if (!rawBundleFile.exists()) rawBundleFile = rawBundleFile.parent().child("en_US.properties");
             String[] bundleContent = rawBundleFile.readString().split("\n");
             Seq<String> processedBundleContent = new Seq<>();

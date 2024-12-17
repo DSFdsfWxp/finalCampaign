@@ -13,7 +13,7 @@ public class shader extends Shader {
 
     public static Fi getShaderFi(String name) {
         if (name.startsWith("raw.")) return Shaders.getShaderFi(name.substring(4));
-        return finalCampaign.thisModFi.child("fcShader").child(name);
+        return finalCampaign.thisModZip.child("fcShader").child(name);
     }
     
 }

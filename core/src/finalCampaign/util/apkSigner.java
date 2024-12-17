@@ -17,9 +17,9 @@ public class apkSigner {
     public static void init() {
         if (inited) return;
 
-        Fi libPath = finalCampaign.thisModFi.child("class");
+        Fi libPath = finalCampaign.thisModZip.child("class");
         Fi jarSrc = Core.app.getVersion() >= 24 ? libPath.child("apksigner.24.jar") : libPath.child("apksigner.14.jar");
-        Fi cert = finalCampaign.thisModFi.child("cert").child("cert");
+        Fi cert = finalCampaign.thisModZip.child("cert").child("cert");
         cacheDir = finalCampaign.dataDir.child("apkSigner");
         if (cacheDir.exists()) cacheDir.deleteDirectory();
         cacheDir.mkdirs();

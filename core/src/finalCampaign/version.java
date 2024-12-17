@@ -6,62 +6,68 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.Log.*;
 import arc.util.io.*;
-import finalCampaign.launch.*;
-import finalCampaign.util.*;
 
 public class version {
-    
-    public static int major;
-    public static int minor;
-    public static int debug;
 
     public static boolean isDebuging;
-    /** only debug / preRelease / release accepted  */
-    public static String type = "debug";
+    public static version inPackage;
+
+    private ObjectMap<String, String> versions, types;
+
+    public version(Fi mod) {
+        ZipFi modZip = new ZipFi(mod);
+        Fi versionFile = modZip.child("version.properties");
+
+        if (versionFile.exists()) {
+            Reader reader = versionFile.reader();
+            ObjectMap<String, String> map = new ObjectMap<>();
+            PropertiesUtils.load(map, reader);
+            Streams.close(reader);
+
+            Seq<String> items = new Seq<>();
+            for (String keys : map.keys()) {
+                String name = keys.split(".")[0];
+                if (!items.contains(name))
+                    items.add(name);
+            }
+
+            for (String name : items) {
+                versions.put(name, map.get(name + ".major", "0") + "." + 
+                                   map.get(name + ".minor", "0") + "." + 
+                                   map.get(name + ".debug", "0")
+                            );
+                
+                types.put(name, map.get(name + ".type", "debug"));
+            }
+        }
+
+        modZip.delete(); // close zip
+    }
+
+    public String getVersionFull(String name) {
+        return versions.get(name) + "-" + types.get(name);
+    }
+
+    public String getVersionNumbers(String name) {
+        return versions.get(name);
+    }
+
+    public String getVersionType(String name) {
+        return types.get(name);
+    }
+
+    public boolean isDebugVersion(String name) {
+        return types.get(name).equals("debug");
+    }
+
+    public boolean isReleaseVersion(String name) {
+        return types.get(name).equals("release");
+    }
 
     public static void init() {
-        Fi versionFile = finalCampaign.thisModFi.child("version.properties");
-        bothLauncherVersion.load(versionFile.reader());
-
-        ObjectMap<String, String> map = new ObjectMap<>();
-        Reader reader = versionFile.reader();
-        PropertiesUtils.load(map, reader);
-        Streams.close(reader);
-        major = Integer.parseInt(map.get("mod.major", "0"));
-        minor = Integer.parseInt(map.get("mod.minor", "0"));
-        debug = Integer.parseInt(map.get("mod.debug", "0"));
-        type = map.get("mod.type", "debug");
-        bundle.bundleVersion = map.get("bundle", "0");
-
-        Class<?> service = reflect.findClass("finalCampaign.launch.shareMixinService", version.class.getClassLoader());
-        isDebuging = service == null ? false : Reflect.get(service, "debug");
-
-        if (!type.equals("debug") && !type.equals("preRelease") && !type.equals("release"))
-            throw new RuntimeException("Unacceptable version type: " + type);
+        inPackage = new version(finalCampaign.thisModMeta.file);
 
         if (isDebuging) Log.level = LogLevel.debug;
-    }
-
-    public static String toVersionString() {
-        return String.format("%d.%d.%d-%s", major, minor, debug, type);
-    }
-
-    public static String toVersionString(Reader reader) {
-        ObjectMap<String, String> map = new ObjectMap<>();
-        PropertiesUtils.load(map, reader);
-        int major = Integer.parseInt(map.get("mod.major", "0"));
-        int minor = Integer.parseInt(map.get("mod.minor", "0"));
-        debug = Integer.parseInt(map.get("mod.debug", "0"));
-        String type = map.get("mod.type", "debug");
-        Streams.close(reader);
-        return String.format("%d.%d.%d-%s", major, minor, debug, type);
-    }
-
-    public static String toVersionString(Fi mod) {
-        ZipFi zip = new ZipFi(mod);
-        String str = toVersionString(zip.child("version.properties").reader());
-        zip.delete(); // close zip file
-        return str;
     }
     
 }

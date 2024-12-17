@@ -6,4 +6,5 @@ public interface IRuntime {
     public String name();
     public String getVersion();
     public Fi getRootPath();
+    public Fi getGameJar();
 }

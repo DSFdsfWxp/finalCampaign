@@ -6,6 +6,7 @@ import arc.files.*;
 import arc.util.*;
 import finalCampaign.*;
 import finalCampaign.launch.bothConfigUtil.*;
+import finalCampaign.runtime.*;
 import finalCampaign.launch.*;
 import mindustry.*;
 
@@ -44,7 +45,8 @@ public class installer {
 
         bothVersionControl.init(inInstalledGame());
         String originalLauncherVersion = bothVersionControl.currentLauncherVersion();
-        bothVersionControl.install(finalCampaign.thisMod.file.file(), version.toVersionString());
+        mixinRuntime runtime = new mixinRuntime(null);
+        runtime.install(finalCampaign.thisModMeta.file);
 
         String script = "";
 

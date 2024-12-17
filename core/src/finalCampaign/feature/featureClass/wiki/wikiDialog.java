@@ -43,7 +43,7 @@ public class wikiDialog extends BaseDialog {
                         table.add(tmp).left().color(Pal.accent).fontScale(levelToScale[level]).wrap().grow();
                     } else if (t.startsWith("![](")) {
                         tmp = t.substring(4, t.length() - 5);
-                        Fi file = finalCampaign.thisModFi.child("fcWiki").child(tmp);
+                        Fi file = finalCampaign.thisModZip.child("fcWiki").child(tmp);
                         TextureRegion img = Core.atlas.find("error");
                         if (file.exists()) img = new TextureRegion(new Texture(new Pixmap(file)));
                         table.image(img).center().scaling(Scaling.fit).maxWidth(600f).expandX();

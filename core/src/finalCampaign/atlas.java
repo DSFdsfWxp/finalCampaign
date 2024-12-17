@@ -89,12 +89,12 @@ public class atlas {
     }
 
     public static void load() {
-        if (version.type.equals("debug")) {
+        if (version.inPackage.isDebugVersion("mod")) {
             Fi cache = spritePackerDataDir.child("cache");
             if (cache.exists()) cacheInfo = objectData.read(cache.readBytes(), spritePacker.packCache.class);
         }
 
-        Fi spriteDir = version.type.equals("debug") && cacheInfo != null ? new Fi(cacheInfo.outputDir) : finalCampaign.thisModFi.child("fcSprite");
+        Fi spriteDir = version.inPackage.isDebugVersion("mod") && cacheInfo != null ? new Fi(cacheInfo.outputDir) : finalCampaign.thisModZip.child("fcSprite");
         for (Fi dir : spriteDir.list()) load(dir);
 
         for (Seq<Content> arr : Vars.content.getContentMap()) {
@@ -107,7 +107,7 @@ public class atlas {
         }
 
         if (cacheInfo == null) return;
-        if (!cacheInfo.done && version.type.equals("debug")) {
+        if (!cacheInfo.done && version.inPackage.isDebugVersion("mod")) {
             spritePacker.packGenerated(cacheInfo);
             Vars.ui.showOkText("Info", "Sprite pack done. See your output directory.", () -> {});
         }

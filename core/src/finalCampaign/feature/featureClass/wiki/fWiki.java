@@ -22,7 +22,7 @@ public class fWiki {
     }
 
     public static void show(String name) {
-        Fi file = finalCampaign.thisModFi.child("fcWiki").child(name.replace('.', '/') + ".md");
+        Fi file = finalCampaign.thisModZip.child("fcWiki").child(name.replace('.', '/') + ".md");
         wikiDialog dialog = new wikiDialog(name);
         dialog.show(file.exists() ? file.readString() : bundle.get("wiki.noFound"));
     }

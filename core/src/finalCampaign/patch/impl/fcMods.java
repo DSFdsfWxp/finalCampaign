@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.callback.*;
 import arc.files.*;
 import arc.util.*;
 import finalCampaign.*;
-import finalCampaign.launch.*;
+import finalCampaign.runtime.*;
 import mindustry.mod.*;
 import mindustry.mod.Mods.*;
 
@@ -29,9 +29,17 @@ public abstract class fcMods {
             zip = zip.list()[0];
         }
         ModMeta meta = findMeta(zip);
-        if (meta == null) throw new RuntimeException("Failed to resolve mod meta.");
+        if (meta == null)
+            throw new RuntimeException("Failed to resolve mod meta.");
+
         if (meta.name.equals("final-campaign")) {
-            bothVersionControl.install(file.file(), version.toVersionString(file));
+            mixinRuntime runtime = (mixinRuntime) finalCampaign.runtime;
+            try {
+                runtime.install(zip);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
             requiresReload = true;
             ci.setReturnValue(new LoadedMod(file, zip, null, null, meta));
         }

@@ -17,8 +17,8 @@ import mindustry.*;
 import mindustry.game.EventType.*;
 
 public class finalCampaign extends Mod {
-    public static LoadedMod thisMod;
-    public static ZipFi thisModFi;
+    public static LoadedMod thisModMeta;
+    public static ZipFi thisModZip;
     public static Fi dataDir;
     public static IRuntime runtime;
 
@@ -32,13 +32,13 @@ public class finalCampaign extends Mod {
 
     @Override
     public void init() {
-        thisMod = Vars.mods.getMod(finalCampaign.class);
-        thisModFi = new ZipFi(thisMod.file);
+        thisModMeta = Vars.mods.getMod(finalCampaign.class);
+        thisModZip = new ZipFi(thisModMeta.file);
 
         version.init();
 
         Log.info(" # finalCampaign [prototypePhase]");
-        Log.info(" # " + version.toVersionString());
+        Log.info(" # " + version.inPackage.getVersionFull("mod"));
 
         if (!Vars.headless) {
             if (installer.inInstalledGame()) {
@@ -116,7 +116,7 @@ public class finalCampaign extends Mod {
             }
         } else {
             Core.app.post(() -> {
-                Vars.ui.showConfirm(bundle.format("load.installConfirm", version.toVersionString(), bothLauncherVersion.toVersionString()), () -> {
+                Vars.ui.showConfirm(bundle.format("load.installConfirm", version.inPackage.getVersionFull("mod"), version.inPackage.getVersionFull("launcher")), () -> {
                     Vars.ui.loadAnd(bundle.get("load.install"), () -> {
                         try {
                             installer.install();
