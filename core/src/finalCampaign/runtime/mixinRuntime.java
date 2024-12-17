@@ -59,6 +59,7 @@ public class mixinRuntime implements IRuntime {
         return launcherVersion.exists() ? launcherVersion.readString() : "0.0.0-debug";
     }
 
+    @Override
     public void install(Fi mod) throws Exception {
         // version controller
         modVersion.parent().mkdirs();
@@ -121,6 +122,13 @@ public class mixinRuntime implements IRuntime {
 
         // clean up
         modZip.delete(); // close zip
+    }
+
+    @Override
+    public void startupInstall() throws Exception {
+        Fi modPlaceholder = Vars.modDirectory.child("finalCampaign.jar");
+        if (!modPlaceholder.exists())
+            modPlaceholder.writeString("NOTICE: This file is a placeholder for finalCampaign mod. ");
     }
 
     private void clear() {

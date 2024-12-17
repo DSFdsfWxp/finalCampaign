@@ -6,8 +6,6 @@ import arc.files.*;
 import finalCampaign.feature.*;
 import finalCampaign.graphics.*;
 import finalCampaign.input.*;
-import finalCampaign.util.*;
-import finalCampaign.launch.*;
 import finalCampaign.map.*;
 import finalCampaign.net.*;
 import finalCampaign.runtime.*;
@@ -17,23 +15,24 @@ import mindustry.*;
 import mindustry.game.EventType.*;
 
 public class finalCampaign extends Mod {
-    public static LoadedMod thisModMeta;
+    public static LoadedMod thisLoadedMod;
     public static ZipFi thisModZip;
     public static Fi dataDir;
+    public static Fi tmpDir;
     public static IRuntime runtime;
 
     public finalCampaign() {
         dataDir = Vars.dataDirectory.child("finalCampaign");
-        if (!dataDir.exists()) dataDir.mkdirs();
+        tmpDir = dataDir.child("tmp");
 
-        if (!OS.isAndroid)
-            checkLoad();
+        if (!dataDir.exists()) dataDir.mkdirs();
+        if (!tmpDir.exists()) tmpDir.mkdirs();
     }
 
     @Override
     public void init() {
-        thisModMeta = Vars.mods.getMod(finalCampaign.class);
-        thisModZip = new ZipFi(thisModMeta.file);
+        thisLoadedMod = Vars.mods.getMod(finalCampaign.class);
+        thisModZip = new ZipFi(thisLoadedMod.file);
 
         version.init();
 
@@ -41,7 +40,7 @@ public class finalCampaign extends Mod {
         Log.info(" # " + version.inPackage.getVersionFull("mod"));
 
         if (!Vars.headless) {
-            if (installer.inInstalledGame()) {
+            if (runtime != null) {
                 modStartup();
             } else {
                 Events.on(ClientLoadEvent.class, e -> {
@@ -60,7 +59,7 @@ public class finalCampaign extends Mod {
 
         bundle.load();
 
-        if (!installer.inInstalledGame()) {
+        if (runtime == null) {
             install();
             return;
         }
@@ -93,33 +92,24 @@ public class finalCampaign extends Mod {
         Core.app.exit();
     }
 
-    private void checkLoad() {
-        if (installer.inInstalledGame() &&
-            !finalCampaign.class.getClassLoader().equals(shareMixinService.getClassLoader()))
-        {
-            String path = Vars.dataDirectory.parent().child("mods").absolutePath();
-            if (Vars.launchIDFile.exists()) {
-                Log.err("Duplicated FinalCampaign mod load. Please check you import. FinalCampaign mod should only be placed in folder \"@\".", path);
-                Core.app.exit();
-            }
-        }
-    }
-
     private void install() {
-        if (Vars.headless) {
+        if (OS.isAndroid) {
+            Vars.ui.showOkText(bundle.get("error"), bundle.get("installer.androidNotice"), () -> {});
+        } else if (Vars.headless) {
             Log.info("[finalCampaign] " + bundle.get("load.install"));
             try {
-                installer.install();
+                mixinRuntime runtime = new mixinRuntime(null);
+                runtime.install(thisLoadedMod.file);
             } catch(Exception e) {
                 Log.err("[finalCampaign] " + bundle.get("error") + ": " + bundle.get("installer.fail"));
-                safetyExit();
             }
         } else {
             Core.app.post(() -> {
                 Vars.ui.showConfirm(bundle.format("load.installConfirm", version.inPackage.getVersionFull("mod"), version.inPackage.getVersionFull("launcher")), () -> {
                     Vars.ui.loadAnd(bundle.get("load.install"), () -> {
                         try {
-                            installer.install();
+                            mixinRuntime runtime = new mixinRuntime(null);
+                            runtime.install(thisLoadedMod.file);
                         } catch(Exception e) {
                             Log.err(e);
                             Vars.ui.showOkText(bundle.get("error"), bundle.get("installer.fail"), finalCampaign::safetyExit);

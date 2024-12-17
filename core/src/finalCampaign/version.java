@@ -65,7 +65,7 @@ public class version {
     }
 
     public static void init() {
-        inPackage = new version(finalCampaign.thisModMeta.file);
+        inPackage = new version(finalCampaign.thisLoadedMod.file);
 
         if (isDebuging) Log.level = LogLevel.debug;
     }
