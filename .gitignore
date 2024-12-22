@@ -5,6 +5,11 @@
 # build
 /bin
 /build
+/core/build/
+/anntation/build/
+/tool/build/
+/launcher/build
+
 
 # git
 /.git
