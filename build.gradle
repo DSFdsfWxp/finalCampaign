@@ -1,13 +1,5 @@
 
-//java 8 backwards compatibility flag
 allprojects {
-    apply plugin: "java"
-
-    tasks.withType(JavaCompile){
-        targetCompatibility = 8
-        sourceCompatibility = JavaVersion.VERSION_17
-    }
-
     repositories{
         mavenCentral()
         maven{ url "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
@@ -65,6 +57,16 @@ allprojects {
             "java -jar ./dependencies/dex2jar.jar $input -o $output"
                 .execute(null, new File("$projectRootDir")).waitForProcessOutput(System.out, System.err)
         }
+
+    }
+
+    tasks.withType(JavaCompile) {
+        java {
+            sourceCompatibility = JavaVersion.VERSION_17
+            targetCompatibility = 8
+        }
+        options.compilerArgs += ["-Xlint:deprecation"]
+        options.compilerArgs.addAll(['--release', '8'])
     }
 }
 
@@ -73,15 +75,7 @@ project(":annotation")
 project(":core")
 project(":tool")
 
-//force arc version
-configurations.all{
-    resolutionStrategy.eachDependency { details ->
-        if(details.requested.group == 'com.github.Anuken.Arc'){
-            details.useVersion "$mindustryVersion"
-        }
-    }
-}
-
+/*
 task preMainMixinBootstrapJar(type: Jar) {
     dependsOn "jar"
 
@@ -360,3 +354,4 @@ task genNet {
             .execute(null, new File("$projectRootDir")).waitForProcessOutput(System.out, System.err)
     }
 }
+*/
