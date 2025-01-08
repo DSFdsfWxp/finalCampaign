@@ -1,19 +1,20 @@
-package finalCampaign.util.file;
+package finalCampaign.tool.io;
 
 import java.io.*;
 import java.util.*;
 import java.util.zip.*;
-import arc.files.*;
 import arc.struct.*;
+import finalCampaign.launch.*;
 
 public class jarWriter {
     private countableOutputStream countableStream;
     private ZipOutputStream stream;
     private Seq<String> addedEntry;
+    private Seq<String> excludePath;
     private Deflater def;
     private boolean isApk;
 
-    public jarWriter(Fi jarFi, boolean apk) {
+    public jarWriter(fi jarFi, boolean apk) {
         try {
             countableStream = new countableOutputStream();
             countableStream.underlayStream = jarFi.write();
@@ -62,10 +63,10 @@ public class jarWriter {
         add(path, file, ZipOutputStream.DEFLATED);
     }
 
-    public void add(String path, Fi directory, int method) {
+    public void add(String path, fi directory, int method) {
         if (!directory.isDirectory()) throw new RuntimeException("Not a directory: " + path);
         mkdirs(path);
-        for (Fi file : directory.list()) {
+        for (fi file : directory.list()) {
             String filePath = (path.length() > 0 ? path + "/" : "") + file.name();
             if (file.isDirectory()) {
                 add(filePath, file, method);
@@ -75,12 +76,25 @@ public class jarWriter {
         }
     }
 
-    public void add(String path, Fi directory) {
+    public void add(String path, fi directory) {
         add(path, directory, ZipOutputStream.DEFLATED);
     }
 
+    public void exclude(String path) {
+        if (!path.endsWith("/"))
+            path += "/";
+        if (!path.startsWith("/"))
+            path = "/" + path;
+        excludePath.add(path);
+    }
+
     private void addEntry(String entry, boolean dir, byte[] data, int method) {
+        for (String excludes : excludePath)
+            if (entry.startsWith(excludes))
+                return;
+
         if (addedEntry.contains(entry)) return;
+
         try {
             ZipEntry e = new ZipEntry(entry);
 

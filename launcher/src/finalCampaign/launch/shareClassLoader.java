@@ -7,7 +7,7 @@ import arc.util.*;
 
 public abstract class shareClassLoader extends ClassLoader {
     private ClassLoader parent;
-    private Seq<fi> jars;
+    protected Seq<fi> jars;
     protected shareBytecodeTransformer transformer;
 
     public shareClassLoader() {
@@ -21,7 +21,7 @@ public abstract class shareClassLoader extends ClassLoader {
     }
 
     public void addJar(fi jarFi) {
-        jars.add(jarFi);
+        jars.add(jarFi.isDirectory() ? jarFi : new zipFi(jarFi));
     }
 
     @Override
@@ -42,7 +42,7 @@ public abstract class shareClassLoader extends ClassLoader {
         URL url = null;
 
         for (fi fi : jars) {
-            fi f = new zipFi(fi);
+            fi f = fi;
 
             if (name.startsWith("/")) name = name.substring(1);
             String[] path = name.split("/");
@@ -65,7 +65,7 @@ public abstract class shareClassLoader extends ClassLoader {
     protected Seq<fi> getAllFilesInJarPath(String path) {
         Seq<fi> res = new Seq<>();
         for (fi fi : jars) {
-            fi f = new zipFi(fi);
+            fi f = fi;
 
             if (path.startsWith("/")) path = path.substring(1);
             if (path.endsWith("/")) path = path.substring(0, path.length() - 1);

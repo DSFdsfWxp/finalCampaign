@@ -1,27 +1,30 @@
-package finalCampaign.launch;
+package finalCampaign.tool.patcher;
 
 import java.io.*;
 
-public class androidClassPatcher {
+public class classPatcher {
     private int magic;
-    private int version;
-    private int constentPoolCount;
+    public int version;
+    public int constentPoolCount;
     public constentPoolItem[] constentItems;
-    private byte[] otherContent;
+    public short accessFlags;
+    public short classNamePos;
+    public short superClassNamePos; 
+    public byte[] otherContent;
     private boolean modified;
 
     private static final int classMagic = 0xCAFEBABE;
 
     public static class constentPoolItem {
-        int tag;
-        byte[] data;
-        String string;
-        int pos1;
-        int pos2;
+        public int tag;
+        public byte[] data;
+        public String string;
+        public int pos1;
+        public int pos2;
     }
 
     // parse java class file and apply patch
-    public androidClassPatcher(byte[] bin) {
+    public classPatcher(byte[] bin) {
         DataInputStream stream = new DataInputStream(new ByteArrayInputStream(bin));
         try {
             magic = stream.readInt();
@@ -96,6 +99,10 @@ public class androidClassPatcher {
                 }
             }
 
+            accessFlags = stream.readShort();
+            classNamePos = stream.readShort();
+            superClassNamePos = stream.readShort();
+
             otherContent = new byte[stream.available()];
             stream.readFully(otherContent);
             modified = false;
@@ -141,6 +148,10 @@ public class androidClassPatcher {
                 
             }
 
+            stream.writeShort(accessFlags);
+            stream.writeShort(classNamePos);
+            stream.writeShort(superClassNamePos);
+
             stream.write(otherContent);
 
             return outputStream.toByteArray();
@@ -151,6 +162,14 @@ public class androidClassPatcher {
 
     public boolean modified() {
         return modified;
+    }
+
+    public String getClassName() {
+        return constentItems[classNamePos].string;
+    }
+
+    public String getSuperClassName() {
+        return constentItems[superClassNamePos].string;
     }
 
     // the aim of these string replacing methods is to replace the class name back, which is modified by dex2jar for a "lambda name security" reason

@@ -1,2 +1,2 @@
 
-include "core", "annotation", "launcher", "tool", "desktop"
+include "core", "annotation", "launcher", "tool", "desktop", "android"

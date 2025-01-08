@@ -5,7 +5,7 @@ import arc.*;
 import arc.files.*;
 import arc.util.*;
 import finalCampaign.*;
-import mindustry.Vars;
+import mindustry.*;
 
 public class standAloneRuntime implements IRuntime {
 

@@ -1,9 +1,8 @@
-package finalCampaign.launch;
+package finalCampaign.tool.patcher;
 
-import java.util.Arrays;
-
-import android.content.Intent;
+import java.util.*;
 import arc.struct.*;
+import finalCampaign.tool.io.*;
 
 public class xmlPatcher {
     private static final int magic = 0x00080003;
@@ -209,11 +208,11 @@ public class xmlPatcher {
     }
 
     public class tagAttribute {
-        int namespaceUri;
-        int name;
-        int valueStr;
-        int type;
-        int data;
+        public int namespaceUri;
+        public int name;
+        public int valueStr;
+        public int type;
+        public int data;
 
         public String readAsString() {
             if (type != AttrStringType) throw new RuntimeException("Not a string type attribute: " + this.toString());
@@ -345,9 +344,9 @@ public class xmlPatcher {
     }
 
     public class androidManifest extends basePackage {
-        stringChunk string;
-        resourceIdChunk resourceId;
-        xmlItem xml;
+        public stringChunk string;
+        public resourceIdChunk resourceId;
+        public xmlItem xml;
 
         public androidManifest(byte[] bin) {
             super(bin);
@@ -427,8 +426,8 @@ public class xmlPatcher {
         boolean isNamespace;
         xmlContentChunk start;
         xmlContentChunk end;
-        Seq<xmlItem> child;
-        String name;
+        public Seq<xmlItem> child;
+        public String name;
 
         public xmlItem(xmlItem src) {
             isNamespace = src.isNamespace;
@@ -505,40 +504,5 @@ public class xmlPatcher {
             for (xmlItem c : child) if (c.name != null) if (c.name.equals(name)) return c;
             throw new RuntimeException("Child not found: " + name);
         }
-    }
-
-    // new activity for original mindustry android launcher is for one solution of ours, which is proved impossible.
-    public void patchActivity(String name, String newName) {
-        xmlItem application = manifest.xml.child.get(0).findChild("application");
-        Seq<xmlItem> activities = application.selectChild("activity");
-        Seq<xmlItem> patchedLst = new Seq<>();
-        for (xmlItem a : activities) {
-            if (a.findAttribute("name", AttrStringType).readAsString().equals(name)) {
-                xmlItem n = a.clone();
-                Seq<xmlItem> intentFilters = n.selectChild("intent-filter");
-                for (xmlItem i : intentFilters) {
-                    Seq<xmlItem> actions = i.selectChild("action");
-                    Seq<xmlItem> categories = i.selectChild("category");
-                    xmlItem targetAction = null;
-                    xmlItem targetCategory = null;
-                    for (xmlItem ac : actions) if (ac.findAttribute("name", AttrStringType).readAsString().equals(Intent.ACTION_MAIN) && targetAction == null) targetAction = ac;
-                    for (xmlItem c : categories) if (c.findAttribute("name", AttrStringType).readAsString().equals(Intent.CATEGORY_LAUNCHER) && targetCategory == null) targetCategory = c;
-                    if (targetAction != null && targetCategory != null) {
-
-                        // some applications read valueStr field while system reading data field
-                        targetAction.findAttribute("name", AttrStringType).valueStr = manifest.string.locateOrAddString("finalCampaignMod.LAUNCH");
-                        targetAction.findAttribute("name", AttrStringType).data = manifest.string.locateOrAddString("finalCampaignMod.LAUNCH");
-                        targetCategory.findAttribute("name", AttrStringType).valueStr = manifest.string.locateOrAddString(Intent.CATEGORY_DEFAULT);
-                        targetCategory.findAttribute("name", AttrStringType).data = manifest.string.locateOrAddString(Intent.CATEGORY_DEFAULT);
-                        a.findAttribute("name", AttrStringType).valueStr = manifest.string.locateOrAddString(newName);
-                        a.findAttribute("name", AttrStringType).data = manifest.string.locateOrAddString(newName);
-                        patchedLst.add(n);
-                        break;
-                    }
-                }
-            }
-        }
-        if (patchedLst.size < 1) throw new RuntimeException("Failed to patch activity: " + name + " -> " + newName);
-        application.child.add(patchedLst);
     }
 }

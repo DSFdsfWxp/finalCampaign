@@ -8,9 +8,9 @@ dependencies {
     compileOnly "com.github.Anuken.Arc:backend-sdl:$mindustryVersion"
     compileOnly "com.github.Anuken.Arc:backend-android:$mindustryVersion"
     compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
-    compileOnly(files("$rootDir/../dependencies/mtd.android.jar"))
-    compileOnly(files("$rootDir/../dependencies/mtd.desktop.jar"))
-    compileOnly(files("$rootDir/../dependencies/mtd.server.jar"))
+    compileOnly(files("$rootDir/dependencies/mtd.android.jar"))
+    compileOnly(files("$rootDir/dependencies/mtd.desktop.jar"))
+    compileOnly(files("$rootDir/dependencies/mtd.server.jar"))
 
     compileOnly(files((new File(androidPlatformRoot, "android.jar").path)))
     compileOnly "com.github.Anuken:rhino:73a812444a"

@@ -1,7 +1,6 @@
-package finalCampaign.util;
+package finalCampaign.tool.patcher;
 
-import finalCampaign.util.io.littleEndianDataInputStream;
-import finalCampaign.util.io.littleEndianDataOutputStream;
+import finalCampaign.tool.io.*;
 
 public class arscPatcher {
     private static final short RES_TABLE_TYPE = 0x2;

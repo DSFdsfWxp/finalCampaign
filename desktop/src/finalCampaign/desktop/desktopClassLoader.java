@@ -5,8 +5,6 @@ import finalCampaign.launch.*;
 public class desktopClassLoader extends shareClassLoader {
 
     protected Class<?> tryLoadClass(String name) throws ClassNotFoundException {
-        Class<?> definedClass = null;
-
         String classPath = name.replace('.', '/').concat(".class");
         
         try {
@@ -20,11 +18,9 @@ public class desktopClassLoader extends shareClassLoader {
             byte[] transformedBytecode = transformer.transform(name, originBytecode);
 
             if (transformedBytecode == null) throw new ClassNotFoundException();
-            definedClass = defineClass(name, transformedBytecode, 0, transformedBytecode.length);
+            return defineClass(name, transformedBytecode, 0, transformedBytecode.length);
         } catch(Exception e) {
             throw new ClassNotFoundException("try load class failed: " + name, e);
         }
-
-        return definedClass;
     }
 }

@@ -1,11 +1,9 @@
-    
+
 apply plugin: "java"
 
 sourceSets.main.java.srcDirs = ["src"]
 
 dependencies {
-    implementation project(":launcher")
+    implementation project(":core")
     compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
-
-    implementation(files("$rootDir/dependencies/dex2jar.jar"))
 }

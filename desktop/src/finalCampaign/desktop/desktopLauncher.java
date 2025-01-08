@@ -11,8 +11,10 @@ public class desktopLauncher extends shareLauncher {
     private static shareLauncher instance;
     private static boolean isServer, isDebuging;
     private static fi rootDir, dataDir, gameJar, modJar;
+    private static String[] startupArg;
 
     public static void main(String[] arg) throws Exception {
+        startupArg = arg;
         instance = new desktopLauncher();
 
         files.ExternalStoragePath = OS.userHome + File.separator;
@@ -59,6 +61,9 @@ public class desktopLauncher extends shareLauncher {
 
         shareCrashSender.setDefaultUncaughtExceptionHandler(new desktopCrashSender());
 
+        zipFi modZip = new zipFi(modJar);
+        shareMixinService.configFile = modZip.child("fcMixin").child("config.json");
+
         Seq<String> argSeq = new Seq<>(arg);
         isDebuging = argSeq.contains("-fcDebug");
 
@@ -90,6 +95,10 @@ public class desktopLauncher extends shareLauncher {
 
     protected void launch() throws Exception {
         shareClassLoader cl = shareMixinService.getClassLoader();
+
+
+        // setup runtime and debug
+
         Class<?> modClass = cl.loadClass("finalCampaign.finalCampaign");
         Class<?> modVersionClass = cl.loadClass("finalCampaign.version");
         Class<?> mixinRuntimeClass = cl.loadClass("finalCampaign.runtime.mixinRuntime");
@@ -100,5 +109,56 @@ public class desktopLauncher extends shareLauncher {
 
         runtime.set(null, mixinRuntimeCtor.newInstance(gameJar.file(), dataDir.file()));
         debuging.set(null, isDebuging);
+
+
+        // setup arc files and settings module
+
+        Class<?> arcCoreClass = cl.loadClass("arc.Core");
+        Class<?> arcSettingsClass = cl.loadClass("arc.Settings");
+        Field settings = arcCoreClass.getDeclaredField("settings");
+        Field files = arcCoreClass.getDeclaredField("files");
+        Constructor<?> arcSettingsCtor = arcSettingsClass.getDeclaredConstructor();
+        Constructor<?> arcFilesCtor = null;
+        
+        settings.set(null, arcSettingsCtor.newInstance());
+
+        if (isServer) {
+            Class<?> mockFilesClass = cl.loadClass("arc.mock.MockFiles");
+            arcFilesCtor = mockFilesClass.getDeclaredConstructor();
+        } else {
+            Class<?> SdlFilesClass = cl.loadClass("arc.backend.sdl.SdlFiles");
+            arcFilesCtor = SdlFilesClass.getDeclaredConstructor();
+        }
+        files.set(null, arcFilesCtor.newInstance());
+
+        Class<?> arcFiClass = cl.loadClass("arc.files.Fi");
+        Constructor<?> arcFiCtor = arcFiClass.getDeclaredConstructor(File.class);
+        Method setDataDirectory = arcSettingsClass.getDeclaredMethod("setDataDirectory", arcFiClass);
+        Method loadValues = arcSettingsClass.getDeclaredMethod("loadValues");
+
+        Object dataDirFi = arcFiCtor.newInstance(dataDir.child("finalCampaign").file());
+        setDataDirectory.invoke(settings.get(null), dataDirFi);
+        loadValues.invoke(settings.get(null));
+
+
+        // enable mod
+        
+        Method getBool = arcSettingsClass.getDeclaredMethod("getBool", String.class, boolean.class);
+        Method put = arcSettingsClass.getDeclaredMethod("put", String.class, Object.class);
+        Method saveValues = arcSettingsClass.getDeclaredMethod("saveValues");
+
+        String settingKey = "mod-final-campaign-enabled";
+        if (! (Boolean) getBool.invoke(settings.get(null), settingKey, true)) {
+            Log.info("[finalCampaign] reEnable mod.");
+            put.invoke(settings.get(null), true);
+            saveValues.invoke(settings.get(null));
+        }
+
+
+        // bring up game
+
+        Class<?> mainClass = cl.loadClass(isServer ? "mindustry.server.ServerLauncher" : "mindustry.desktop.DesktopLauncher");
+        Method main = mainClass.getDeclaredMethod("main", String[].class);
+        main.invoke(null, (Object) startupArg);
     }
 }

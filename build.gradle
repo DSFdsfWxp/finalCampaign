@@ -75,6 +75,7 @@ project(":annotation")
 project(":core")
 project(":tool")
 project(":desktop")
+project(":android")
 
 /*
 task preMainMixinBootstrapJar(type: Jar) {
