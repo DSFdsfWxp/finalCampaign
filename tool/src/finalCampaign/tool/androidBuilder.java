@@ -89,7 +89,7 @@ public class androidBuilder {
         apkWriter.close();
 
         fi cert = rootDir.child("tool/res/cert.pem");
-        fi key = rootDir.child("tool/res/key.pem");
+        fi key = rootDir.child("tool/res/key.pk8");
         fi out = rootDir.child("build/lib/fcMindustry.apk");
         apkSigner signer = new apkSigner(apkSignerExecuter, unsignedApk);
         signer.setKey(cert, key);
