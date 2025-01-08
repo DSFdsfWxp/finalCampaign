@@ -3,20 +3,24 @@ package finalCampaign.launch;
 import java.lang.reflect.*;
 import org.spongepowered.asm.launch.*;
 import org.spongepowered.asm.mixin.*;
+import arc.struct.*;
 import arc.util.*;
 import arc.util.Log.*;
 
 public abstract class shareLauncher {
     protected abstract void handleCrash(Throwable e, String msg);
     protected abstract shareClassLoader createClassLoader();
-    protected abstract bothFi[] getJar();
+    protected abstract fi[] getJar();
     protected abstract void launch() throws Exception;
 
-    protected String configName = null;
-
-    public void init() {
+    public void init(String[] args) {
         shareLogger.setup();
-        Log.info("[finalCampaign] pre-main bootstrap");
+        Log.info("[finalCampaign] launcher bootstrap");
+
+        Seq<String> argsSeq = new Seq<>(args);
+        if (argsSeq.contains("-fcBootstrapLog")) shareLogger.enableLog = true;
+        if (argsSeq.contains("-fcMixinLog")) shareMixinLogger.enableLog = true;
+
     }
 
     public void startup() {
@@ -36,8 +40,7 @@ public abstract class shareLauncher {
             gotoPhase.invoke(null, MixinEnvironment.Phase.INIT);
             gotoPhase.invoke(null, MixinEnvironment.Phase.DEFAULT);
 
-            String config = configName == null ? (OS.isAndroid ? "fcMixin/config.android.json" : "fcMixin/config.json") : "fcMixin/" + configName;
-            createConfiguration.invoke(null, config, MixinEnvironment.getCurrentEnvironment());
+            createConfiguration.invoke(null, "finalCampaignMixinConfig.json", MixinEnvironment.getCurrentEnvironment());
 
             classLoader = createClassLoader();
             classLoader.init();
@@ -48,12 +51,12 @@ public abstract class shareLauncher {
             handleCrash(e, "Failed to boot mixin.");
         }
 
-        Log.info("[finalCampaign] launching mindustry");
+        Log.info("[finalCampaign] launching...");
         try {
-            for (bothFi jar : getJar()) classLoader.addJar(jar);
+            for (fi jar : getJar()) classLoader.addJar(jar);
             launch();
         } catch(Exception e) {
-            handleCrash(e, "Failed to launch mindustry.");
+            handleCrash(e, "Failed to launch.");
         }
 
     }

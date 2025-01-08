@@ -31,7 +31,7 @@ public class mixinRuntime implements IRuntime {
         }
 
         this.rootDir = new Fi(gameJar.getParentFile());
-        this.dataDir = new Fi(dataDir);
+        this.dataDir = dataDir == null ? Core.settings.getDataDirectory() : new Fi(dataDir);
         this.gameJar = new Fi(gameJar);
         modVersion = this.rootDir.child("finalCampaign/mod/current");
         launcherVersion = this.rootDir.child("finalCampaign/launcher/current");

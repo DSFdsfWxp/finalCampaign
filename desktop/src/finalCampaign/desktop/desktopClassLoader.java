@@ -1,4 +1,6 @@
-package finalCampaign.launch;
+package finalCampaign.desktop;
+
+import finalCampaign.launch.*;
 
 public class desktopClassLoader extends shareClassLoader {
 

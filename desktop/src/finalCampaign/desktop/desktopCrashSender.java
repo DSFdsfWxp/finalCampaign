@@ -1,6 +1,7 @@
-package finalCampaign.launch;
+package finalCampaign.desktop;
 
 import arc.util.*;
+import finalCampaign.launch.*;
 
 public class desktopCrashSender extends shareCrashSender {
     public String createReport(String error) {
@@ -8,7 +9,7 @@ public class desktopCrashSender extends shareCrashSender {
         report += "It has crashed.\n\n";
 
         report += "OS: " + OS.osName + " x" + (OS.osArchBits) + " (" + OS.osArch + ")\n";
-        report += "Mod Desktop Launcher Version: " + bothLauncherVersion.toVersionString() + "\n";
+        report += "Mod Desktop Launcher Version: " + desktopVersionControl.currentLauncherVersion() + "\n";
         report += "Java Version: " + OS.javaVersion + "\n";
         report += "Runtime Available Memory: " + (Runtime.getRuntime().maxMemory() / 1024 / 1024) + "mb\n";
         report += "Cores: " + Runtime.getRuntime().availableProcessors() + "\n";

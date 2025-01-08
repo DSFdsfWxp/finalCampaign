@@ -74,6 +74,7 @@ project(":launcher")
 project(":annotation")
 project(":core")
 project(":tool")
+project(":desktop")
 
 /*
 task preMainMixinBootstrapJar(type: Jar) {

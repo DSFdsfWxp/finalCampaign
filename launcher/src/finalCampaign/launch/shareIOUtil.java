@@ -30,7 +30,7 @@ public class shareIOUtil {
     }
 
     public static InputStream readFileInternalAsStream(String path) {
-        bothFi file = bothFiles.instance.internalFile(path);
+        fi file = files.instance.internalFile(path);
         InputStream stream = null;
         try {
             stream = file.read();

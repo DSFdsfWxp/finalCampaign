@@ -1,10 +1,10 @@
-package finalCampaign.launch;
+package finalCampaign.desktop;
 
 import java.io.*;
 import arc.struct.*;
 import arc.util.io.*;
 
-public class bothConfigUtil {
+public class desktopConfigUtil {
     public static class config {
         public String gameJarName;
         public String dataDir;

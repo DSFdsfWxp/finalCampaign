@@ -3,7 +3,7 @@ apply plugin: "java-library"
 
 sourceSets.main.java.srcDirs = ["src"]
 
-dependencies{
+dependencies {
     compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
     compileOnly "com.github.Anuken.Arc:backend-sdl:$mindustryVersion"
     compileOnly "com.github.Anuken.Arc:backend-android:$mindustryVersion"
@@ -16,8 +16,6 @@ dependencies{
     compileOnly "com.github.Anuken:rhino:73a812444a"
 
     compileOnly "com.github.DSFdsfWxp:Mixin:v0.8.5.3"
-
-    compileOnly project(":launcher")
 
     annotationProcessor "com.github.Anuken:jabel:$jabelVersion"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'

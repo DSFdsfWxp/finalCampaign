@@ -18,30 +18,9 @@ public class shareMixinService extends MixinServiceAbstract implements ITransfor
     private static shareClassLoader classLoader;
     private static shareProvider provider;
 
-    public static bothFi mod;
-    public static bothFi gameJar;
-    public static bothFi dataDir;
-    public static boolean log = false;
-    public static boolean mixinLog = false;
-    public static boolean debug = false;
-    public static String[] startupArgs;
+    public static fi configFile;
 
     private ObjectMap<String, ILogger> loggerMap;
-
-    public static void parseArg(String[] arg) {
-        for (String a : arg) {
-            if (a.equals("-fcBootstrapLog")) log = true;
-            if (a.equals("-fcMixinLog")) mixinLog = true;
-            if (a.equals("-fcDebug")) debug = true;
-        }
-
-        Seq<String> args = new Seq<>(arg);
-        if (log) args.remove("-fcBootstrapLog");
-        if (mixinLog) args.remove("-fcMixinLog");
-        if (debug) args.remove("-fcDebug");
-
-        startupArgs = args.toArray(String.class);
-    }
     
     public shareMixinService() {
         provider = new shareProvider();
@@ -76,10 +55,8 @@ public class shareMixinService extends MixinServiceAbstract implements ITransfor
     }
 
     public InputStream getResourceAsStream(String name) {
-        if (name.startsWith("fcMixin/") && mod != null) {
-            bothFi current = new bothZipFi(mod);
-            for (String fn : name.split("/")) current = current.child(fn);
-            return current.read();
+        if (name.equals("finalCampaignMixinConfig.json") && configFile != null) {
+            return configFile.read();
         }
 
         if (classLoader == null) {
@@ -92,7 +69,7 @@ public class shareMixinService extends MixinServiceAbstract implements ITransfor
     }
 
     public Collection<String> getPlatformAgents() {
-        return (Collection<String>)ImmutableList.of("finalCampaign.launch.shareMixinPlatformAgent");
+        return (Collection<String>) ImmutableList.of("finalCampaign.launch.shareMixinPlatformAgent");
     }
 
     public IContainerHandle getPrimaryContainer() {
@@ -167,10 +144,5 @@ public class shareMixinService extends MixinServiceAbstract implements ITransfor
 
     public static shareClassLoader getClassLoader() {
         return classLoader;
-    }
-
-    /** returns the path of GAME jar */
-    public static String getClassPath() {
-        return gameJar.absolutePath();
     }
 }

@@ -5,6 +5,7 @@ import arc.util.*;
 import arc.util.Log.*;
 
 public class shareLogger {
+    public static boolean enableLog = false;
     private static PrintStream logFileStream;
 
     public static void setup() {
@@ -13,9 +14,9 @@ public class shareLogger {
 
         Log.level = LogLevel.debug;
 
-        if (shareMixinService.log) {
+        if (enableLog) {
             try {
-                bothFi logFi = bothFiles.instance.dataDirectory().child("fc_mod_launcher_log.txt");
+                fi logFi = files.instance.dataDirectory().child("fc_mod_launcher_log.txt");
                 if (!logFi.exists()) logFi.writeString("init");
                 logFileStream = new PrintStream(logFi.write());
             } catch(Throwable ignore) {}

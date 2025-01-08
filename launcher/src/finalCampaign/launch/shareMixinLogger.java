@@ -6,7 +6,10 @@ import arc.struct.*;
 import org.spongepowered.asm.logging.*;
 
 public class shareMixinLogger extends LoggerAdapterAbstract {
+    public static boolean enableLog = false;
+
     private ObjectMap<Level, LogLevel> map;
+
     public shareMixinLogger(String name) {
         super(name);
 
@@ -24,7 +27,7 @@ public class shareMixinLogger extends LoggerAdapterAbstract {
     }
 
     public void log(Level level, String text, Object ...args) {
-        if (!shareMixinService.mixinLog) return;
+        if (!enableLog && (level != Level.ERROR && level != Level.FATAL)) return;
         Log.log(map.get(level), "[mixin] " + text.replace("{}", "@"), args);
     }
     public void log(Level level, String message, Throwable t) {

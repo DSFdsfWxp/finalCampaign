@@ -27,11 +27,11 @@ import java.util.zip.*;
  * @author mzechner
  * @author Nathan Sweet
  */
-public class bothFi{
+public class fi{
     protected File file;
     protected FileType type;
 
-    protected bothFi(){
+    protected fi(){
     }
 
     /**
@@ -39,7 +39,7 @@ public class bothFi{
      * Do not use this constructor in case you write something cross-platform. Use the {@link Files} interface instead.
      * @param fileName the filename.
      */
-    public bothFi(String fileName){
+    public fi(String fileName){
         this.file = new File(fileName);
         this.type = FileType.absolute;
     }
@@ -49,39 +49,39 @@ public class bothFi{
      * backends. Do not use this constructor in case you write something cross-platform. Use the {@link Files} interface instead.
      * @param file the file.
      */
-    public bothFi(File file){
+    public fi(File file){
         this.file = file;
         this.type = FileType.absolute;
     }
 
-    public bothFi(String fileName, FileType type){
+    public fi(String fileName, FileType type){
         this.type = type;
         file = new File(fileName);
     }
 
-    protected bothFi(File file, FileType type){
+    protected fi(File file, FileType type){
         this.file = file;
         this.type = type;
     }
 
-    public static bothFi get(String path){
-        return new bothFi(path);
+    public static fi get(String path){
+        return new fi(path);
     }
 
-    public static bothFi tempFile(String prefix){
+    public static fi tempFile(String prefix){
         try{
-            return new bothFi(File.createTempFile(prefix, null));
+            return new fi(File.createTempFile(prefix, null));
         }catch(IOException ex){
             throw new RuntimeException("Unable to create temp file.", ex);
         }
     }
 
-    public static bothFi tempDirectory(String prefix){
+    public static fi tempDirectory(String prefix){
         try{
             File file = File.createTempFile(prefix, null);
             if(!file.delete()) throw new IOException("Unable to delete temp file: " + file);
             if(!file.mkdir()) throw new IOException("Unable to create temp directory: " + file);
-            return new bothFi(file);
+            return new fi(file);
         }catch(IOException ex){
             throw new RuntimeException("Unable to create temp file.", ex);
         }
@@ -108,7 +108,7 @@ public class bothFi{
         return file.delete();
     }
 
-    private static void copyFile(bothFi source, bothFi dest){
+    private static void copyFile(fi source, fi dest){
         try{
             dest.write(source.read(), false);
         }catch(Exception ex){
@@ -117,11 +117,11 @@ public class bothFi{
         }
     }
 
-    private static void copyDirectory(bothFi sourceDir, bothFi destDir){
+    private static void copyDirectory(fi sourceDir, fi destDir){
         destDir.mkdirs();
-        bothFi[] files = sourceDir.list();
-        for(bothFi srcFile : files){
-            bothFi destFile = destDir.child(srcFile.name());
+        fi[] files = sourceDir.list();
+        for(fi srcFile : files){
+            fi destFile = destDir.child(srcFile.name());
             if(srcFile.isDirectory())
                 copyDirectory(srcFile, destFile);
             else
@@ -187,7 +187,7 @@ public class bothFi{
      * {@link FileType#absolute} and {@link FileType#external} file handles.
      */
     public File file(){
-        if(type == FileType.external) return new File(bothFiles.ExternalStoragePath, file.getPath());
+        if(type == FileType.external) return new File(files.ExternalStoragePath, file.getPath());
         return file;
     }
 
@@ -198,7 +198,7 @@ public class bothFi{
     public InputStream read(){
         if(type == FileType.classpath || (type == FileType.internal && !file().exists())
         || (type == FileType.local && !file().exists())){
-            InputStream input = bothFi.class.getResourceAsStream("/" + file.getPath().replace('\\', '/'));
+            InputStream input = fi.class.getResourceAsStream("/" + file.getPath().replace('\\', '/'));
             if(input == null) throw new RuntimeException("File not found: " + file + " (" + type + ")");
             return input;
         }
@@ -559,9 +559,9 @@ public class bothFi{
 
     /** Recursively iterates through all files in this directory.
      * Directories are not handled.*/
-    public void walk(Cons<bothFi> cons){
+    public void walk(Cons<fi> cons){
         if(isDirectory()){
-            for(bothFi file : list()){
+            for(fi file : list()){
                 file.walk(cons);
             }
         }else{
@@ -571,8 +571,8 @@ public class bothFi{
 
     /** Recursively iterates through all files in this directory and adds them to an array.
      * Directories are not handled. */
-    public Seq<bothFi> findAll(Boolf<bothFi> test){
-        Seq<bothFi> out = new Seq<>();
+    public Seq<fi> findAll(Boolf<fi> test){
+        Seq<fi> out = new Seq<>();
         walk(f -> {
             if(test.get(f)){
                 out.add(f);
@@ -582,14 +582,14 @@ public class bothFi{
     }
 
     /** Recursively iterates through all files in this directory and adds them to a newly allocated array.*/
-    public Seq<bothFi> findAll(){
-        Seq<bothFi> out = new Seq<>();
+    public Seq<fi> findAll(){
+        Seq<fi> out = new Seq<>();
         walk(out::add);
         return out;
     }
 
     /** Equivalent to {@link #list()}, but returns a Seq. */
-    public Seq<bothFi> seq(){
+    public Seq<fi> seq(){
         return Seq.with(list());
     }
 
@@ -599,11 +599,11 @@ public class bothFi{
      * array.
      * @throws RuntimeException if this file is an {@link FileType#classpath} file.
      */
-    public bothFi[] list(){
+    public fi[] list(){
         if(type == FileType.classpath) throw new RuntimeException("Cannot list a classpath directory: " + file);
         String[] relativePaths = file().list();
-        if(relativePaths == null) return new bothFi[0];
-        bothFi[] handles = new bothFi[relativePaths.length];
+        if(relativePaths == null) return new fi[0];
+        fi[] handles = new fi[relativePaths.length];
         for(int i = 0, n = relativePaths.length; i < n; i++)
             handles[i] = child(relativePaths[i]);
         return handles;
@@ -616,21 +616,21 @@ public class bothFi{
      * @param filter the {@link FileFilter} to filter files
      * @throws RuntimeException if this file is an {@link FileType#classpath} file.
      */
-    public bothFi[] list(FileFilter filter){
+    public fi[] list(FileFilter filter){
         if(type == FileType.classpath) throw new RuntimeException("Cannot list a classpath directory: " + file);
         File file = file();
         String[] relativePaths = file.list();
-        if(relativePaths == null) return new bothFi[0];
-        bothFi[] handles = new bothFi[relativePaths.length];
+        if(relativePaths == null) return new fi[0];
+        fi[] handles = new fi[relativePaths.length];
         int count = 0;
         for(String path : relativePaths){
-            bothFi child = child(path);
+            fi child = child(path);
             if(!filter.accept(child.file())) continue;
             handles[count] = child;
             count++;
         }
         if(count < relativePaths.length){
-            bothFi[] newHandles = new bothFi[count];
+            fi[] newHandles = new fi[count];
             System.arraycopy(handles, 0, newHandles, 0, count);
             handles = newHandles;
         }
@@ -644,12 +644,12 @@ public class bothFi{
      * @param filter the {@link FilenameFilter} to filter files
      * @throws RuntimeException if this file is an {@link FileType#classpath} file.
      */
-    public bothFi[] list(FilenameFilter filter){
+    public fi[] list(FilenameFilter filter){
         if(type == FileType.classpath) throw new RuntimeException("Cannot list a classpath directory: " + file);
         File file = file();
         String[] relativePaths = file.list();
-        if(relativePaths == null) return new bothFi[0];
-        bothFi[] handles = new bothFi[relativePaths.length];
+        if(relativePaths == null) return new fi[0];
+        fi[] handles = new fi[relativePaths.length];
         int count = 0;
         for(String path : relativePaths){
             if(!filter.accept(file, path)) continue;
@@ -657,7 +657,7 @@ public class bothFi{
             count++;
         }
         if(count < relativePaths.length){
-            bothFi[] newHandles = new bothFi[count];
+            fi[] newHandles = new fi[count];
             System.arraycopy(handles, 0, newHandles, 0, count);
             handles = newHandles;
         }
@@ -670,11 +670,11 @@ public class bothFi{
      * will return a zero length array.
      * @throws RuntimeException if this file is an {@link FileType#classpath} file.
      */
-    public bothFi[] list(String suffix){
+    public fi[] list(String suffix){
         if(type == FileType.classpath) throw new RuntimeException("Cannot list a classpath directory: " + file);
         String[] relativePaths = file().list();
-        if(relativePaths == null) return new bothFi[0];
-        bothFi[] handles = new bothFi[relativePaths.length];
+        if(relativePaths == null) return new fi[0];
+        fi[] handles = new fi[relativePaths.length];
         int count = 0;
         for(String path : relativePaths){
             if(!path.endsWith(suffix)) continue;
@@ -682,7 +682,7 @@ public class bothFi{
             count++;
         }
         if(count < relativePaths.length){
-            bothFi[] newHandles = new bothFi[count];
+            fi[] newHandles = new fi[count];
             System.arraycopy(handles, 0, newHandles, 0, count);
             handles = newHandles;
         }
@@ -700,29 +700,29 @@ public class bothFi{
     }
 
     /** Returns a handle to the child with the specified name. */
-    public bothFi child(String name){
-        if(file.getPath().length() == 0) return new bothFi(new File(name), type);
-        return new bothFi(new File(file, name), type);
+    public fi child(String name){
+        if(file.getPath().length() == 0) return new fi(new File(name), type);
+        return new fi(new File(file, name), type);
     }
 
     /**
      * Returns a handle to the sibling with the specified name.
      * @throws RuntimeException if this file is the root.
      */
-    public bothFi sibling(String name){
+    public fi sibling(String name){
         if(file.getPath().length() == 0) throw new RuntimeException("Cannot get the sibling of the root.");
-        return new bothFi(new File(file.getParent(), name), type);
+        return new fi(new File(file.getParent(), name), type);
     }
 
-    public bothFi parent(){
+    public fi parent(){
         File parent = file.getParentFile();
         if(parent == null){
             if(OS.isWindows){
-                return new bothFi("", type){
-                    bothFi[] children = Seq.with(File.listRoots()).map(bothFi::new).toArray(bothFi.class);
+                return new fi("", type){
+                    fi[] children = Seq.with(File.listRoots()).map(fi::new).toArray(fi.class);
 
                     @Override
-                    public bothFi parent(){
+                    public fi parent(){
                         return this;
                     }
 
@@ -737,18 +737,18 @@ public class bothFi{
                     }
 
                     @Override
-                    public bothFi child(String name){
-                        return new bothFi(new File(name));
+                    public fi child(String name){
+                        return new fi(new File(name));
                     }
 
                     @Override
-                    public bothFi[] list(){
+                    public fi[] list(){
                         return children;
                     }
 
                     @Override
-                    public bothFi[] list(FileFilter filter){
-                        return Seq.select(list(), f -> filter.accept(f.file)).toArray(bothFi.class);
+                    public fi[] list(FileFilter filter){
+                        return Seq.select(list(), f -> filter.accept(f.file)).toArray(fi.class);
                     }
                 };
             }else{
@@ -759,7 +759,7 @@ public class bothFi{
                 }
             }
         }
-        return new bothFi(parent, type);
+        return new fi(parent, type);
     }
 
     /** @throws RuntimeException if this file handle is a {@link FileType#classpath} or {@link FileType#internal} file. */
@@ -779,7 +779,7 @@ public class bothFi{
                 if(file().exists()) return true;
                 // Fall through.
             case classpath:
-                return bothFi.class.getResource("/" + file.getPath().replace('\\', '/')) != null;
+                return fi.class.getResource("/" + file.getPath().replace('\\', '/')) != null;
             default:
         }
         return file().exists();
@@ -833,7 +833,7 @@ public class bothFi{
      * @throws RuntimeException if the destination file handle is a {@link FileType#classpath} or {@link FileType#internal}
      * file, or copying failed.
      */
-    public void copyTo(bothFi dest){
+    public void copyTo(fi dest){
         if(!isDirectory()){
             if(dest.isDirectory()) dest = dest.child(name());
             copyFile(this, dest);
@@ -852,7 +852,7 @@ public class bothFi{
      * Copies the contents of this folder into another folder. Unlike copyTo, this only copies the *contents*, not this folder itself.
      * @throws RuntimeException if this or {@param dest} is not a valid directory, or copying fails.
      * */
-    public void copyFilesTo(bothFi dest){
+    public void copyFilesTo(fi dest){
         if(!isDirectory()) throw new RuntimeException("Source folder must be a directory: " + this);
         if(dest.exists() && !dest.isDirectory()) throw new RuntimeException("Destination folder must be a directory: " + dest);
 
@@ -866,7 +866,7 @@ public class bothFi{
      * @throws RuntimeException if the source or destination file handle is a {@link FileType#classpath} or
      * {@link FileType#internal} file.
      */
-    public void moveTo(bothFi dest){
+    public void moveTo(fi dest){
         switch(type){
             case classpath:
                 throw new RuntimeException("Cannot move a classpath file: " + file);
@@ -912,8 +912,8 @@ public class bothFi{
 
     @Override
     public boolean equals(Object obj){
-        if(!(obj instanceof bothFi)) return false;
-        bothFi other = (bothFi)obj;
+        if(!(obj instanceof fi)) return false;
+        fi other = (fi)obj;
         return type == other.type && path().equals(other.path());
     }
 

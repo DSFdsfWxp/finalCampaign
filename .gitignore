@@ -5,10 +5,16 @@
 # build
 /bin
 /build
+/core/bin/
 /core/build/
+/annotation/bin/
 /annotation/build/
+/tool/bin/
 /tool/build/
-/launcher/build
+/launcher/bin/
+/launcher/build/
+/desktop/bin/
+/desktop/build/
 
 
 # git

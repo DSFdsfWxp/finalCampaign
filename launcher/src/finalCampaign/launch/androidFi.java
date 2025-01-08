@@ -15,7 +15,7 @@ import java.nio.channels.FileChannel;
  * @author mzechner
  * @author Nathan Sweet
  */
-public class androidFi extends bothFi{
+public class androidFi extends fi{
     // The asset manager, or null if this is not an internal file.
     private final AssetManager assets;
 
@@ -30,19 +30,19 @@ public class androidFi extends bothFi{
     }
 
     @Override
-    public bothFi child(String name){
+    public fi child(String name){
         name = name.replace('\\', '/');
         if(file.getPath().length() == 0) return new androidFi(assets, new File(name), type);
         return new androidFi(assets, new File(file, name), type);
     }
 
     @Override
-    public bothFi sibling(String name){
+    public fi sibling(String name){
         throw new RuntimeException("Not support");
     }
 
     @Override
-    public bothFi parent(){
+    public fi parent(){
         File parent = file.getParentFile();
         if(parent == null){
             if(type == FileType.absolute)
@@ -87,11 +87,11 @@ public class androidFi extends bothFi{
     }
 
     @Override
-    public bothFi[] list(){
+    public fi[] list(){
         if(type == FileType.internal){
             try{
                 String[] relativePaths = assets.list(file.getPath());
-                bothFi[] handles = new bothFi[relativePaths.length];
+                fi[] handles = new fi[relativePaths.length];
                 for(int i = 0, n = handles.length; i < n; i++)
                     handles[i] = new androidFi(assets, new File(file, relativePaths[i]), type);
                 return handles;
@@ -103,21 +103,21 @@ public class androidFi extends bothFi{
     }
 
     @Override
-    public bothFi[] list(FileFilter filter){
+    public fi[] list(FileFilter filter){
         if(type == FileType.internal){
             try{
                 String[] relativePaths = assets.list(file.getPath());
-                bothFi[] handles = new bothFi[relativePaths.length];
+                fi[] handles = new fi[relativePaths.length];
                 int count = 0;
                 for(int i = 0, n = handles.length; i < n; i++){
                     String path = relativePaths[i];
-                    bothFi child = new androidFi(assets, new File(file, path), type);
+                    fi child = new androidFi(assets, new File(file, path), type);
                     if(!filter.accept(child.file())) continue;
                     handles[count] = child;
                     count++;
                 }
                 if(count < relativePaths.length){
-                    bothFi[] newHandles = new bothFi[count];
+                    fi[] newHandles = new fi[count];
                     System.arraycopy(handles, 0, newHandles, 0, count);
                     handles = newHandles;
                 }
@@ -130,11 +130,11 @@ public class androidFi extends bothFi{
     }
 
     @Override
-    public bothFi[] list(FilenameFilter filter){
+    public fi[] list(FilenameFilter filter){
         if(type == FileType.internal){
             try{
                 String[] relativePaths = assets.list(file.getPath());
-                bothFi[] handles = new bothFi[relativePaths.length];
+                fi[] handles = new fi[relativePaths.length];
                 int count = 0;
                 for(int i = 0, n = handles.length; i < n; i++){
                     String path = relativePaths[i];
@@ -143,7 +143,7 @@ public class androidFi extends bothFi{
                     count++;
                 }
                 if(count < relativePaths.length){
-                    bothFi[] newHandles = new bothFi[count];
+                    fi[] newHandles = new fi[count];
                     System.arraycopy(handles, 0, newHandles, 0, count);
                     handles = newHandles;
                 }
@@ -156,11 +156,11 @@ public class androidFi extends bothFi{
     }
 
     @Override
-    public bothFi[] list(String suffix){
+    public fi[] list(String suffix){
         if(type == FileType.internal){
             try{
                 String[] relativePaths = assets.list(file.getPath());
-                bothFi[] handles = new bothFi[relativePaths.length];
+                fi[] handles = new fi[relativePaths.length];
                 int count = 0;
                 for(int i = 0, n = handles.length; i < n; i++){
                     String path = relativePaths[i];
@@ -169,7 +169,7 @@ public class androidFi extends bothFi{
                     count++;
                 }
                 if(count < relativePaths.length){
-                    bothFi[] newHandles = new bothFi[count];
+                    fi[] newHandles = new fi[count];
                     System.arraycopy(handles, 0, newHandles, 0, count);
                     handles = newHandles;
                 }
@@ -225,7 +225,7 @@ public class androidFi extends bothFi{
 
     @Override
     public File file(){
-        if(type == FileType.local) return new File(bothFiles.LocalStoragePath, file.getPath());
+        if(type == FileType.local) return new File(files.LocalStoragePath, file.getPath());
         return super.file();
     }
 

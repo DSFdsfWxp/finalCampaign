@@ -1,4 +1,4 @@
-package finalCampaign.launch;
+package finalCampaign.desktop;
 
 import arc.*;
 import arc.backend.sdl.*;

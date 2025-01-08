@@ -1,0 +1,15 @@
+
+apply plugin: "java"
+
+sourceSets.main.java.srcDirs = ["src"]
+
+dependencies {
+    implementation project(":launcher")
+    
+    compileOnly(files("$rootDir/dependencies/mtd.android.jar"))
+    compileOnly(files("$rootDir/dependencies/mtd.desktop.jar"))
+    compileOnly(files("$rootDir/dependencies/mtd.server.jar"))
+
+    compileOnly "com.github.Anuken.Arc:backend-sdl:$mindustryVersion"
+    compileOnly "com.github.Anuken.Arc:backend-android:$mindustryVersion"
+}

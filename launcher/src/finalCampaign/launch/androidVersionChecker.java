@@ -5,8 +5,8 @@ import arc.struct.*;
 
 public class androidVersionChecker {
     public static boolean modNeedUpdate() {
-        bothFi currentVersion = bothFiles.instance.dataDirectory().child("mod.version");
-        bothFi inPackVersion = bothFiles.instance.internalFile("fcLaunch/mod.version");
+        fi currentVersion = files.instance.dataDirectory().child("mod.version");
+        fi inPackVersion = files.instance.internalFile("fcLaunch/mod.version");
         if (!currentVersion.exists()) return true;
 
         String[] currentVers = currentVersion.readString().split("\\.");
@@ -26,13 +26,13 @@ public class androidVersionChecker {
     }
 
     public static void registerCurrentModVersion(int major, int minor, String type) {
-        bothFi currentVersion = bothFiles.instance.dataDirectory().child("mod.version");
+        fi currentVersion = files.instance.dataDirectory().child("mod.version");
         currentVersion.writeString(String.format("%d.%d.%s", major, minor, type));
     }
 
     public static boolean checkNeedUpdate(String name) {
-        bothFi currentVersion = bothFiles.instance.dataDirectory().child(name + ".sha256");
-        bothFi inPackVersion = bothFiles.instance.internalFile("fcLaunch/" + name + ".sha256");
+        fi currentVersion = files.instance.dataDirectory().child(name + ".sha256");
+        fi inPackVersion = files.instance.internalFile("fcLaunch/" + name + ".sha256");
         if (!currentVersion.exists()) return true;
         if (!Arrays.equals(currentVersion.readBytes(), inPackVersion.readBytes())) return true;
 
@@ -40,8 +40,8 @@ public class androidVersionChecker {
     }
 
     public static void registerCurrentVersion(String name) {
-        bothFi currentVersion = bothFiles.instance.dataDirectory().child(name + ".sha256");
-        bothFi inPackVersion = bothFiles.instance.internalFile("fcLaunch/" + name + ".sha256");
+        fi currentVersion = files.instance.dataDirectory().child(name + ".sha256");
+        fi inPackVersion = files.instance.internalFile("fcLaunch/" + name + ".sha256");
         if (currentVersion.exists()) currentVersion.delete();
         inPackVersion.copyTo(currentVersion);
     }

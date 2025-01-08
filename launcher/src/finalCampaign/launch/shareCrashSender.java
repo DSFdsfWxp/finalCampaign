@@ -9,7 +9,7 @@ public abstract class shareCrashSender {
 
     public void log(Throwable exception){
         try {
-            bothFiles.instance.dataDirectory().child("crashes").child("crash_" + System.currentTimeMillis() + ".txt")
+            files.instance.dataDirectory().child("crashes").child("crash_" + System.currentTimeMillis() + ".txt")
             .writeString(createReport(Strings.neatError(exception)));
         } catch(Throwable ignored) {}
     }
