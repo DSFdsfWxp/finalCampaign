@@ -6,7 +6,7 @@ import mindustry.gen.*;
 
 public class fSpritePacker {
     public static boolean supported() {
-        return !Vars.headless && version.inPackage.isDebugVersion("mod");
+        return !Vars.headless && !Vars.mobile && version.inPackage.isDebugVersion("mod");
     }
 
     public static void init() {}

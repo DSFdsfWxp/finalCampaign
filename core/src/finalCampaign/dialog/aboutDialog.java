@@ -26,6 +26,8 @@ public class aboutDialog extends BaseDialog {
         cont.add(version.inPackage.getVersionFull("mod")).color(Pal.lightishGray).row();
         cont.add(bundle.get("dialog.about.version.launcher")).color(Pal.accent).row();
         cont.add(finalCampaign.runtime.getVersion()).color(Pal.lightishGray).row();
+        cont.add(bundle.get("dialog.about.version.runtime")).color(Pal.accent).row();
+        cont.add(finalCampaign.runtime.name()).color(Pal.lightishGray).row();
 
         buttons.button(bundle.get("dialog.about.openRepo"), () -> {
             Core.app.openURI("finalCampaign://repo");
