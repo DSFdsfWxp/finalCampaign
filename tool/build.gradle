@@ -13,6 +13,10 @@ dependencies {
 task buildAndroid() {
     dependsOn "compileJava"
     dependsOn ":android:jar"
+
+    doFirst {
+        check()
+    }
     
     def dependencies = ["$rootDir/launcher/build/libs/launcher.jar", "$rootDir/dependencies/dex2jar.jar", "$rootDir/tool/build/classes/java/main"].join(";")
     def executableExtension = isWindows ? ".bat" : ""
