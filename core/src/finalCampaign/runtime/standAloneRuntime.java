@@ -20,7 +20,7 @@ public class standAloneRuntime implements IRuntime {
                 gameJar = new Fi(apkPath);
                 rootDir = Core.settings.getDataDirectory();
             } else {
-                gameJar = new Fi(new File(mixinRuntime.class.getProtectionDomain().getCodeSource().getLocation().toURI()));
+                gameJar = new Fi(new File(Vars.class.getProtectionDomain().getCodeSource().getLocation().toURI()));
                 rootDir = gameJar.parent();
             }
         } catch(Exception e) {
@@ -60,19 +60,24 @@ public class standAloneRuntime implements IRuntime {
 
     @Override
     public void install(Fi mod) throws Exception {
-        throw new RuntimeException("To update, you need to download and install the new version of the client.");
+        throw new RuntimeException(bundle.get("installer.androidUpdateNotice"));
     }
 
     @Override
     public void startupInstall() throws Exception {
         ZipFi gameJarZip = new ZipFi(gameJar);
         Fi modFile = Vars.modDirectory.child("finalCampaign.jar");
+        Fi modAssetsFile = gameJarZip.child("fcStandAloneMod.jar");
+        Fi modAssetsSha256 = gameJarZip.child("fcStandAloneMod.jar.sha256");
 
-        if (!modFile.exists()) {
-            gameJarZip.child("fcStandAloneMod.jar").copyTo(modFile);
+        if (!modFile.exists() || !setting.getAndCast("standAloneMod-sha256", "").equals(modAssetsSha256.readString())) {
+            modAssetsFile.copyTo(modFile);
             // fix Android dex dynamic load secure exception
             if (OS.isAndroid)
                 modFile.file().setReadOnly();
+            
+            setting.put("standAloneMod-sha256", modAssetsSha256);
+            Core.settings.manualSave();
         }
 
         gameJarZip.delete(); // close zip

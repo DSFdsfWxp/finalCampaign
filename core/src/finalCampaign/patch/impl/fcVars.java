@@ -19,7 +19,7 @@ public abstract class fcVars {
 
     @Inject(method = "loadSettings", at = @At("HEAD"), remap = false)
     private static void fcLoadSettingsHead(CallbackInfo ci) {
-        if (finalCampaign.runtime != null || !(finalCampaign.runtime instanceof mixinRuntime))
+        if (finalCampaign.runtime == null || !(finalCampaign.runtime instanceof mixinRuntime))
             return;
 
         Core.settings.setJson(JsonIO.json);
@@ -49,7 +49,7 @@ public abstract class fcVars {
 
     @Inject(method = "loadSettings", at = @At("RETURN"), remap = false)
     private static void fcLoadSettingsReturn(CallbackInfo ci) {
-        if (finalCampaign.runtime != null || !(finalCampaign.runtime instanceof mixinRuntime))
+        if (finalCampaign.runtime == null || !(finalCampaign.runtime instanceof mixinRuntime))
             return;
 
         Vars.steam = fcSteam;

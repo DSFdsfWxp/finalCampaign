@@ -1,10 +1,10 @@
 
-apply plugin: "java"
+apply plugin: "java-library"
 
 sourceSets.main.java.srcDirs = ["src"]
 
 dependencies {
-    implementation "com.github.Anuken.Arc:arc-core:$mindustryVersion"
+    api "com.github.Anuken.Arc:arc-core:$mindustryVersion"
     compileOnly "com.github.Anuken.Arc:backend-sdl:$mindustryVersion"
     compileOnly "com.github.Anuken.Arc:backend-android:$mindustryVersion"
     compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
@@ -25,11 +25,9 @@ dependencies {
     implementation "org.ow2.asm:asm-commons:$asmVersion"
     implementation "org.ow2.asm:asm-util:$asmVersion"
 
-    implementation "com.github.DSFdsfWxp:Mixin:v0.8.5.3"
+    api 'com.github.DSFdsfWxp:Mixin:v0.8.5.3'
 
     annotationProcessor "com.github.Anuken:jabel:$jabelVersion"
-
-    implementation 'com.github.DSFdsfWxp:dx:v9.0.0'
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     annotationProcessor "org.ow2.asm:asm-tree:$asmVersion"
@@ -37,8 +35,6 @@ dependencies {
 }
 
 jar {
-    archiveFileName = "launcher.jar"
-
     exclude("META-INF/maven/**")
     exclude("META-INF/*.SF")
     exclude("META-INF/*.RSA")
@@ -71,7 +67,12 @@ jar {
     exclude("arc/KeyBinds**")
     exclude("arc/Settings**")
 
+    from(configurations.runtimeClasspath.collect { zipTree(it) }) {
+        include "**"
+    }
+
     from("res/") {
         include "**"
     }
+    
 }

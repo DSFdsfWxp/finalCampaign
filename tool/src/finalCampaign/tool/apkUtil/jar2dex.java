@@ -24,11 +24,13 @@ public class jar2dex {
         zipFi jarZip = new zipFi(jar);
 
         allFileWalker walker = new allFileWalker(jarZip, f -> {
-            if (f.extension().equals(".class")) {
-                if (f.absolutePath().startsWith("/arc/") ||
-                    f.absolutePath().startsWith("/mindustry/") ||
-                    f.absolutePath().startsWith("/com/android/"))
-                        mainDexLst.add(f.absolutePath());
+            if (f.extension().equals("class")) {
+                String path = f.path();
+                if (path.startsWith("arc/") ||
+                    path.startsWith("mindustry/") ||
+                    path.startsWith("com/android/") ||
+                    path.startsWith("androidx/"))
+                        mainDexLst.add(path);
             }
         });
         
@@ -43,6 +45,8 @@ public class jar2dex {
             androidJarPath,
             "--min-api",
             "14",
+            "--main-dex-list",
+            mainDexLstFi.absolutePath(),
             "--output",
             out.absolutePath(),
             jar.absolutePath()

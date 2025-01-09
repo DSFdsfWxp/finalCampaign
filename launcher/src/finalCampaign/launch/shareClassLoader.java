@@ -7,7 +7,7 @@ import arc.util.*;
 
 public abstract class shareClassLoader extends ClassLoader {
     private ClassLoader parent;
-    protected Seq<fi> jars;
+    protected Seq<loadedJar> jars;
     protected shareBytecodeTransformer transformer;
 
     public shareClassLoader() {
@@ -21,7 +21,17 @@ public abstract class shareClassLoader extends ClassLoader {
     }
 
     public void addJar(fi jarFi) {
-        jars.add(jarFi.isDirectory() ? jarFi : new zipFi(jarFi));
+        loadedJar jar = new loadedJar();
+        
+        if (jarFi.isDirectory()) {
+            jar.path = "file:/" + jarFi.absolutePath();
+            jar.rootDir = jarFi;
+        } else {
+            jar.path = "jar:file:/" + jarFi.absolutePath() + "!";
+            jar.rootDir = new zipFi(jarFi);
+        }
+
+        jars.add(jar);
     }
 
     @Override
@@ -41,8 +51,8 @@ public abstract class shareClassLoader extends ClassLoader {
     public URL getResource(String name) {
         URL url = null;
 
-        for (fi fi : jars) {
-            fi f = fi;
+        for (loadedJar jar : jars) {
+            fi f = jar.rootDir;
 
             if (name.startsWith("/")) name = name.substring(1);
             String[] path = name.split("/");
@@ -50,7 +60,7 @@ public abstract class shareClassLoader extends ClassLoader {
 
             if (f.exists()) {
                 try {
-                    url = new URL("jar:file:/" + fi.toString() + "!/" + name);
+                    url = new URL(jar.path + "/" + name);
                     break;
                 } catch(Exception e) {}
             }
@@ -62,35 +72,13 @@ public abstract class shareClassLoader extends ClassLoader {
         return url;
     }
 
-    protected Seq<fi> getAllFilesInJarPath(String path) {
-        Seq<fi> res = new Seq<>();
-        for (fi fi : jars) {
-            fi f = fi;
-
-            if (path.startsWith("/")) path = path.substring(1);
-            if (path.endsWith("/")) path = path.substring(0, path.length() - 1);
-            String[] paths = path.split("/");
-            for (String n : paths) f = f.child(n);
-
-            if (f.exists()) {
-                try {
-                    if (f.isDirectory()) for (fi ff : f.list()) if (!ff.isDirectory()) res.add(ff);
-                    break;
-                } catch(Exception e) {
-                    Log.err(e);
-                }
-            }
-        }
-        return res;
-    }
-
     @Override
     public InputStream getResourceAsStream(String name) {
         InputStream stream = null;
 
         if (OS.isAndroid) {
-            for (fi fi : jars) {
-                fi f = new zipFi(fi);
+            for (loadedJar jar : jars) {
+                fi f = jar.rootDir;
 
                 if (name.startsWith("/")) name = name.substring(1);
                 String[] path = name.split("/");
@@ -151,5 +139,10 @@ public abstract class shareClassLoader extends ClassLoader {
         protected Class<?> findClass(String name) throws ClassNotFoundException {
             throw new ClassNotFoundException();
         }
+    }
+
+    protected static class loadedJar {
+        public String path;
+        public fi rootDir;
     }
 }

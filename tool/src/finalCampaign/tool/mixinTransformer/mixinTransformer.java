@@ -15,8 +15,12 @@ public class mixinTransformer {
         launcher.src.add(src);
     }
 
+    public void setMixinConfig(fi config) {
+        shareMixinService.configFile = config;
+    }
+
     public void transform(jarWriter writer) throws Exception {
-        launcher.launch();
+        launcher.startup();
 
         transformerClassLoader cl = (transformerClassLoader) shareMixinService.getClassLoader();
         cl.eachClassFile(f -> {

@@ -77,6 +77,39 @@ project(":tool")
 project(":desktop")
 project(":android")
 
+task modJar(type: Jar) {
+    archiveFileName = "finalCampaign.jar"
+    destinationDirectory = layout.buildDirectory.dir("libs")
+
+    dependsOn ":core:jar"
+    dependsOn ":desktop:jar"
+
+    into("/") {
+        from([zipTree("$rootDir/core/build/libs/assets.jar"), 
+              zipTree("$rootDir/core/build/libs/core.jar")])
+        {
+            exclude "/META-INF/**"
+            include "**"
+        }
+    }
+
+    into("/fcLaunch/") {
+        from("$rootDir/desktop/build/libs/") {
+            include "desktop.jar"
+            rename { "launcher.jar" }
+        }
+    }
+}
+
+task modApk() {
+    dependsOn ":tool:buildAndroid"
+}
+
+task deploy() {
+    dependsOn "modJar"
+    dependsOn "modApk"
+}
+
 /*
 task preMainMixinBootstrapJar(type: Jar) {
     dependsOn "jar"

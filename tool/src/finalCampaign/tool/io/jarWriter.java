@@ -25,6 +25,7 @@ public class jarWriter {
             def = new Deflater(Deflater.DEFAULT_COMPRESSION, true);
 
             addedEntry = new Seq<>();
+            excludePath = new Seq<>();
             isApk = apk;
         } catch(Exception e) {
             throw new RuntimeException(e);
@@ -83,8 +84,8 @@ public class jarWriter {
     public void exclude(String path) {
         if (!path.endsWith("/"))
             path += "/";
-        if (!path.startsWith("/"))
-            path = "/" + path;
+        if (path.startsWith("/"))
+            path = path.substring(1);
         excludePath.add(path);
     }
 

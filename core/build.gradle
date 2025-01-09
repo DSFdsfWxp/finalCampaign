@@ -21,8 +21,19 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
-jar {
-    from("$rootDir/assets/") {
+task assetsJar(type: Jar) {
+    archiveFileName = "assets.jar"
+
+    from("$rootDir/core/assets/") {
         include "**"
     }
+
+    from("$rootDir/") {
+        include "mod.hjson"
+    }
+}
+
+jar {
+    dependsOn assetsJar
+    archiveFileName = "core.jar"
 }

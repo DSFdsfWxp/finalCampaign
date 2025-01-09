@@ -15,7 +15,7 @@ public class transformerClassLoader extends shareClassLoader {
 
     public void eachClassFile(Cons<fi> cons) {
         Seq<fi> stack = new Seq<>();
-        stack.add(jars);
+        jars.each(jar -> stack.add(jar.rootDir));
 
         while (stack.size > 0) {
             for (fi f : stack.first().list()) {

@@ -45,7 +45,7 @@ public abstract class shareLauncher {
             classLoader = createClassLoader();
             classLoader.init();
             shareMixinService.setClassLoader(classLoader);
-            Thread.currentThread().setContextClassLoader(classLoader);
+            //Thread.currentThread().setContextClassLoader(classLoader);
 
         } catch(Exception e) {
             handleCrash(e, "Failed to boot mixin.");

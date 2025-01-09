@@ -21,9 +21,9 @@ public class mixinRuntime implements IRuntime {
     }
 
     public mixinRuntime(File gameJar, File dataDir) {
-        if (rootDir == null) {
+        if (gameJar == null) {
             try {
-                gameJar = new File(mixinRuntime.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+                gameJar = new File(Vars.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             } catch (Exception e) {
                 throw new RuntimeException("Should be ok.", e);
             }

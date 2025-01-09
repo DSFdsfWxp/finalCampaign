@@ -8,8 +8,8 @@ public class classPatcher {
     public int constentPoolCount;
     public constentPoolItem[] constentItems;
     public short accessFlags;
-    public short classNamePos;
-    public short superClassNamePos; 
+    public int classInfoPos;
+    public int superClassInfoPos;
     public byte[] otherContent;
     private boolean modified;
 
@@ -100,8 +100,8 @@ public class classPatcher {
             }
 
             accessFlags = stream.readShort();
-            classNamePos = stream.readShort();
-            superClassNamePos = stream.readShort();
+            classInfoPos = stream.readShort() - 1;
+            superClassInfoPos = stream.readShort() - 1;
 
             otherContent = new byte[stream.available()];
             stream.readFully(otherContent);
@@ -149,8 +149,8 @@ public class classPatcher {
             }
 
             stream.writeShort(accessFlags);
-            stream.writeShort(classNamePos);
-            stream.writeShort(superClassNamePos);
+            stream.writeShort(classInfoPos + 1);
+            stream.writeShort(superClassInfoPos + 1);
 
             stream.write(otherContent);
 
@@ -165,11 +165,11 @@ public class classPatcher {
     }
 
     public String getClassName() {
-        return constentItems[classNamePos].string;
+        return constentItems[constentItems[classInfoPos].pos1].string;
     }
 
     public String getSuperClassName() {
-        return constentItems[superClassNamePos].string;
+        return constentItems[constentItems[superClassInfoPos].pos1].string;
     }
 
     // the aim of these string replacing methods is to replace the class name back, which is modified by dex2jar for a "lambda name security" reason

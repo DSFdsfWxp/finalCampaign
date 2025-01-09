@@ -13,3 +13,17 @@ dependencies {
     compileOnly "com.github.Anuken.Arc:backend-sdl:$mindustryVersion"
     compileOnly "com.github.Anuken.Arc:backend-android:$mindustryVersion"
 }
+
+jar {
+    archiveFileName = "desktop.jar"
+
+    manifest {
+        attributes 'Main-Class': 'finalCampaign.desktop.desktopLauncher'
+    }
+
+    dependsOn ":launcher:jar"
+
+    from(zipTree("$rootDir/launcher/build/libs/launcher.jar")) {
+        include "**"
+    }
+}

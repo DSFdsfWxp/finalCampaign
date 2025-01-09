@@ -9,3 +9,23 @@ dependencies {
 
     implementation(files("$rootDir/dependencies/dex2jar.jar"))
 }
+
+task buildAndroid() {
+    dependsOn "compileJava"
+    dependsOn ":android:jar"
+    
+    def dependencies = ["$rootDir/launcher/build/libs/launcher.jar", "$rootDir/dependencies/dex2jar.jar", "$rootDir/tool/build/classes/java/main"].join(";")
+    def executableExtension = isWindows ? ".bat" : ""
+
+    def apksignerCmd = "apksigner$executableExtension"
+    def d8Cmd = "d8$executableExtension"
+
+    def androidSdkJarPath = (new File(androidPlatformRoot, "android.jar")).path
+    def sourceApkPath = "$rootDir/build/mtd.apk"
+    def sourceJarPath = "$rootDir/build/mtd.jar"
+
+    doLast {
+        "java -cp $dependencies finalCampaign.tool.androidBuilder \"$sourceApkPath\" \"$sourceJarPath\" $apksignerCmd $d8Cmd \"$androidSdkJarPath\""
+            .execute(null, new File("$rootDir")).waitForProcessOutput(System.out, System.err)
+    }
+}

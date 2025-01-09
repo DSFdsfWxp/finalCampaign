@@ -18,6 +18,9 @@ public class version {
         ZipFi modZip = new ZipFi(mod);
         Fi versionFile = modZip.child("version.properties");
 
+        versions = new ObjectMap<>();
+        types = new ObjectMap<>();
+
         if (versionFile.exists()) {
             Reader reader = versionFile.reader();
             ObjectMap<String, String> map = new ObjectMap<>();
@@ -26,7 +29,7 @@ public class version {
 
             Seq<String> items = new Seq<>();
             for (String keys : map.keys()) {
-                String name = keys.split(".")[0];
+                String name = keys.split("\\.")[0];
                 if (!items.contains(name))
                     items.add(name);
             }
@@ -66,6 +69,7 @@ public class version {
 
     public static void init() {
         inPackage = new version(finalCampaign.thisLoadedMod.file);
+        bundle.bundleVersion = inPackage.getVersionFull("bundle");
 
         if (isDebuging) Log.level = LogLevel.debug;
     }

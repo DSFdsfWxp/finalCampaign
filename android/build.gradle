@@ -5,5 +5,22 @@ sourceSets.main.java.srcDirs = ["src"]
 
 dependencies {
     implementation project(":core")
+    implementation project(":launcher")
     compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
+}
+
+jar {
+    archiveFileName = "android.jar"
+
+    dependsOn ":core:jar"
+    dependsOn ":launcher:jar"
+
+    from([zipTree("$rootDir/core/build/libs/core.jar"), 
+          zipTree("$rootDir/launcher/build/libs/launcher.jar")])
+    {
+        include "**"
+
+        exclude "/arc/**"
+        exclude "/finalCampaign/launch/**"
+    }
 }
