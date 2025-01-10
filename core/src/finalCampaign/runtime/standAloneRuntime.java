@@ -71,12 +71,15 @@ public class standAloneRuntime implements IRuntime {
         Fi modAssetsSha256 = gameJarZip.child("fcStandAloneMod.jar.sha256");
 
         if (!modFile.exists() || !setting.getAndCast("standAloneMod-sha256", "").equals(modAssetsSha256.readString())) {
+            if (modFile.exists())
+                modFile.delete();
+
             modAssetsFile.copyTo(modFile);
             // fix Android dex dynamic load secure exception
             if (OS.isAndroid)
                 modFile.file().setReadOnly();
             
-            setting.put("standAloneMod-sha256", modAssetsSha256);
+            setting.put("standAloneMod-sha256", modAssetsSha256.readString());
             Core.settings.manualSave();
         }
 

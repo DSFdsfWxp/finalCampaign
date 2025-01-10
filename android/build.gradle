@@ -6,6 +6,7 @@ sourceSets.main.java.srcDirs = ["src"]
 dependencies {
     implementation project(":core")
     implementation project(":launcher")
+    implementation 'com.github.DSFdsfWxp:dx:v9.0.0-r8v4'
     compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
 }
 
@@ -22,5 +23,9 @@ jar {
 
         exclude "/arc/**"
         exclude "/finalCampaign/launch/**"
+    }
+
+    from(configurations.compileClasspath.asList().collect { it.isDirectory() ? it : zipTree(it) }) {
+        include "/com/android/**"
     }
 }

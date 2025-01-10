@@ -7,13 +7,17 @@ import finalCampaign.tool.io.*;
 
 public class jar2dex {
     private fi jar;
-    private String androidJarPath;
+    private Seq<String> classpaths;
     private cmdExecuter executer;
 
-    public jar2dex(cmdExecuter executer, String androidJarPath, fi jar) {
+    public jar2dex(cmdExecuter executer, String[] cps, fi jar) {
         this.jar = jar;
         this.executer = executer;
-        this.androidJarPath = androidJarPath;
+        classpaths = new Seq<>();
+
+        for (String cp : cps) {
+            classpaths.addAll("--classpath", cp);
+        }
     }
 
     public void run(fi out) throws Exception {
@@ -39,10 +43,11 @@ public class jar2dex {
 
         fi mainDexLstFi = out.parent().child("mainDexLst.txt");
         mainDexLstFi.writeString(String.join("\n", mainDexLst));
-        
-        String[] args = new String[] {
-            "--classpath",
-            androidJarPath,
+
+        Seq<String> args = new Seq<>();
+
+        args.add(classpaths);
+        args.add(new String[] {
             "--min-api",
             "14",
             "--main-dex-list",
@@ -50,9 +55,9 @@ public class jar2dex {
             "--output",
             out.absolutePath(),
             jar.absolutePath()
-        };
+        });
 
-        if (executer.exec(args) != 0)
+        if (executer.exec(args.toArray(String.class)) != 0)
             throw new RuntimeException("Failed to convert jar to dex");
     }
 }
