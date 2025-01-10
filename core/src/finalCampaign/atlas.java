@@ -25,7 +25,7 @@ public class atlas {
     @SuppressWarnings("unchecked")
     public static void init() {
         try {
-            Field field = Core.atlas.getClass().getDeclaredField("drawables");
+            Field field = TextureAtlas.class.getDeclaredField("drawables");
             field.setAccessible(true);
             drawables = (ObjectMap<String, Drawable>) field.get(Core.atlas);
             regionmap = Core.atlas.getRegionMap();

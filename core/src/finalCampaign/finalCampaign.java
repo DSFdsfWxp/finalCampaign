@@ -40,13 +40,9 @@ public class finalCampaign extends Mod {
         Log.info(" # " + version.inPackage.getVersionFull("mod"));
 
         if (!Vars.headless) {
-            if (runtime != null) {
+            Events.on(ClientLoadEvent.class, e -> {
                 modStartup();
-            } else {
-                Events.on(ClientLoadEvent.class, e -> {
-                    modStartup();
-                });
-            }
+            });
         } else {
             modStartup();
         }
