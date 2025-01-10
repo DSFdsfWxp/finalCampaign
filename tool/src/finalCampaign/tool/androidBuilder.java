@@ -124,7 +124,7 @@ public class androidBuilder {
         arscPatcher aPatcher = new arscPatcher(res.readBytes());
         aPatcher.replacePackageName(xPackageName, xPackageName + ".fcMod");
         aPatcher.replaceString("Mindustry BE", "Mindustry");
-        aPatcher.replaceString("Mindustry", "Fc Mindustry");
+        aPatcher.replaceString("Mindustry", "Mindustry FC");
         apkWriter.add("resources.arsc", aPatcher.build(), ZipOutputStream.STORED);
 
         apkWriter.close();
@@ -136,7 +136,7 @@ public class androidBuilder {
 
         fi cert = rootDir.child("tool/res/cert.pem");
         fi key = rootDir.child("tool/res/key.pk8");
-        fi out = rootDir.child("build/libs/fcMindustry.apk");
+        fi out = rootDir.child("build/libs/MindustryFc.apk");
         apkSigner signer = new apkSigner(apkSignerExecuter, unsignedApk);
         signer.setKey(cert, key);
         signer.sign(out);
