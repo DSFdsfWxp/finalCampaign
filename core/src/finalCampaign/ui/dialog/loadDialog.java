@@ -1,4 +1,4 @@
-package finalCampaign.dialog;
+package finalCampaign.ui.dialog;
 
 import arc.*;
 import arc.scene.*;

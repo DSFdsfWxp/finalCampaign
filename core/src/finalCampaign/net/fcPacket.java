@@ -5,7 +5,7 @@ import finalCampaign.util.*;
 import mindustry.gen.*;
 import mindustry.net.*;
 
-public class fcPacket extends Packet {
+public abstract class fcPacket extends Packet {
     protected Player __caller;
 
     @Override

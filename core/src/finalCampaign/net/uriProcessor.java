@@ -2,7 +2,7 @@ package finalCampaign.net;
 
 import java.net.*;
 import arc.*;
-import finalCampaign.dialog.*;
+import finalCampaign.ui.dialog.*;
 
 public class uriProcessor {
     public static boolean process(URI uri) {

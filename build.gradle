@@ -1,17 +1,17 @@
 
 allprojects {
-    repositories{
+    repositories {
         mavenCentral()
-        maven{ url "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
-        maven{ url 'https://www.jitpack.io' }
+        maven { url "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
+        maven { url 'https://www.jitpack.io' }
         maven {
             name = 'Sponge / Mixin'
             url = 'https://repo.spongepowered.org/repository/maven-public/'
         }
-        maven{ url "https://oss.sonatype.org/content/repositories/releases/" }
+        maven { url "https://oss.sonatype.org/content/repositories/releases/" }
     }
 
-    ext{
+    ext {
         asmVersion = "9.7"
         mindustryVersion = "v146"
         arcVersion = "v146"
@@ -25,11 +25,15 @@ allprojects {
         androidPlatformRoot = new File("$sdkRoot/platforms/").listFiles().sort().reverse().find{ f -> new File(f, "android.jar").exists()}
 
         check = {
-            if(!sdkRoot || !new File(sdkRoot).exists()) throw new GradleException("No valid Android SDK found. Ensure that ANDROID_HOME is set to your Android SDK directory.");
-            if(!androidPlatformRoot) throw new GradleException("No android.jar found. Ensure that you have an Android platform installed.")
+            if(!sdkRoot || !new File(sdkRoot).exists())
+                throw new GradleException("No valid Android SDK found. Ensure that ANDROID_HOME is set to your Android SDK directory.");
+            if(!androidPlatformRoot)
+                throw new GradleException("No android.jar found. Ensure that you have an Android platform installed.")
         }
     }
+}
 
+configure(subprojects - project(":annotation")) {
     tasks.withType(JavaCompile) {
         java {
             sourceCompatibility = JavaVersion.VERSION_17
@@ -40,12 +44,15 @@ allprojects {
     }
 }
 
-project(":launcher")
-project(":annotation")
-project(":core")
-project(":tool")
-project(":desktop")
-project(":android")
+configure(project(":annotation")) {
+    tasks.withType(JavaCompile) {
+        java {
+            sourceCompatibility = JavaVersion.VERSION_17
+            targetCompatibility = JavaVersion.VERSION_17
+        }
+        options.compilerArgs += ["-Xlint:deprecation"]
+    }
+}
 
 task modJar(type: Jar) {
     archiveFileName = "finalCampaign.jar"

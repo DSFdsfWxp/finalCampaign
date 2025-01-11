@@ -2,3 +2,8 @@ apply plugin: "java"
 
 sourceSets.main.java.srcDirs = ["src"]
 
+jar {
+    from("res/") {
+        include "**"
+    }
+}
