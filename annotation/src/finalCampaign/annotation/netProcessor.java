@@ -63,6 +63,11 @@ public class netProcessor extends baseProcessor {
                     !ee.getModifiers().contains(Modifier.STATIC))
                     continue;
                 
+                if (ee.getReturnType().getKind() != TypeKind.BOOLEAN) {
+                    messager.printMessage(Kind.ERROR, "Net action must return a boolean type.", ee);
+                    continue;
+                }
+                
                 try {
                     generatePacket(ee);
                 } catch (Exception err) {
