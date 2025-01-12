@@ -9,6 +9,7 @@ import arc.util.*;
 import arc.util.io.*;
 import mindustry.*;
 import mindustry.gen.*;
+import finalCampaign.annotation.net.*;
 
 // Notice:
 // Not registering packets in Mindustry.net.Net because the max packet id is 127, the game has used 114
@@ -31,7 +32,7 @@ public class fcNet implements ApplicationListener {
         boolean reliable = true;
 
         for (Annotation annotation : packet.getClass().getAnnotations())
-            if (annotation instanceof CallFrom cf) reliable = cf.reliable();
+            if (annotation instanceof netCall cf) reliable = cf.reliable();
 
         if (reliable) {
             reliableQueue.add(bs.toByteArray());
@@ -68,7 +69,7 @@ public class fcNet implements ApplicationListener {
         for (fcPacket packet : packets) {
             //Log.debug(packet.getClass().getName());
             for (Annotation annotation : packet.getClass().getAnnotations())
-                if (annotation instanceof CallFrom cf) if (cf.value() == PacketSource.client) return;
+                if (annotation instanceof netCall cf) if (cf.src() == packetSource.client) return;
             
             try {
                 packet.handleClient();
@@ -84,7 +85,7 @@ public class fcNet implements ApplicationListener {
         for (fcPacket packet : packets) {
             //Log.debug(packet.getClass().getName());
             for (Annotation annotation : packet.getClass().getAnnotations())
-                if (annotation instanceof CallFrom cf) if (cf.value() == PacketSource.server) return;
+                if (annotation instanceof netCall cf) if (cf.src() == packetSource.server) return;
             
             try {
                 packet.handleServer(player);
@@ -99,19 +100,6 @@ public class fcNet implements ApplicationListener {
         if (Vars.netServer != null) Vars.netServer.addPacketHandler(type, fcNet::serverReceive);
         Core.app.addListener(new fcNet());
         fcCall.register();
-    }
-
-    public static enum PacketSource {
-        client,
-        server,
-        both
-    }
-
-    @Target({ElementType.TYPE, ElementType.METHOD})
-    @Retention(RetentionPolicy.RUNTIME)
-    public static @interface CallFrom {
-        public PacketSource value();
-        public boolean reliable() default true;
     }
 
     private static byte[] str2Byte(String txt) {

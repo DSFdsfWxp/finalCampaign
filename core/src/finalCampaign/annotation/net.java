@@ -22,28 +22,32 @@ public class net {
         public boolean buildingModuleCheck() default true;
     }
 
-    @Target({ElementType.TYPE, ElementType.METHOD})
+    @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface nullCheckExclude {
-        public String[] exclude();
+        public String[] value();
     }
 
-    @Target({ElementType.TYPE, ElementType.METHOD})
+    @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface deadCheckExclude {
-        public String[] exclude();
+        public String[] value();
     }
 
-    @Target({ElementType.TYPE, ElementType.METHOD})
+    @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface teamCheckOpt {
         public String[] exclude();
         public boolean skipInSandbox() default true;
     }
 
-    @Target({ElementType.TYPE, ElementType.METHOD})
+    @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface buildingTarget {
-        public Class<?>[] target();
+        public Class<?>[] value();
     }
+
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface sandboxOnly {}
 }

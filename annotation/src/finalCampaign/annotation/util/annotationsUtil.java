@@ -48,6 +48,21 @@ public class annotationsUtil {
             return (T) valueMap.get(name);
         }
 
+        @SuppressWarnings("unchecked")
+        public <T> T getValue(String name, T def) {
+            T val = (T) valueMap.get(name);
+            return val == null ? def : val;
+        }
+
+        @SuppressWarnings("unchecked")
+        public <T> ArrayList<T> getValueAsArray(String name) {
+            List<? extends AnnotationValue> lst = getValue(name);
+            ArrayList<T> arr = new ArrayList<>();
+            for (AnnotationValue aval : lst)
+                arr.add((T) aval.getValue());
+            return arr;
+        }
+
         public TypeMirror getType() {
             return am.getAnnotationType().asElement().asType();
         }

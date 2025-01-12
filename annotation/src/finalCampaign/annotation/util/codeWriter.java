@@ -93,17 +93,21 @@ public class codeWriter {
     }
 
     public void annotation(String name) {
-        writeLine("%s@%s", newAnnotationWritten ? "" : "\n", name);
+        if (!newAnnotationWritten)
+            row();
+        writeLine("@%s", name);
         newAnnotationWritten = true;
     }
 
     public void annotation(String name, String singleArg) {
-        writeLine("%s@%s(%s)", newAnnotationWritten ? "" : "\n", name, singleArg);
+        if (!newAnnotationWritten)
+            row();
+        writeLine("@%s(%s)", name, singleArg);
         newAnnotationWritten = true;
     }
 
     public void beginAnnotationWithArg(String name) {
-        writeString("%s@%s(", newAnnotationWritten ? "" : "\n", name);
+        writeString("    ".repeat(tabs) + "%s@%s(", newAnnotationWritten ? "" : "\n", name);
         newAnnotationWithArgBegan = true;
     }
 
@@ -120,7 +124,13 @@ public class codeWriter {
     public void beginClass(modifier mod, String name) {
         if (!newAnnotationWritten)
             row();
-        beginBlock("%s %s", mod.build(), name);
+        beginBlock("%s class %s", mod.build(), name);
+    }
+
+    public void beginClass(modifier mod, String name, String superClass) {
+        if (!newAnnotationWritten)
+            row();
+        beginBlock("%s class %s extends %s", mod.build(), name, superClass);
     }
 
     public void endClass() {
@@ -129,6 +139,8 @@ public class codeWriter {
     }
 
     public void beginMethodHead(modifier mod, String name, String returnType) {
+        if (!newAnnotationWritten)
+            row();
         writeString("    ".repeat(tabs) + "%s %s %s(", mod.build(), returnType, name);
         newMethodHeadBegan = true;
     }
@@ -139,17 +151,16 @@ public class codeWriter {
     }
 
     public void endMethodHead() {
-        writeString(") {");
+        writeString(") {\n");
         tabs ++;
     }
 
     public void endMethod() {
         endBlock();
-        row();
     }
 
     public void classVariable(modifier mod, String type, String name) {
-        writeLine("%s %s %s", mod.build(), type, name);
+        writeLine("%s %s %s;", mod.build(), type, name);
     }
 
     public void statement(String fmt, Object ...args) {
