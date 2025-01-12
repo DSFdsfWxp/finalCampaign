@@ -36,7 +36,7 @@ public abstract class fcMods {
 
         if (meta.name.equals("final-campaign")) {
             try {
-                finalCampaign.runtime.install(zip);
+                finalCampaign.runtime.install(tmpMod);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

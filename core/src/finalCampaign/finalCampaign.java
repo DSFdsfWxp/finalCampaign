@@ -50,9 +50,6 @@ public class finalCampaign extends Mod {
 
     private void modStartup() {
         bundle.init();
-        featureLoader.init();
-        if (!Vars.headless) atlas.init();
-
         bundle.load();
 
         if (runtime == null) {
@@ -60,12 +57,14 @@ public class finalCampaign extends Mod {
             return;
         }
 
-        fcNet.register();
+        if (!Vars.headless) atlas.init();
         fcMap.init();
-        if (!Vars.headless) fcInput.load();
+        features.init();
 
-        features.add();
-        featureLoader.load();
+        fcNet.register();
+        if (!Vars.headless)
+            fcInput.load();
+        features.load();
 
         if (!Vars.headless) {
             shaders.load();

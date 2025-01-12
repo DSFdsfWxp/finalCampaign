@@ -1,7 +1,7 @@
 package finalCampaign.patch;
 
-import finalCampaign.feature.featureClass.buildTargeting.*;
-import finalCampaign.feature.featureClass.buildTargetingLimit.*;
+import finalCampaign.feature.buildTargeting.*;
+import finalCampaign.feature.buildTargetingLimit.*;
 
 public interface IFcTurretBuild {
     public boolean fcForceDisablePredictTarget();

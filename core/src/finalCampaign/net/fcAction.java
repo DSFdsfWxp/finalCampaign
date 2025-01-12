@@ -3,7 +3,7 @@ package finalCampaign.net;
 import java.lang.reflect.*;
 import arc.util.*;
 import finalCampaign.annotation.net.*;
-import finalCampaign.feature.featureClass.buildTargeting.*;
+import finalCampaign.feature.buildTargeting.*;
 import finalCampaign.map.*;
 import finalCampaign.patch.*;
 import finalCampaign.util.*;

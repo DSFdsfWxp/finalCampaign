@@ -45,7 +45,6 @@ public class androidBuilder {
         jarWriter mergeWriter = new jarWriter(gameJar, false);
 
         mergeWriter.add("androidx", apkJarZip.child("androidx"));
-        mergeWriter.add("arc/backend", apkJarZip.child("arc").child("backend"));
         mergeWriter.add("mindustry/android", apkJarZip.child("mindustry").child("android"));
 
         mergeWriter.exclude("mindustry/server");

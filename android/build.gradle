@@ -7,6 +7,7 @@ dependencies {
     implementation project(":core")
     implementation project(":launcher")
     implementation 'com.github.DSFdsfWxp:dx:v9.0.0-r8v4'
+    implementation "com.github.Anuken.Arc:backend-android:$mindustryVersion"
     compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
 }
 
@@ -27,5 +28,6 @@ jar {
 
     from(configurations.compileClasspath.asList().collect { it.isDirectory() ? it : zipTree(it) }) {
         include "/com/android/**"
+        include "/arc/backend/android/**"
     }
 }

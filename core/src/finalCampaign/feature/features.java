@@ -1,34 +1,67 @@
 package finalCampaign.feature;
 
-import finalCampaign.*;
-import finalCampaign.feature.featureClass.about.*;
-import finalCampaign.feature.featureClass.blockShortcut.*;
-import finalCampaign.feature.featureClass.buildTargeting.*;
-import finalCampaign.feature.featureClass.buildTargetingLimit.*;
-import finalCampaign.feature.featureClass.control.freeVision.*;
-import finalCampaign.feature.featureClass.control.roulette.*;
-import finalCampaign.feature.featureClass.control.setMode.*;
-import finalCampaign.feature.featureClass.control.shortcut.*;
-import finalCampaign.feature.featureClass.crosshair.*;
-import finalCampaign.feature.featureClass.display.barDetail.*;
-import finalCampaign.feature.featureClass.spritePacker.*;
-import finalCampaign.feature.featureClass.tuner.*;
-import finalCampaign.feature.featureClass.wiki.*;
+import arc.struct.*;
+import arc.util.*;
+import finalCampaign.feature.about.*;
+import finalCampaign.feature.barDetail.*;
+import finalCampaign.feature.blockShortcut.*;
+import finalCampaign.feature.buildTargeting.*;
+import finalCampaign.feature.buildTargetingLimit.*;
+import finalCampaign.feature.crosshair.*;
+import finalCampaign.feature.freeVision.*;
+import finalCampaign.feature.roulette.*;
+import finalCampaign.feature.setMode.*;
+import finalCampaign.feature.shortcut.*;
+import finalCampaign.feature.spritePacker.*;
+import finalCampaign.feature.tuner.*;
+import finalCampaign.feature.wiki.*;
 
 public class features {
-    public static void add() {
-        featureLoader.add(fFreeVision.class);
-        featureLoader.add(fTuner.class);
-        featureLoader.add(fCrosshair.class);
-        featureLoader.add(fSpritePacker.class);
-        featureLoader.add(fBlockShortcut.class);
-        featureLoader.add(fRoulette.class);
-        featureLoader.add(fShortcut.class);
-        featureLoader.add(fSetMode.class);
-        featureLoader.add(fWiki.class);
-        featureLoader.add(fBuildTargeting.class);
-        featureLoader.add(fBuildTargetingLimit.class);
-        featureLoader.add(fBarDetail.class);
-        featureLoader.add(fAbout.class);
+    private static Seq<Class<?>> features = new Seq<>();
+
+    public static void register(Class<?> feature) {
+        boolean supported = Reflect.invoke(feature, "supported");
+        if (supported) features.add(feature);
+    }
+
+    public static void init() {
+        register(fFreeVision.class);
+        register(fTuner.class);
+        register(fCrosshair.class);
+        register(fSpritePacker.class);
+        register(fBlockShortcut.class);
+        register(fRoulette.class);
+        register(fShortcut.class);
+        register(fSetMode.class);
+        register(fWiki.class);
+        register(fBuildTargeting.class);
+        register(fBuildTargetingLimit.class);
+        register(fBarDetail.class);
+        register(fAbout.class);
+    }
+
+    public static void load() {
+        Seq<Class<?>> featuresToLoad = new Seq<>();
+
+        for (Class<?> feature : features) {
+            Log.debug("[finalCampaign][features] initing feature: " + feature.getName());
+            try {
+                Reflect.invoke(feature, "init");
+                featuresToLoad.add(feature);
+            } catch (Throwable e) {
+                Log.err("[finalCampaign][features] fail to init feature: " + feature.getName());
+                Log.err(e);
+            }
+        }
+
+        for (Class<?> feature : featuresToLoad) {
+            Log.debug("[finalCampaign][features] loading feature: " + feature.getName());
+            try {
+                Reflect.invoke(feature, "load");
+            } catch (Throwable e) {
+                Log.err("[finalCampaign][features] fail to load feature: " + feature.getName());
+                Log.err(e);
+            }
+        }
     }
 }

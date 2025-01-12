@@ -102,7 +102,7 @@ public class mixinRuntime implements IRuntime {
             ObjectMap<String, String> configMap = new ObjectMap<>();
 
             configMap.put("gameJarName", gameJar.name());
-            configMap.put("dataDir", Core.settings.getDataDirectory().absolutePath());
+            configMap.put("dataDir", isBootedFromLauncher() ? Core.settings.getDataDirectory().parent().parent().parent().absolutePath() : Core.settings.getDataDirectory().absolutePath());
             configMap.put("isServer", Vars.headless ? "true" : "false");
 
             PropertiesUtils.store(configMap, configFile.writer(false), "FinalCampaign Mod Launcher Configuration File");
@@ -161,7 +161,7 @@ public class mixinRuntime implements IRuntime {
 
     private boolean isBootedFromLauncher() {
         try {
-            Class.forName("finalCampaign.launcher.desktopLauncher", true, mixinRuntime.class.getClassLoader());
+            Class.forName("finalCampaign.launch.shareLauncher", true, mixinRuntime.class.getClassLoader());
             return true;
         } catch(Exception e) {
             return false;

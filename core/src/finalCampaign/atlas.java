@@ -10,7 +10,7 @@ import arc.graphics.g2d.*;
 import arc.graphics.g2d.TextureAtlas.*;
 import arc.scene.style.*;
 import arc.util.*;
-import finalCampaign.feature.featureClass.spritePacker.*;
+import finalCampaign.feature.spritePacker.*;
 import finalCampaign.util.io.*;
 import mindustry.*;
 import mindustry.ctype.*;

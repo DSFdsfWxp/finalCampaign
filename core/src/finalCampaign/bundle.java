@@ -34,11 +34,15 @@ public class bundle {
         }
     }
 
-    public static void load() {
-        if (Core.bundle == null) Core.bundle = I18NBundle.createEmptyBundle();
+    public static String getLocaleString() {
         Locale locale = Locale.getDefault();
         String str = locale.getLanguage() + "_" + locale.getCountry();
-        String fileName = str.isEmpty() ? "en_US" : str;
+        return str.isEmpty() ? "en_US" : str;
+    }
+
+    public static void load() {
+        if (Core.bundle == null) Core.bundle = I18NBundle.createEmptyBundle();
+        String fileName = getLocaleString();
 
         Fi bundleFile = bundleCacheDir.child(fileName + ".properties");
 

@@ -5,7 +5,7 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
 import arc.func.*;
 import arc.struct.*;
-import finalCampaign.feature.featureClass.display.barDetail.*;
+import finalCampaign.feature.barDetail.*;
 import finalCampaign.patch.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
