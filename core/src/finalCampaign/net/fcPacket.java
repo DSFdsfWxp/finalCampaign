@@ -1,7 +1,7 @@
 package finalCampaign.net;
 
 import arc.util.io.*;
-import finalCampaign.util.*;
+import finalCampaign.util.io.*;
 import mindustry.gen.*;
 import mindustry.net.*;
 

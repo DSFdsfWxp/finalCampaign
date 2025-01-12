@@ -111,7 +111,7 @@ public class netProcessor extends baseProcessor {
         packetWriter.importPackage("finalCampaign.map.*");
         packetWriter.importPackage("finalCampaign.net.*");
         packetWriter.importPackage("finalCampaign.net.fcNet.*");
-        packetWriter.importPackage("finalCampaign.util.*");
+        packetWriter.importPackage("finalCampaign.util.io.*");
 
         packetWriter.annotation("SuppressWarnings", "\"all\"");
 
@@ -205,7 +205,7 @@ public class netProcessor extends baseProcessor {
             if (done)
                 continue;
 
-            String[] readerLst = {"mindustry.io.TypeIO", "finalCampaign.util.typeIO"};
+            String[] readerLst = {"mindustry.io.TypeIO", "finalCampaign.util.io.typeIO"};
             for (String reader : readerLst) {
                 TypeElement te = elements.getTypeElement(reader);
                 for (Element re : te.getEnclosedElements()) {
@@ -270,7 +270,7 @@ public class netProcessor extends baseProcessor {
                 continue;
 
             TypeElement writesType = elements.getTypeElement("arc.util.io.Writes");
-            String[] writerLst = {"mindustry.io.TypeIO", "finalCampaign.util.typeIO"};
+            String[] writerLst = {"mindustry.io.TypeIO", "finalCampaign.util.io.typeIO"};
             for (String writer : writerLst) {
                 TypeElement te = elements.getTypeElement(writer);
                 for (Element we : te.getEnclosedElements()) {
