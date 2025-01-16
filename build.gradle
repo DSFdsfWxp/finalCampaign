@@ -35,10 +35,9 @@ allprojects {
 
 configure(subprojects - project(":annotation")) {
     tasks.withType(JavaCompile) {
-        java {
-            sourceCompatibility = JavaVersion.VERSION_17
-            targetCompatibility = 8
-        }
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = 8
+
         options.compilerArgs += ["-Xlint:deprecation"]
         options.compilerArgs.addAll(['--release', '8'])
     }
@@ -46,10 +45,9 @@ configure(subprojects - project(":annotation")) {
 
 configure(project(":annotation")) {
     tasks.withType(JavaCompile) {
-        java {
-            sourceCompatibility = JavaVersion.VERSION_17
-            targetCompatibility = JavaVersion.VERSION_17
-        }
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+
         options.compilerArgs += ["-Xlint:deprecation"]
     }
 }

@@ -118,7 +118,7 @@ public class desktopLauncher extends shareLauncher {
         Field settings = arcCoreClass.getDeclaredField("settings");
         Field files = arcCoreClass.getDeclaredField("files");
         Constructor<?> arcSettingsCtor = arcSettingsClass.getDeclaredConstructor();
-        Constructor<?> arcFilesCtor = null;
+        Constructor<?> arcFilesCtor;
         
         settings.set(null, arcSettingsCtor.newInstance());
 
@@ -150,7 +150,7 @@ public class desktopLauncher extends shareLauncher {
         String settingKey = "mod-final-campaign-enabled";
         if (! (Boolean) getBool.invoke(settings.get(null), settingKey, true)) {
             Log.info("[finalCampaign] reEnable mod.");
-            put.invoke(settings.get(null), true);
+            put.invoke(settings.get(null), settingKey, true);
             saveValues.invoke(settings.get(null));
         }
 

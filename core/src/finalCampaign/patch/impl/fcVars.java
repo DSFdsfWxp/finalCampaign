@@ -5,6 +5,7 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
 import arc.*;
 import arc.files.*;
+import arc.util.*;
 import finalCampaign.*;
 import finalCampaign.runtime.*;
 import finalCampaign.util.file.*;
@@ -19,7 +20,7 @@ public abstract class fcVars {
 
     @Inject(method = "loadSettings", at = @At("HEAD"), remap = false)
     private static void fcLoadSettingsHead(CallbackInfo ci) {
-        if (finalCampaign.runtime == null || !(finalCampaign.runtime instanceof mixinRuntime))
+        if (!(finalCampaign.runtime instanceof mixinRuntime))
             return;
 
         Core.settings.setJson(JsonIO.json);
@@ -49,10 +50,18 @@ public abstract class fcVars {
 
     @Inject(method = "loadSettings", at = @At("RETURN"), remap = false)
     private static void fcLoadSettingsReturn(CallbackInfo ci) {
-        if (finalCampaign.runtime == null || !(finalCampaign.runtime instanceof mixinRuntime))
-            return;
+        if (OS.isAndroid) {
+            try {
+                Class<?> androidLauncherClass = Class.forName("finalCampaign.android.androidLauncher");
+                Reflect.invoke(androidLauncherClass, "launch");
+            } catch(Throwable e) {
+                throw new RuntimeException("Should be ok.", e);
+            }
+        }
 
-        Vars.steam = fcSteam;
-        Version.modifier = fcVersionModifier;
+        if (finalCampaign.runtime instanceof mixinRuntime) {
+            Vars.steam = fcSteam;
+            Version.modifier = fcVersionModifier;
+        }
     }
 }
