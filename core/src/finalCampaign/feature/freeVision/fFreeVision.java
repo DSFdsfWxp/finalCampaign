@@ -1,11 +1,12 @@
 package finalCampaign.feature.freeVision;
 
 import arc.*;
-import finalCampaign.setting;
+import finalCampaign.*;
 import finalCampaign.event.*;
 import finalCampaign.feature.tuner.*;
 import finalCampaign.input.*;
 import mindustry.*;
+import mindustry.game.EventType.*;
 
 public class fFreeVision {
     
@@ -30,7 +31,14 @@ public class fFreeVision {
     }
 
     public static void load() throws Exception {
-        Events.on(fcInputHandleUpdateEvent.class, event -> checkOnOff());
+        Events.on(fcInputHandleUpdateEvent.class, e -> {
+            checkOnOff();
+            logic.update();
+        });
+        Events.on(StateChangeEvent.class, e -> logic.updateState());
+        Events.on(fcInputHandleUpdateMovementEvent.class, e -> logic.updateMovement(e.unit));
+        Events.on(fcDrawWorldOverSelectEvent.class, e -> logic.drawOverSelect());
+        Events.on(fcInputHandleTapEvent.class, e -> logic.tap(e.x, e.y, e.count, e.button));
 
         enabled = fTuner.add("freeVision", false, config, v -> enabled = v);
 

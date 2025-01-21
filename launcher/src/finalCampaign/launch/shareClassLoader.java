@@ -62,7 +62,7 @@ public abstract class shareClassLoader extends ClassLoader {
                 try {
                     url = new URL(jar.path + "/" + name);
                     break;
-                } catch(Exception e) {}
+                } catch(Exception ignored) {}
             }
         }
 
@@ -100,6 +100,8 @@ public abstract class shareClassLoader extends ClassLoader {
 
     protected byte[] getResourceAsByte(String name) throws IOException {
         InputStream stream = getResourceAsStream(name);
+        if (stream == null)
+            throw new IOException("not found: " + name);
         return shareIOUtil.readAllBytes(stream);
     }
 

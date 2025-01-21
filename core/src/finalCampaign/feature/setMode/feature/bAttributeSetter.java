@@ -41,7 +41,7 @@ public abstract class bAttributeSetter extends IFeature {
             if (background) t.setBackground(Tex.pane);
             buildUI(selected, t);
         }), true);
-        button.clicked(() -> col.toggle());
+        button.clicked(col::toggle);
         table.add(col).center().growX().colspan(2).padTop(4f);
     }
 

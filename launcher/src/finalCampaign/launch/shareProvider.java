@@ -36,21 +36,24 @@ public class shareProvider implements IClassProvider, IClassBytecodeProvider {
     }
 
     private byte[] getResourceAsByte(String name) throws IOException {
-        return shareIOUtil.readAllBytes(classLoader.getResourceAsStream(name));
+        InputStream stream = classLoader.getResourceAsStream(name);
+        if (stream == null)
+            throw new IOException("not found: " + name);
+        return shareIOUtil.readAllBytes(stream);
     }
 
-    public ClassNode getClassNode(String className) throws ClassNotFoundException, IOException {
+    public ClassNode getClassNode(String className) throws IOException {
         return getClassNode(className, getResourceAsByte(className.replace('.', '/').concat(".class")), ClassReader.EXPAND_FRAMES);
     }
       
-    public ClassNode getClassNode(String className, boolean runTransformers) throws ClassNotFoundException, IOException {
+    public ClassNode getClassNode(String className, boolean runTransformers) throws IOException {
         return getClassNode(className, getResourceAsByte(className.replace('.', '/').concat(".class")), ClassReader.EXPAND_FRAMES);
     }
       
     private ClassNode getClassNode(String className, byte[] classBytes, int flags) {
         ClassNode classNode = new ClassNode();
         MixinClassReader mixinClassReader = new MixinClassReader(classBytes, className);
-        mixinClassReader.accept((ClassVisitor)classNode, flags);
+        mixinClassReader.accept(classNode, flags);
         return classNode;
     }
 

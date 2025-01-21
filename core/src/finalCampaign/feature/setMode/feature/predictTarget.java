@@ -30,12 +30,11 @@ public class predictTarget extends bSelectSetter<predictTarget.predictTargetStat
     }
 
     public predictTargetState currentValue(Building building) {
-        if (!(building instanceof IFcTurretBuild)) return predictTargetState.def;
-        IFcTurretBuild tb = (IFcTurretBuild) building;
+        if (!(building instanceof IFcTurretBuild tb)) return predictTargetState.def;
         return tb.fcForceDisablePredictTarget() ? predictTargetState.off : predictTargetState.def;
     }
 
-    public static enum predictTargetState {
+    public enum predictTargetState {
         off,
         def
     }

@@ -215,7 +215,7 @@ public class xmlPatcher {
         public int data;
 
         public String readAsString() {
-            if (type != AttrStringType) throw new RuntimeException("Not a string type attribute: " + this.toString());
+            if (type != AttrStringType) throw new RuntimeException("Not a string type attribute: " + this);
             return manifest.string.strings.get(valueStr);
         }
 
@@ -395,19 +395,14 @@ public class xmlPatcher {
 
     public xmlContentChunk cloneAndParseXmlContentChunk(xmlContentChunk base) {
         byte[] d = base.build();
-        switch (base.magic) {
-            case StartNamespaceChunkType: 
-                return new startNamespaceChunk(d);
-            case EndNamespaceChunkType:
-                return new endNamespaceChunk(d);
-            case StartTagChunkType:
-                return new startTagChunk(d);
-            case EndTagChunkType:
-                return new endTagChunk(d);
-            case TextChunkType:
-                return new textChunk(d);
-        }
-        throw new RuntimeException("Can not parse xml content chunk: " + base.toString());
+        return switch (base.magic) {
+            case StartNamespaceChunkType -> new startNamespaceChunk(d);
+            case EndNamespaceChunkType -> new endNamespaceChunk(d);
+            case StartTagChunkType -> new startTagChunk(d);
+            case EndTagChunkType -> new endTagChunk(d);
+            case TextChunkType -> new textChunk(d);
+            default -> throw new RuntimeException("Can not parse xml content chunk: " + base);
+        };
     }
 
     public void replaceString(String find, String replacement) {
@@ -465,8 +460,8 @@ public class xmlPatcher {
                     continue;
                 }
                 if (item instanceof endNamespaceChunk || item instanceof endTagChunk) {
-                    if (item instanceof endNamespaceChunk != isNamespace) throw new RuntimeException("Not expected end of item: " + item.toString());
-                    if (!isNamespace && ((startTagChunk) start).name != ((endTagChunk) item).name) throw new RuntimeException("Not expected end of item: " + item.toString());
+                    if (item instanceof endNamespaceChunk != isNamespace) throw new RuntimeException("Not expected end of item: " + item);
+                    if (!isNamespace && ((startTagChunk) start).name != ((endTagChunk) item).name) throw new RuntimeException("Not expected end of item: " + item);
                     end = item;
                     break;
                 }

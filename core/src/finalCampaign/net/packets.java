@@ -9,7 +9,7 @@ public class packets {
 
     public static <T extends fcPacket> void registerPacket(Prov<T> cons) {
         packetProvs.add(cons);
-        fcPacket packet = (fcPacket)cons.get();
+        fcPacket packet = cons.get();
         packetToId.put(packet.getClass(), packetProvs.size - 1);
     }
 

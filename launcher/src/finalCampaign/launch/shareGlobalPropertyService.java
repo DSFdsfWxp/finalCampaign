@@ -31,7 +31,7 @@ public class shareGlobalPropertyService implements IGlobalPropertyService {
         map.put(key.toString(), value);
     }
 
-    class Key implements IPropertyKey {
+    static class Key implements IPropertyKey {
         private final String key;
         
         Key(String key) {

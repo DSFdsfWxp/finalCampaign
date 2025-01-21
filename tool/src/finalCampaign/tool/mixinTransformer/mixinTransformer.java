@@ -19,7 +19,7 @@ public class mixinTransformer {
         shareMixinService.configFile = config;
     }
 
-    public void transform(jarWriter writer) throws Exception {
+    public void transform(jarWriter writer) {
         launcher.startup();
 
         transformerClassLoader cl = (transformerClassLoader) shareMixinService.getClassLoader();

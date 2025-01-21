@@ -141,7 +141,7 @@ public class littleEndianDataInputStream {
             byte[] wrapper = new byte[realLen + 2];
             wrapper[0] = (byte)(realLen >>>  8);
             wrapper[1] = (byte)(realLen >>>  0);
-            for (int i=0; i<realLen; i++) wrapper[i + 2] = txt[i];
+            System.arraycopy(txt, 0, wrapper, 2, realLen);
             DataInputStream s = new DataInputStream(new ByteArrayInputStream(wrapper));
             try {
                 res = s.readUTF();

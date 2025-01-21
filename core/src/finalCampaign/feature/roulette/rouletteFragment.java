@@ -46,7 +46,7 @@ public class rouletteFragment extends fragment {
         Vec2 pos = Core.input.mouse().sub(mouseX, mouseY);
 
         int r = -1;
-        int rStep = 0;
+        int rStep;
         float mr = pos.angle();
         selectedBlock = null;
         if (fourSlot) {

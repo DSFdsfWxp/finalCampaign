@@ -1,17 +1,17 @@
 package finalCampaign.patch.impl;
 
+import arc.Events;
+import arc.input.KeyCode;
+import finalCampaign.event.*;
+import mindustry.gen.Unit;
+import mindustry.input.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
-import arc.*;
-import arc.input.*;
-import finalCampaign.event.*;
-import mindustry.gen.*;
-import mindustry.input.*;
 
-@Mixin(DesktopInput.class)
-public abstract class fcDesktopInput extends InputHandler {
-    
+@Mixin(MobileInput.class)
+public abstract class fcMobileInput {
+
     private final fcDrawWorldTopEvent drawTopEvent = new fcDrawWorldTopEvent();
     private final fcDrawWorldBottomEvent drawBottomEvent = new fcDrawWorldBottomEvent();
     private final fcDrawWorldOverSelectEvent drawOverSelectEvent = new fcDrawWorldOverSelectEvent();
@@ -19,7 +19,6 @@ public abstract class fcDesktopInput extends InputHandler {
     private final fcInputHandleTapEvent tapEvent = new fcInputHandleTapEvent();
     private final fcInputHandleUpdateEvent updateEvent = new fcInputHandleUpdateEvent();
     private final fcInputHandleUpdateMovementEvent updateMovementEvent = new fcInputHandleUpdateMovementEvent();
-
 
     @Inject(method = "drawTop", at = @At("RETURN"), remap = false)
     private void fcDrawTop(CallbackInfo ci) {
@@ -31,15 +30,14 @@ public abstract class fcDesktopInput extends InputHandler {
         Events.fire(drawBottomEvent);
     }
 
+    @Inject(method = "drawOverSelect", at = @At("RETURN"), remap = false)
+    private void fcDrawOverSelect(CallbackInfo ci) {
+        Events.fire(drawOverSelectEvent);
+    }
+
     @Inject(method = "updateState", at = @At("RETURN"), remap = false)
     private void fcUpdateState(CallbackInfo ci) {
         Events.fire(updateStateEvent);
-    }
-
-    @Override
-    public void drawOverSelect() {
-        super.drawOverSelect();
-        Events.fire(drawOverSelectEvent);
     }
 
     @Inject(method = "tap", at = @At("RETURN"), remap = false)

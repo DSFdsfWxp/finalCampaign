@@ -48,13 +48,13 @@ public class atlas {
 
         boolean linear = Core.settings.getBool("linear", true);
 
-        for (int i=0; i<info.textureNum; i++) pixmap.add(new Pixmap(pack.child("sprite-" + Integer.toString(i) + ".png")));
+        for (int i=0; i<info.textureNum; i++) pixmap.add(new Pixmap(pack.child("sprite-" + i + ".png")));
         for (int i=0; i<info.textureNum; i++) {
             Texture t = new Texture(pixmap.get(i));
             t.setFilter(linear ? TextureFilter.linear : TextureFilter.nearest);
             texture.add(t);
             Core.atlas.getTextures().add(t);
-        };
+        }
 
         for (spritePacker.regionInfo rInfo : info.region) {
             Texture rTexture = texture.get(rInfo.texturePos);

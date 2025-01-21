@@ -64,23 +64,21 @@ public class targetingPriority extends bAttributeSetter {
         });
 
         if (fcLiquidFirst != null) {
-            preferExthinguishCheck.setChecked(() -> fcLiquidFirst.fcPreferExtinguish());
+            preferExthinguishCheck.setChecked(fcLiquidFirst::fcPreferExtinguish);
             preferExthinguishCheck.changed(() -> {
                 fcCall.setTurretPreferExtinguish(first, preferExthinguishCheck.checked());
             });
         }
 
-        presetsTable.applied(() -> priorityTable.rebuild());
-        priorityTable.updated(() -> priorityAddTable.rebuild());
+        presetsTable.applied(priorityTable::rebuild);
+        priorityTable.updated(priorityAddTable::rebuild);
         sideSelectTable.selected(() -> {
             priorityTable.setSide(sideSelectTable.unit);
             priorityAddTable.setSide(sideSelectTable.unit);
         });
 
         presetsGroup.setMinCheckCount(0);
-        table.button(bundleNS.get("preset"), () -> {
-            presetsTableCol.toggle();
-        }).group(presetsGroup).growX().with(t -> t.setStyle(Styles.togglet)).row();
+        table.button(bundleNS.get("preset"), presetsTableCol::toggle).group(presetsGroup).growX().with(t -> t.setStyle(Styles.togglet)).row();
 
         table.add(presetsTableCol).padTop(4f).center().growX().row();
 
@@ -534,9 +532,7 @@ public class targetingPriority extends bAttributeSetter {
         }
 
         public void setChecked(Boolp v) {
-            update(() -> {
-                check.setChecked(v.get());
-            });
+            update(() -> check.setChecked(v.get()));
         }
 
         public boolean checked() {
@@ -678,7 +674,7 @@ public class targetingPriority extends bAttributeSetter {
         public void save(Building building) {
             if (building instanceof IFcTurretBuild fcTurretBuild) {
                 preferBuilding = fcTurretBuild.fcPreferBuildingTarget();
-                preferExtinguish = building instanceof IFcLiquidTurretBuild fcLiquidTurretBuild ? fcLiquidTurretBuild.fcPreferExtinguish() : true;
+                preferExtinguish = !(building instanceof IFcLiquidTurretBuild fcLiquidTurretBuild) || fcLiquidTurretBuild.fcPreferExtinguish();
                 priorityData = fcTurretBuild.fcSortf().write();
 
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();

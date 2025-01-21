@@ -9,7 +9,7 @@ public class transformerClassLoader extends shareClassLoader {
     private Seq<String> generatedClasses = new Seq<>();
 
     @Override
-    protected Class<?> tryLoadClass(String name) throws ClassNotFoundException {
+    protected Class<?> tryLoadClass(String name) {
         throw new RuntimeException("Never goes here.");
     }
 

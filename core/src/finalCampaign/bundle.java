@@ -23,8 +23,7 @@ public class bundle {
         if (!bundleVersionFi.exists()) return true;
         ObjectMap<String, String> map = new ObjectMap<>();
         PropertiesUtils.load(map, bundleVersionFi.reader());
-        if (map.get("version", "").equals(bundleVersion)) return false;
-        return true;
+        return !map.get("version", "").equals(bundleVersion);
     }
 
     public static void clearCache() {
@@ -37,7 +36,7 @@ public class bundle {
     public static String getLocaleString() {
         Locale locale = Locale.getDefault();
         String str = locale.getLanguage() + "_" + locale.getCountry();
-        return str.isEmpty() ? "en_US" : str;
+        return str.equals("_") ? "en_US" : str;
     }
 
     public static void load() {

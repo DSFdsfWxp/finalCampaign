@@ -50,7 +50,7 @@ public class tunerPane extends Table {
         return fTuner.isOn(name);
     }
     
-    public class configPane extends BaseDialog {
+    public static class configPane extends BaseDialog {
         private Object config;
         private Table content;
         private String superName;
@@ -109,7 +109,11 @@ public class tunerPane extends Table {
 
                     Class<?> type = field.getType();
                     boolean set = false;
-                    for (Annotation a : type.getAnnotations()) if (a instanceof fTuner.setable) set = true;
+                    for (Annotation a : type.getAnnotations())
+                        if (a instanceof fTuner.setable) {
+                            set = true;
+                            break;
+                        }
                     if (set) {
                         Object t = field.get(config);
                         t.getClass().getDeclaredMethod("set", t.getClass()).invoke(t, v);
@@ -159,7 +163,7 @@ public class tunerPane extends Table {
 
                 slider.changed(() -> {
                     float v = slider.getValue();
-                    valueLabel.setText(String.format("%.3f", v).toString());
+                    valueLabel.setText(String.format("%.3f", v));
                     src.value = v;
                     save();
                 });
@@ -194,7 +198,7 @@ public class tunerPane extends Table {
                 t.add(bundle.get("tuner." + superName + "." + name + ".name")).left().wrap().growY().width(350f);
                 Label colorLabel = t.add("null").left().padLeft(8f).wrap().growY().width(142f).get();
                 Runnable updateColorLabel = () -> {
-                    String hex = ((Color) Reflect.get(config, name)).toString();
+                    String hex = Reflect.get(config, name).toString();
                     colorLabel.setText(hex);
                     colorLabel.setColor(Color.valueOf(hex));
                 };

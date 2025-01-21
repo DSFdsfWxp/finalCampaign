@@ -45,6 +45,8 @@ public class fcAction {
                 }
                 unit.addItem(item, (int)(amount / bt.ammoMultiplier));
                 if (ie.amount <= 0f) itb.ammo.remove(ie);
+
+                building.lastAccessed = player.name;
                 return true;
             }
         }
@@ -74,11 +76,12 @@ public class fcAction {
                     itb.totalAmmo -= amount;
                     itb.totalAmmo = Math.min(itb.totalAmmo, it.maxAmmo);
                     if (ie.amount <= 0f) itb.ammo.remove(ie);
+
+                    building.lastAccessed = player.name;
                     return true;
                 }
             }
-    
-            return false;
+
         } else {
             if (!fcMap.sandbox()) return false;
 
@@ -91,7 +94,7 @@ public class fcAction {
 
                 for (AmmoEntry ae : itb.ammo) {
                     ItemEntry ie = (ItemEntry) ae;
-                    currentAmount += ie.amount > 0 ? ie.amount : 0;
+                    currentAmount += Math.max(ie.amount, 0);
                 }
                 currentAmount = Math.min(capacity, currentAmount);
 
@@ -109,6 +112,8 @@ public class fcAction {
                     itb.totalAmmo = Math.min(itb.totalAmmo, it.maxAmmo);
                     if (itb.totalAmmo < 0) itb.totalAmmo = 0;
                     if (ie.amount <= 0f) itb.ammo.remove(ie);
+
+                    building.lastAccessed = player.name;
                     return true;
                 }
                 
@@ -121,11 +126,14 @@ public class fcAction {
                 itb.ammo.add((ItemEntry) reflect.newInstance(constructor, building.block, item, amount));
                 itb.totalAmmo = amount == Short.MAX_VALUE ? it.maxAmmo : itb.totalAmmo + amount;
                 itb.totalAmmo = Math.min(itb.totalAmmo, it.maxAmmo);
+
+                building.lastAccessed = player.name;
                 return true;
             }
-    
-            return false;
+
         }
+
+        return false;
     }
 
     @netCall(src = packetSource.both)
@@ -139,6 +147,8 @@ public class fcAction {
         amount = Math.min(capacity, amount);
         building.liquids.remove(liquid, amount);
         unit.apply(liquid.effect, amount);
+
+        building.lastAccessed = player.name;
         return true;
     }
 
@@ -151,6 +161,8 @@ public class fcAction {
         if (amount != Float.POSITIVE_INFINITY) amount = Math.min(amount, building.block.liquidCapacity);
         if (amount < 0) amount = 0;
         building.liquids.set(liquid, amount);
+
+        building.lastAccessed = player.name;
         return true;
     }
 
@@ -165,6 +177,8 @@ public class fcAction {
         
         building.power.status = (current - amount) / Math.max(building.block.consPower.capacity, building.block.consPower.usage);
         unit.damage(amount);
+
+        building.lastAccessed = player.name;
         return true;
     }
 
@@ -180,6 +194,8 @@ public class fcAction {
         if (amount < 0) amount = 0;
         building.power.status = amount / capacity;
         f.fcInfinityPower(amount == Float.POSITIVE_INFINITY);
+
+        building.lastAccessed = player.name;
         return true;
     }
 
@@ -195,7 +211,7 @@ public class fcAction {
             amount = Math.min(amount, building.items.get(item));
 
             building.items.remove(item, amount);
-            return true;
+
         } else {
             if (!fcMap.sandbox()) return false;
             if (!building.block.consumesItem(item) && !building.acceptItem(building, item) && building.items.get(item) < amount) return false;
@@ -204,8 +220,11 @@ public class fcAction {
             if (amount != Integer.MAX_VALUE) amount = Math.min(amount, capacity);
             if (amount < 0) amount = 0;
             building.items.set(item, amount);
-            return true;
+
         }
+
+        building.lastAccessed = player.name;
+        return true;
     }
 
     @netCall(src = packetSource.both)
@@ -224,6 +243,7 @@ public class fcAction {
             }
             for (int i=order.length - 1; i>=0; i--) if (entries[i] != null) itb.ammo.add(entries[i]);
 
+            building.lastAccessed = player.name;
             return true;
         }
 
@@ -235,6 +255,7 @@ public class fcAction {
         if (building.liquids.current() == liquid) return false;
         Reflect.set(building.liquids, "current", liquid);
 
+        building.lastAccessed = player.name;
         return true;
     }
 
@@ -251,6 +272,7 @@ public class fcAction {
         }
         building.noSleep();
 
+        building.lastAccessed = player.name;
         return true;
     }
 
@@ -260,6 +282,7 @@ public class fcAction {
         if (amount < 0) amount = 0f;
         building.health = amount;
 
+        building.lastAccessed = player.name;
         return true;
     }
 
@@ -268,6 +291,7 @@ public class fcAction {
     public static boolean setTeam(Player player, Teamc teamc, Team team) {
         if (teamc instanceof Building building) {
             building.changeTeam(team);
+            building.lastAccessed = player.name;
         }
 
         return true;
@@ -279,6 +303,7 @@ public class fcAction {
         IFcTurretBuild f = (IFcTurretBuild) building;
         f.fcForceDisablePredictTarget(v);
 
+        building.lastAccessed = player.name;
         return true;
     }
 
@@ -302,6 +327,7 @@ public class fcAction {
                 fBlock.fcSortf(data);
             }
         }
+        building.lastAccessed = player.name;
         return true;
     }
 
@@ -317,7 +343,8 @@ public class fcAction {
                 fBlock.fcPreferBuildingTarget(v);
             }
         }
-        
+
+        building.lastAccessed = player.name;
         return true;
     }
 
@@ -334,6 +361,7 @@ public class fcAction {
             }
         }
 
+        building.lastAccessed = player.name;
         return true;
     }
 
@@ -343,6 +371,7 @@ public class fcAction {
         IFcTurretBuild f = (IFcTurretBuild) building;
         f.fcFilter().read(data);
 
+        building.lastAccessed = player.name;
         return true;
     }
 
@@ -352,6 +381,7 @@ public class fcAction {
         IFcDrillBuild b = (IFcDrillBuild) building;
         b.fcPreferItem(v);
 
+        building.lastAccessed = player.name;
         return true;
     }
 }

@@ -65,7 +65,7 @@ public class textSlider extends Table {
             if (dv == Float.POSITIVE_INFINITY) placeholder = "∞";
             if (dv == Float.NEGATIVE_INFINITY) placeholder = "-∞";
 
-            if (showNum) label.setText(placeholder.length() > 0 ? placeholder + numUnit : Float.toString(dv) + numUnit);
+            if (showNum) label.setText(!placeholder.isEmpty() ? placeholder + numUnit : dv + numUnit);
         });
 
         slider.addListener(new InputListener() {

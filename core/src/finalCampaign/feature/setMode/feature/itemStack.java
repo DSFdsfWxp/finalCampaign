@@ -44,7 +44,7 @@ public class itemStack extends IFeature {
     public void buildUI(Building[] selected, Table table, bundleNS bundleNS) {
         Building building = selected[0];
         IFcBuilding fcBuilding = (IFcBuilding) building;
-        fakeFinal<Boolean> ammoPriorityForceUpdate = new fakeFinal<Boolean>(false);
+        fakeFinal<Boolean> ammoPriorityForceUpdate = new fakeFinal<>(false);
 
         if (building instanceof BaseTurretBuild) {
             timer rebuildTimer = new timer();
@@ -75,7 +75,7 @@ public class itemStack extends IFeature {
                 if (building instanceof ItemTurretBuild itb) {
                     float totalAmount = 0;
                     ObjectMap<Element, ItemEntry> map = new ObjectMap<>();
-                    for (AmmoEntry ae : itb.ammo) totalAmount += ae.amount == Short.MAX_VALUE ? 1 : (ae.amount < 0 ? 0 : ae.amount);
+                    for (AmmoEntry ae : itb.ammo) totalAmount += ae.amount == Short.MAX_VALUE ? 1 : Math.max(ae.amount, 0);
                     for (int i=itb.ammo.size - 1; i>=0; i--) {
                         ItemEntry ie = (ItemEntry) itb.ammo.get(i);
                         if (ie.amount <= 0) continue;
@@ -175,7 +175,7 @@ public class itemStack extends IFeature {
                     for (AmmoEntry ae : itb.ammo) {
                         ItemEntry ie = (ItemEntry) ae;
                         boolean has = contentLst.contains(ie.item);
-                        if (!has || (has && ie.amount <= 0)) {
+                        if (!has || ie.amount <= 0) {
                             needRebuild = true;
                             break;
                         }
@@ -429,7 +429,7 @@ public class itemStack extends IFeature {
                             slider.showNum = false;
                             tc.row();
                             tc.table(butt -> {
-                                TextField field = butt.field("0", txt -> slider.rawValue(Integer.parseInt(txt))).valid(value -> Strings.canParsePositiveFloat(value)).growX().minWidth(10f).padRight(4f).padLeft(8f).left().get();
+                                TextField field = butt.field("0", txt -> slider.rawValue(Integer.parseInt(txt))).valid(Strings::canParsePositiveFloat).growX().minWidth(10f).padRight(4f).padLeft(8f).left().get();
                                 slider.modified(() -> field.setText(selectedContent.get() instanceof Item ? Integer.toString((int) slider.value()) : Float.toString(slider.value())));
                                 butt.button(bundleNS.get("take"), () -> {
                                     if (selectedContent.get() instanceof Item item) {

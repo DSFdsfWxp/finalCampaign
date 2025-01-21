@@ -70,7 +70,7 @@ public class contentSelecter extends Table {
         Cell<ImageButton> cell = button(image, Styles.selecti,() -> {
             fireModified();
             if (clicked != null) clicked.run();
-        }).size(size).scaling(Scaling.fit).group(group).name(content == null ? "null-" + Integer.toString(count) : content.getContentType().name() + "-" + content.name);
+        }).size(size).scaling(Scaling.fit).group(group).name(content == null ? "null-" + count : content.getContentType().name() + "-" + content.name);
         ImageButton button = cell.get();
         button.resizeImage(iconSize);
         if (++ count % col == 0) row();

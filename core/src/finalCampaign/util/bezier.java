@@ -24,7 +24,7 @@ public class bezier {
     private double startGradient;
     private double endGradient;
 
-    private double splineSamples[];
+    private double[] splineSamples;
 
     public bezier() {
         splineSamples = new double[CUBIC_BEZIER_SPLINE_SAMPLES];
@@ -96,8 +96,8 @@ public class bezier {
         double t1 = 0.0;
         double t2 = x;
         double x2 = 0.0;
-        double d2 = 0.0;
-        int i = 0;
+        double d2;
+        int i;
 
         // Linear interpolation of spline curve for initial guess.
         double deltaT = 1.0 / (CUBIC_BEZIER_SPLINE_SAMPLES - 1);

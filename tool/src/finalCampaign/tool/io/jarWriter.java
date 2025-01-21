@@ -33,7 +33,7 @@ public class jarWriter {
     }
 
     public void mkdirs(String path) {
-        if (path.length() == 0) return;
+        if (path.isEmpty()) return;
         if (isApk) return;
         
         if (path.endsWith("/")) path = path.substring(0, path.length() - 1);
@@ -49,7 +49,7 @@ public class jarWriter {
     }
 
     private String getParentPath(String path) {
-        if (path.length() == 0) return "";
+        if (path.isEmpty()) return "";
         String[] paths = path.split("/");
         if (paths.length == 1) return "";
         return String.join("/", Arrays.copyOf(paths, paths.length - 1));
@@ -68,7 +68,7 @@ public class jarWriter {
         if (!directory.isDirectory()) throw new RuntimeException("Not a directory: " + path);
         mkdirs(path);
         for (fi file : directory.list()) {
-            String filePath = (path.length() > 0 ? path + "/" : "") + file.name();
+            String filePath = (!path.isEmpty() ? path + "/" : "") + file.name();
             if (file.isDirectory()) {
                 add(filePath, file, method);
             } else {
@@ -157,7 +157,7 @@ public class jarWriter {
         OutputStream underlayStream;
         
         @Override
-        public void write(byte b[], int off, int len) throws IOException {
+        public void write(byte[] b, int off, int len) throws IOException {
             underlayStream.write(b, off, len);
             bytesWritten += len;
         }
@@ -169,7 +169,7 @@ public class jarWriter {
         }
 
         @Override
-        public void write(byte b[]) throws IOException {
+        public void write(byte[] b) throws IOException {
             underlayStream.write(b);
             bytesWritten += b.length;
         }

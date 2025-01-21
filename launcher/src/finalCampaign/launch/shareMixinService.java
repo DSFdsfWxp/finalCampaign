@@ -69,23 +69,22 @@ public class shareMixinService extends MixinServiceAbstract implements ITransfor
     }
 
     public Collection<String> getPlatformAgents() {
-        return (Collection<String>) ImmutableList.of("finalCampaign.launch.shareMixinPlatformAgent");
+        return ImmutableList.of("finalCampaign.launch.shareMixinPlatformAgent");
     }
 
     public IContainerHandle getPrimaryContainer() {
-        URI uri = null;
+        URI uri;
 
         // the protection domain of the class loaded by dex class loader may always be null.
-        if (OS.isAndroid) return (IContainerHandle) new ContainerHandleVirtual(getName());
+        if (OS.isAndroid) return new ContainerHandleVirtual(getName());
 
         try {
             uri = getClass().getProtectionDomain().getCodeSource().getLocation().toURI();
-            if (uri != null)
-                return (IContainerHandle) new ContainerHandleURI(uri); 
+            return new ContainerHandleURI(uri);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            Log.err(ex);
         }
-        return (IContainerHandle) new ContainerHandleVirtual(getName());
+        return new ContainerHandleVirtual(getName());
     }
 
     public Collection<ITransformer> getTransformers() {
@@ -127,9 +126,9 @@ public class shareMixinService extends MixinServiceAbstract implements ITransfor
         if (transformer == null) {
             // only works on 0.8 - 0.8.2
             try {
-                Constructor<IMixinTransformer> ctor = (Constructor<IMixinTransformer>) Class.forName("org.spongepowered.asm.mixin.transformer.MixinTransformer").getConstructor(new Class[0]);
+                Constructor<IMixinTransformer> ctor = (Constructor<IMixinTransformer>) Class.forName("org.spongepowered.asm.mixin.transformer.MixinTransformer").getDeclaredConstructor(new Class[0]);
                 ctor.setAccessible(true);
-                transformer = ctor.newInstance(new Object[0]);
+                transformer = ctor.newInstance();
             } catch(Exception e) {
                 Log.err(e);
             }

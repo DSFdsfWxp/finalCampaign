@@ -10,7 +10,7 @@ public class cmdExecuter {
         command = cmd;
     }
 
-    public int exec(String args[]) throws Exception {
+    public int exec(String[] args) throws Exception {
         Seq<String> cmds = new Seq<>();
         cmds.add(command);
         cmds.add(args);

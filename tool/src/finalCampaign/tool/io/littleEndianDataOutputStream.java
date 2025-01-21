@@ -108,7 +108,7 @@ public class littleEndianDataOutputStream {
                 DataOutputStream s = new DataOutputStream(o);
                 s.writeUTF(str);
                 byte[] t = o.toByteArray();
-                for (int i=2; i<t.length; i++) txt[i - 2] = t[i];
+                if (t.length - 2 >= 0) System.arraycopy(t, 2, txt, 0, t.length - 2);
             } catch(Exception e) {
                 throw new RuntimeException(e);
             }

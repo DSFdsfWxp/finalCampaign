@@ -94,7 +94,7 @@ public class mostEnemyDirection extends baseSortf<NoneConfig> {
 
         float p1x = 0f, p1y = 0;
         float p2x = 0f, p2y = 0;
-        float from = 0f, to = 0f;
+        float from, to;
 
         if (tx < 0f && ty < 0f) {
             root.count ++;

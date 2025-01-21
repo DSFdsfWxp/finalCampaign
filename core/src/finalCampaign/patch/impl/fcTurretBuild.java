@@ -129,15 +129,15 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
     }
 
     public BulletType useAmmo() {
-      if (cheating())
-        return peekAmmo(); 
-      Turret.AmmoEntry entry = (Turret.AmmoEntry)this.ammo.peek();
-      if (entry.amount < Short.MAX_VALUE) entry.amount -= fcTurretBlock.ammoPerShot;
-      if (entry.amount <= 0)
-        this.ammo.pop(); 
+        if (cheating())
+            return peekAmmo();
+        Turret.AmmoEntry entry = (Turret.AmmoEntry)this.ammo.peek();
+        if (entry.amount < Short.MAX_VALUE) entry.amount -= fcTurretBlock.ammoPerShot;
+        if (entry.amount <= 0)
+            this.ammo.pop();
         if (entry.amount < Short.MAX_VALUE) this.totalAmmo -= fcTurretBlock.ammoPerShot;
-      this.totalAmmo = Math.max(this.totalAmmo, 0);
-      return entry.type();
+        this.totalAmmo = Math.max(this.totalAmmo, 0);
+        return entry.type();
     }
 
     public void fcFindTarget() {

@@ -39,7 +39,7 @@ public class shareMixinLogger extends LoggerAdapterAbstract {
     }
 
     public <T extends Throwable> T throwing(T t) {
-        log(Level.ERROR, "Throwing ".concat(t.toString()), (Throwable)t);
+        log(Level.ERROR, "Throwing ".concat(t.toString()), t);
         return t;
     }
 }

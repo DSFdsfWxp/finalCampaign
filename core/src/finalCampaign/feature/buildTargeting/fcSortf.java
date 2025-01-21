@@ -59,9 +59,9 @@ public class fcSortf {
         for (int i=1; i<res.length; i++) res[i] = i > buildSortfs.size ? 0f : buildSortfs.get(i - 1).calc(building);
         if (Vars.net.server() || !Vars.net.active()) {
             if (print) {
-                String t = "";
-                for (float s : res) t += Float.toString(s) + " ";
-                Log.debug("@: @", building.block.localizedName, t);
+                StringBuilder t = new StringBuilder();
+                for (float s : res) t.append(s).append(" ");
+                Log.debug("@: @", building.block.localizedName, t.toString());
             }
         }
         return res;

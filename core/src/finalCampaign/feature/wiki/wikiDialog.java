@@ -36,7 +36,7 @@ public class wikiDialog extends BaseDialog {
                 table.left();
                 for (String line : data.split("\n")) {
                     String t = line.trim();
-                    String tmp = "";
+                    String tmp;
                     if (t.startsWith("#")) {
                         int level = t.split(" ")[0].length();
                         tmp = t.substring(level + 1);

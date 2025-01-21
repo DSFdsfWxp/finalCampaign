@@ -38,7 +38,7 @@ public class limitedTextSlider extends textSlider {
         super.immediatelyModify();
     }
 
-    public static enum limitSide {
+    public enum limitSide {
         left,
         right
     }

@@ -174,9 +174,7 @@ public class multiItemStack extends IFeature {
             }
         }).minWidth(75f).maxWidth(100f).right().padBottom(4f).row();
         table.add(bundleNS.get("addToAll")).grow().left().wrap().growY();
-        table.button(bundleNS.get("add"), () -> {
-            col.toggle();
-        }).minWidth(75f).maxWidth(100f).group(group).right().with(t -> t.setStyle(Styles.togglet)).row();
+        table.button(bundleNS.get("add"), col::toggle).minWidth(75f).maxWidth(100f).group(group).right().with(t -> t.setStyle(Styles.togglet)).row();
         table.add(col).center().colspan(2).growX().padTop(4f);
     }
 }

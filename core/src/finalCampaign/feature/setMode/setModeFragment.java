@@ -43,7 +43,7 @@ public class setModeFragment extends Table {
     public void rebuild() {
         clear();
 
-        if (fSetMode.selecting || (!fSetMode.selecting && fSetMode.selected.size == 0) || forceSelectOpt) {
+        if (fSetMode.selecting || fSetMode.selected.size == 0 || forceSelectOpt) {
             table(t -> {
                 t.setBackground(Tex.pane);
                 t.add(bundle.get("setMode.title")).center().fillX().color(Pal.accent).labelAlign(Align.center).row();
@@ -125,7 +125,7 @@ public class setModeFragment extends Table {
                     };
 
                     if (multiSelect) {
-                        Label numLabel = it.add("+" + Integer.toString(fSetMode.selected.size - 1)).center().padTop(-5f).padRight(-118f).expandX().color(Pal.accent).padBottom(8f).get();
+                        Label numLabel = it.add("+" + (fSetMode.selected.size - 1)).center().padTop(-5f).padRight(-118f).expandX().color(Pal.accent).padBottom(8f).get();
                         it.row();
                         Table ibt = it.table().growX().padBottom(4f).get();
                         ibt.left();
@@ -159,11 +159,11 @@ public class setModeFragment extends Table {
                                         bc ++;
                                     }
                                     selected.set(currentSelected.toArray(Building.class));
-                                    numLabel.setText("+" + Integer.toString(bc - 1));
+                                    numLabel.setText("+" + (bc - 1));
                                     icon.setDrawable(currentSelected.size == 0 || currentSelected.get(0).block == null ? Core.atlas.find("error") : currentSelected.get(0).block.fullIcon);
                                 } else {
                                     selected.set(allSelected);
-                                    numLabel.setText("+" + Integer.toString(allSelected.length - 1));
+                                    numLabel.setText("+" + (allSelected.length - 1));
                                     icon.setDrawable(allSelected[0].block == null ? Core.atlas.find("error") : allSelected[0].block.fullIcon);
                                 }
                                 rebuiltFeatures.run();

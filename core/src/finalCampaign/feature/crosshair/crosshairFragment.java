@@ -67,8 +67,8 @@ public class crosshairFragment extends fragment {
             if (fCrosshair.usingPoint()) {
                 final int length = dotHeight * dotWidth * 4;
     
-                int x = (int)(cX - dotWidth / 2);
-                int y = (int)(cY - dotHeight / 2);
+                int x = (int)(cX - dotWidth / 2f);
+                int y = (int)(cY - dotHeight / 2f);
                 ByteBuffer buff = Buffers.newByteBuffer(length);
                 Core.gl.glReadPixels(x, y, dotWidth, dotHeight, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE, buff);
                 pixmap1 = new Pixmap(buff, dotWidth, dotHeight);
@@ -77,16 +77,16 @@ public class crosshairFragment extends fragment {
             } else {
                 final int length = crossHeight * crossWidth * 4;
     
-                int x = (int)(cX - crossHeight / 2);
-                int y = (int)(cY - crossWidth / 2);
+                int x = (int)(cX - crossHeight / 2f);
+                int y = (int)(cY - crossWidth / 2f);
                 ByteBuffer buff = Buffers.newByteBuffer(length);
                 Core.gl.glReadPixels(x, y, crossHeight, crossWidth, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE, buff);
                 pixmap1 = new Pixmap(buff, crossHeight, crossWidth);
                 texture1 = new Texture(pixmap1);
                 Draw.rect(new TextureRegion(texture1), cX, cY, crossHeight, crossWidth);
         
-                x = (int)(cX - crossWidth / 2);
-                y = (int)(cY - crossHeight / 2);
+                x = (int)(cX - crossWidth / 2f);
+                y = (int)(cY - crossHeight / 2f);
                 buff = Buffers.newByteBuffer(length);
                 Core.gl.glReadPixels(x, y, crossWidth, crossHeight, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE, buff);
                 pixmap2 = new Pixmap(buff, crossWidth, crossHeight);

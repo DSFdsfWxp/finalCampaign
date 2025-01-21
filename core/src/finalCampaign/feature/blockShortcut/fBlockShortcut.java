@@ -59,7 +59,7 @@ public class fBlockShortcut {
     }
 
     public static void load() {
-        for (int i=0; i<10; i++) blockLst[i] = Vars.content.block(setting.getAndCast("blockShortcut.lst." + Integer.toString(i), ""));
+        for (int i=0; i<10; i++) blockLst[i] = Vars.content.block(setting.getAndCast("blockShortcut.lst." + i, ""));
 
         fTuner.add("blockShortcut", config);
 
@@ -82,11 +82,11 @@ public class fBlockShortcut {
         if (block != null) {
             if (blockLst[id] == block) {
                 blockLst[id] = null;
-                setting.put("blockShortcut.lst." + Integer.toString(id), "");
+                setting.put("blockShortcut.lst." + id, "");
             } else {
                 for (int i=0; i<blockLst.length; i++) if (blockLst[i] == block) clearBlockSlot(i);
                 blockLst[id] = block;
-                setting.put("blockShortcut.lst." + Integer.toString(id), block.name);
+                setting.put("blockShortcut.lst." + id, block.name);
             }
             
             Events.fire(new shortcutChangeEvent(blockLst[id], id));
@@ -106,14 +106,15 @@ public class fBlockShortcut {
 
     public static void clearBlockSlot(int id) {
         blockLst[id] = null;
-        setting.put("blockShortcut.lst." + Integer.toString(id), "");
+        setting.put("blockShortcut.lst." + id, "");
         Events.fire(new shortcutChangeEvent(null, id));
     }
 
+    // record class is not available on java 8
     public static class shortcutChangeEvent {
         public final Block block;
         public final int id;
-        
+
         public shortcutChangeEvent(Block block, int id) {
             this.block = block;
             this.id = id;
@@ -125,6 +126,6 @@ public class fBlockShortcut {
     }
 
     public static boolean disableGameBlockSelect() {
-        return config == null ? false : config.disableGameBlockSelect;
+        return config != null && config.disableGameBlockSelect;
     }
 }

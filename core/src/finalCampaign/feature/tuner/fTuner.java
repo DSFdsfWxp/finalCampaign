@@ -207,7 +207,7 @@ public class fTuner {
 
     @Target(ElementType.TYPE)
     @Retention(RetentionPolicy.RUNTIME)
-    public static @interface setable{
+    public @interface setable{
     }
 
     public static class stateChangeEvent {

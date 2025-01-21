@@ -28,7 +28,8 @@
         "fcMap",
         "fcWorld",
         "fcMapIO",
-        "fcSdlApplication"
+        "fcSdlApplication",
+        "fcMobileInput"
     ],
     "client": [
 	]

@@ -53,7 +53,9 @@ public abstract class shareLauncher {
 
         Log.info("[finalCampaign] launching...");
         try {
-            for (fi jar : getJar()) classLoader.addJar(jar);
+            for (fi jar : getJar())
+                if (classLoader != null)
+                    classLoader.addJar(jar);
             launch();
         } catch(Exception e) {
             handleCrash(e, "Failed to launch.");

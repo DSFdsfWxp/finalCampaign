@@ -43,7 +43,7 @@ public class detailBar extends freeBar {
 
         if (!Float.isNaN(maxValue)) table(t -> {
             t.add("/" + UI.formatAmount((long) maxValue)).style(style).fontScale(0.8f).color(dark).padRight(8f).padTop(fontHeight * 0.2f);
-            t.add(new Label(() -> Integer.toString((int)(value.get() / maxValue * 100)) + "%")).style(style).fontScale(0.8f).color(dark).padTop(fontHeight * 0.2f);
+            t.add(new Label(() -> (int) (value.get() / maxValue * 100) + "%")).style(style).fontScale(0.8f).color(dark).padTop(fontHeight * 0.2f);
         }).update(l -> {
             if (!actionRunning) {
                 if (l.color.a == 0 && value.get() != maxValue) {
