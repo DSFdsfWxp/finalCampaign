@@ -12,7 +12,12 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import finalCampaign.*;
 import finalCampaign.feature.tuner.fTuner.*;
+import finalCampaign.ui.contentSelecter;
+import finalCampaign.ui.selectTable;
 import mindustry.*;
+import mindustry.ctype.Content;
+import mindustry.ctype.ContentType;
+import mindustry.ctype.UnlockableContent;
 import mindustry.ui.dialogs.*;
 
 public class tunerPane extends Table {
@@ -81,6 +86,8 @@ public class tunerPane extends Table {
                 if (type.equals(fTuner.stringField.class)) textSetting(fieldName);
                 if (type.equals(Color.class)) colorSetting(fieldName);
                 if (type.equals(fTuner.uiPosition.class)) uiPositionSetting(fieldName);
+                if (type.isEnum()) selectionSetting(fieldName);
+                if (type.equals(fTuner.contentChooser.class)) contentSetting(fieldName);
             }
 
             content.button(bundle.get("reset"), () -> {
@@ -278,6 +285,51 @@ public class tunerPane extends Table {
                 }).right().width(75f);
             }).width(600f).padTop(8f);
             content.row();
+        }
+
+        @SuppressWarnings("unchecked")
+        public void selectionSetting(String name) {
+            Enum<?> select = Reflect.get(config, name);
+            content.table(t -> {
+                t.add(bundle.get("tuner." + superName + "." + name + ".name")).left().wrap().growY().width(500f);
+                TextButton b = new TextButton(bundle.get("tuner." + superName + "." + name + ".choice." + select.name() + ".name"));
+                b.clicked(() -> {
+                    selectTable.showSelect(b, Reflect.invoke(select.getClass(), "values"), select.name(), selected -> {
+                        b.setText(bundle.get("tuner." + superName + "." + name + ".choice." + select.name() + ".name"));
+                        Reflect.set(config, name, Enum.valueOf(select.getClass(), selected));
+                        save();
+                    });
+                });
+                t.add(b).right().width(75f);
+            }).width(600f).padTop(8f);
+            content.row();
+        }
+
+        public void contentSetting(String name) {
+            fTuner.contentChooser chooser = Reflect.get(config, name);
+            content.table(t -> {
+                t.add(bundle.get("tuner." + superName + "." + name + ".name")).left().wrap().grow().padLeft(12.5f).row();
+
+                contentSelecter selecter = new contentSelecter(48f, 32f, 10);
+                selecter.minSelectedCount(chooser.minCountChoosed);
+                selecter.maxSelectedCount(chooser.maxCountChoosed);
+
+                for (ContentType ct : ContentType.values())
+                    for (Content c : Vars.content.getBy(ct))
+                        if (c instanceof UnlockableContent uc && chooser.contentFilter.get(uc))
+                            selecter.add(uc);
+
+                for (UnlockableContent uc : chooser.choosedContents)
+                    selecter.setSelected(uc);
+
+                t.pane(selecter).padTop(4f).padBottom(4f).width(575f);
+
+                selecter.modified(() -> {
+                    chooser.choosedContents.clear();
+                    chooser.choosedContents.add(selecter.getSelectedContents());
+                    save();
+                });
+            }).width(600f).padTop(8f).row();
         }
     }
 }

@@ -1,9 +1,10 @@
 package finalCampaign.patch.impl;
 
-import arc.Events;
-import arc.input.KeyCode;
+import arc.*;
+import arc.input.*;
+import arc.math.geom.*;
 import finalCampaign.event.*;
-import mindustry.gen.Unit;
+import mindustry.gen.*;
 import mindustry.input.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
@@ -19,6 +20,10 @@ public abstract class fcMobileInput {
     private final fcInputHandleTapEvent tapEvent = new fcInputHandleTapEvent();
     private final fcInputHandleUpdateEvent updateEvent = new fcInputHandleUpdateEvent();
     private final fcInputHandleUpdateMovementEvent updateMovementEvent = new fcInputHandleUpdateMovementEvent();
+    private final fcInputHandlePinchEvent pinchEvent = new fcInputHandlePinchEvent();
+    private final fcInputHandlePinchStopEvent pinchStopEvent = new fcInputHandlePinchStopEvent();
+    private final fcInputHandlePanEvent panEvent = new fcInputHandlePanEvent();
+    private final fcInputHandleLongPressEvent longPressEvent = new fcInputHandleLongPressEvent();
 
     @Inject(method = "drawTop", at = @At("RETURN"), remap = false)
     private void fcDrawTop(CallbackInfo ci) {
@@ -40,9 +45,15 @@ public abstract class fcMobileInput {
         Events.fire(updateStateEvent);
     }
 
-    @Inject(method = "tap", at = @At("RETURN"), remap = false)
-    private void fcTap(float x, float y, int count, KeyCode button, CallbackInfoReturnable<Boolean> ci) {
-        tapEvent.form(x, y, count, button, ci::setReturnValue);
+    @Inject(method = "tap", at = @At("HEAD"), remap = false, cancellable = true)
+    private void fcTapHead(float x, float y, int count, KeyCode button, CallbackInfoReturnable<Boolean> ci) {
+        tapEvent.form(x, y, count, button, true, ci::setReturnValue);
+        Events.fire(tapEvent);
+    }
+
+    @Inject(method = "tap", at = @At("RETURN"), remap = false, cancellable = true)
+    private void fcTapReturn(float x, float y, int count, KeyCode button, CallbackInfoReturnable<Boolean> ci) {
+        tapEvent.form(x, y, count, button, false, ci::setReturnValue);
         Events.fire(tapEvent);
     }
 
@@ -55,5 +66,39 @@ public abstract class fcMobileInput {
     private void fcUpdateMovement(Unit unit, CallbackInfo ci) {
         updateMovementEvent.unit = unit;
         Events.fire(updateMovementEvent);
+    }
+
+    public boolean pinch(Vec2 initialPointer1, Vec2 initialPointer2, Vec2 pointer1, Vec2 pointer2) {
+        pinchEvent.form(initialPointer1, initialPointer2, pointer1, pointer2);
+        Events.fire(pinchEvent);
+        return false;
+    }
+
+    public void pinchStop() {
+        Events.fire(pinchStopEvent);
+    }
+
+    @Inject(method = "pan", at = @At("HEAD"), cancellable = true, remap = false)
+    private void fcPanHead(float x, float y, float deltaX, float deltaY, CallbackInfoReturnable<Boolean> ci) {
+        panEvent.form(x, y, deltaX, deltaY, true, ci::setReturnValue);
+        Events.fire(panEvent);
+    }
+
+    @Inject(method = "pan", at = @At("RETURN"), cancellable = true, remap = false)
+    private void fcPanReturn(float x, float y, float deltaX, float deltaY, CallbackInfoReturnable<Boolean> ci) {
+        panEvent.form(x, y, deltaX, deltaY, false, ci::setReturnValue);
+        Events.fire(panEvent);
+    }
+
+    @Inject(method = "longPress", at = @At("HEAD"), cancellable = true, remap = false)
+    private void fcLongPressHead(float x, float y, CallbackInfoReturnable<Boolean> ci) {
+        longPressEvent.form(x, y, true, ci::setReturnValue);
+        Events.fire(longPressEvent);
+    }
+
+    @Inject(method = "longPress", at = @At("RETURN"), cancellable = true, remap = false)
+    private void fcLongPressReturn(float x, float y, CallbackInfoReturnable<Boolean> ci) {
+        longPressEvent.form(x, y, false, ci::setReturnValue);
+        Events.fire(longPressEvent);
     }
 }

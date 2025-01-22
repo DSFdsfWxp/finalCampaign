@@ -332,4 +332,8 @@ public class fSetMode {
         if (!frag.categories.contains(feature.category)) frag.categories.add(feature.category);
         if (!frag.features.contains(feature)) frag.features.add(feature);
     }
+
+    public static boolean isSelecting() {
+        return selecting;
+    }
 }

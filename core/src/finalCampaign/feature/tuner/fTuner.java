@@ -9,6 +9,7 @@ import arc.*;
 import arc.func.*;
 import finalCampaign.*;
 import mindustry.*;
+import mindustry.ctype.*;
 import mindustry.gen.*;
 
 public class fTuner {
@@ -202,6 +203,41 @@ public class fTuner {
             y = jsonData.getFloat("y", 0f);
             relatively = jsonData.getBoolean("relatively", false);
             originalX = originalY = null;
+        }
+    }
+
+    @setable
+    public static class contentChooser implements JsonSerializable {
+        public final int minCountChoosed, maxCountChoosed;
+        public final Func<UnlockableContent, Boolean> contentFilter;
+        public Seq<UnlockableContent> choosedContents;
+
+        public contentChooser(int minCountChoosed, int maxCountChoosed, Func<UnlockableContent, Boolean> contentFilter) {
+            this.maxCountChoosed = maxCountChoosed;
+            this.minCountChoosed = minCountChoosed;
+            this.contentFilter = contentFilter;
+            choosedContents = new Seq<>();
+        }
+
+        public void write(Json json) {
+            json.writeArrayStart("content");
+            for (UnlockableContent c : choosedContents)
+                json.writeValue(c.getContentType().name() + "-" + c.name);
+            json.writeArrayEnd();
+        }
+
+        public void read(Json json, JsonValue jsonData) {
+            String[] contents = jsonData.get("content").asStringArray();
+            Seq<String> tmp = new Seq<>();
+            for (String c : contents) {
+                tmp.add(c.split("-"));
+                ContentType t = ContentType.valueOf(tmp.get(0));
+                tmp.remove(0);
+                UnlockableContent uc = Vars.content.getByName(t, String.join("-", tmp));
+                if (uc != null)
+                    choosedContents.add(uc);
+                tmp.clear();
+            }
         }
     }
 

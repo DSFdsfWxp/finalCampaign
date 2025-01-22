@@ -42,9 +42,15 @@ public abstract class fcDesktopInput extends InputHandler {
         Events.fire(drawOverSelectEvent);
     }
 
-    @Inject(method = "tap", at = @At("RETURN"), remap = false)
-    private void fcTap(float x, float y, int count, KeyCode button, CallbackInfoReturnable<Boolean> ci) {
-        tapEvent.form(x, y, count, button, ci::setReturnValue);
+    @Inject(method = "tap", at = @At("HEAD"), remap = false, cancellable = true)
+    private void fcTapHead(float x, float y, int count, KeyCode button, CallbackInfoReturnable<Boolean> ci) {
+        tapEvent.form(x, y, count, button, true, ci::setReturnValue);
+        Events.fire(tapEvent);
+    }
+
+    @Inject(method = "tap", at = @At("RETURN"), remap = false, cancellable = true)
+    private void fcTapReturn(float x, float y, int count, KeyCode button, CallbackInfoReturnable<Boolean> ci) {
+        tapEvent.form(x, y, count, button, false, ci::setReturnValue);
         Events.fire(tapEvent);
     }
 

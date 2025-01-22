@@ -8,7 +8,9 @@ import finalCampaign.feature.blockShortcut.*;
 import finalCampaign.feature.buildTargeting.*;
 import finalCampaign.feature.buildTargetingLimit.*;
 import finalCampaign.feature.crosshair.*;
+import finalCampaign.feature.editMode.*;
 import finalCampaign.feature.freeVision.*;
+import finalCampaign.feature.pressingVisualHint.*;
 import finalCampaign.feature.roulette.*;
 import finalCampaign.feature.setMode.*;
 import finalCampaign.feature.shortcut.*;
@@ -38,6 +40,8 @@ public class features {
         register(fBuildTargetingLimit.class);
         register(fBarDetail.class);
         register(fAbout.class);
+        register(fPressingVisualHint.class);
+        register(fEditMode.class);
     }
 
     public static void load() {

@@ -38,7 +38,10 @@ public class fFreeVision {
         Events.on(StateChangeEvent.class, e -> logic.updateState());
         Events.on(fcInputHandleUpdateMovementEvent.class, e -> logic.updateMovement(e.unit));
         Events.on(fcDrawWorldOverSelectEvent.class, e -> logic.drawOverSelect());
-        Events.on(fcInputHandleTapEvent.class, e -> logic.tap(e.x, e.y, e.count, e.button));
+        Events.on(fcInputHandleTapEvent.class, e -> {
+            if (!e.atHead)
+                logic.tap(e.x, e.y, e.count, e.button);
+        });
 
         enabled = fTuner.add("freeVision", false, config, v -> enabled = v);
 

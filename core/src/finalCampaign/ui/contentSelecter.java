@@ -48,6 +48,10 @@ public class contentSelecter extends Table {
         group.setMinCheckCount(count);
     }
 
+    public void maxSelectedCount(int count) {
+        group.setMaxCheckCount(count);
+    }
+
     public Cell<ImageButton> add(UnlockableContent content) {
         return add(new TextureRegionDrawable(content.uiIcon), null, content).tooltip(content.localizedName);
     }
@@ -98,6 +102,20 @@ public class contentSelecter extends Table {
     public UnlockableContent getSelectedContent() {
         ImageButton checked = group.getChecked();
         return checked == null ? null : map.get(checked);
+    }
+
+    public Seq<UnlockableContent> getSelectedContents() {
+        Seq<UnlockableContent> res = new Seq<>();
+        for (ImageButton ib : group.getAllChecked())
+            res.add(map.get(ib));
+        return res;
+    }
+
+    public Seq<String> getSelectedNames() {
+        Seq<String> res = new Seq<>();
+        for (ImageButton ib : group.getAllChecked())
+            res.add(ib.name);
+        return res;
     }
 
     @Nullable
