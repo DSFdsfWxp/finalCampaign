@@ -57,8 +57,15 @@ public abstract class fcMobileInput {
         Events.fire(tapEvent);
     }
 
+    @Inject(method = "update", at = @At("HEAD"), remap = false)
+    private void fcUpdateHead(CallbackInfo ci) {
+        updateEvent.atHead = true;
+        Events.fire(updateEvent);
+    }
+
     @Inject(method = "update", at = @At("RETURN"), remap = false)
-    private void fcUpdate(CallbackInfo ci) {
+    private void fcUpdateReturn(CallbackInfo ci) {
+        updateEvent.atHead = false;
         Events.fire(updateEvent);
     }
 

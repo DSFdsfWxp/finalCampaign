@@ -7,6 +7,7 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.util.*;
 import finalCampaign.feature.setMode.*;
+import finalCampaign.input.*;
 import mindustry.*;
 import mindustry.entities.*;
 import mindustry.game.*;
@@ -23,6 +24,7 @@ public class logic {
     public static float crosshairScale;
 
     private static DesktopInput input;
+    private static Vec2 lastCameraPos = new Vec2();
 
     public static void updateState() {
         if (Vars.control.input instanceof DesktopInput di)
@@ -82,7 +84,11 @@ public class logic {
         }
     }
 
-    public static void update() {
+    public static void updateBefore() {
+        lastCameraPos.set(Core.camera.position);
+    }
+
+    public static void updateAfter() {
         boolean locked = input.locked();
         Unit spectating = null;
 
@@ -91,21 +97,15 @@ public class logic {
         } catch (Throwable ignore) {}
 
         if (!locked && fFreeVision.isOn() && !input.panning) {
-            if ((!Vars.player.dead() || spectating != null) && !Vars.state.isPaused() && !Vars.ui.chatfrag.shown() && !Core.scene.hasField() && !Core.scene.hasDialog() && !Vars.ui.consolefrag.shown()) {
-                // un-lerpDelta of Vec2
-                Team corePanTeam = Vars.state.won ? Vars.state.rules.waveTeam : Vars.player.team();
-                Position coreTarget = Vars.state.gameOver && !Vars.state.rules.pvp && corePanTeam.data().lastCore != null ? corePanTeam.data().lastCore : null;
-                Position panTarget = coreTarget != null ? coreTarget : (spectating != null ? spectating : Vars.player);
-                float alpha = Mathf.clamp((Core.settings.getBool("smoothcamera") ? 0.08f : 1f) * Time.delta);
-                float invAlpha = 1.0f - alpha;
-
-                Core.camera.position.x -= panTarget.getX() * alpha;
-                Core.camera.position.y -= panTarget.getY() * alpha;
-                Core.camera.position.x /= invAlpha;
-                Core.camera.position.y /= invAlpha;
+            if (!Vars.player.dead() && spectating == null && !Vars.state.isPaused() && !Vars.ui.chatfrag.shown() && !Core.scene.hasField() && !Core.scene.hasDialog() && !Vars.ui.consolefrag.shown()) {
+                Core.camera.position.set(lastCameraPos);
 
                 // pan camera
-                float camSpeed = (!Core.input.keyDown(Binding.boost) ? input.panSpeed : input.panBoostSpeed) * Time.delta;
+                float camSpeed = (
+                        !Core.input.keyDown(fcBindings.boostCamera) ?
+                        (Core.input.keyDown(fcBindings.slowCamera) ? input.panSpeed * 2f - input.panBoostSpeed : input.panSpeed) :
+                        input.panBoostSpeed
+                ) * Time.delta;
                 Core.camera.position.add(Tmp.v1.setZero().add(Core.input.axis(Binding.move_x), Core.input.axis(Binding.move_y)).nor().scl(camSpeed));
             }
         }

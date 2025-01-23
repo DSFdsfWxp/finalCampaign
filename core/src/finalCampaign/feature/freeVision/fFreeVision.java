@@ -13,27 +13,32 @@ public class fFreeVision {
     private static boolean inited = false;
     private static boolean on;
     private static boolean enabled;
-    private static config config;
+    public static paneConfig config;
     private static infoFragment lastFragment = null;
 
-    public static class config {
+    public static class paneConfig {
         public boolean autoTargeting = true;
+        public boolean finishBuildFirst = true;
     }
 
     public static boolean supported() {
-        return !Vars.headless && !Vars.mobile;
+        return !Vars.headless;
     }
 
     public static void init() throws Exception {
         on = setting.getAndCast("feature.control.freeVision.on", false);
         enabled = false;
-        config = new config();
+        config = new paneConfig();
     }
 
     public static void load() throws Exception {
         Events.on(fcInputHandleUpdateEvent.class, e -> {
-            checkOnOff();
-            logic.update();
+            if (e.atHead) {
+                logic.updateBefore();
+            } else {
+                checkOnOff();
+                logic.updateAfter();
+            }
         });
         Events.on(StateChangeEvent.class, e -> logic.updateState());
         Events.on(fcInputHandleUpdateMovementEvent.class, e -> logic.updateMovement(e.unit));
