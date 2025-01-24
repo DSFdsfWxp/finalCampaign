@@ -20,7 +20,7 @@ public class timer {
         nano = Time.nanos();
     }
 
-    public void unmark() {
+    public void reset() {
         nano = 0;
     }
 

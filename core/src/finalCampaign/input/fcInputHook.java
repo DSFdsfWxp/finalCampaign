@@ -22,7 +22,7 @@ public class fcInputHook {
 
     public static boolean realIsPressed(KeyBind bind) {
         KeyCode code = Core.keybinds.get(bind).key;
-        return code != null ? realIsPressed(code) : false;
+        return code != null && realIsPressed(code);
     }
 
     public static boolean realIsPressed(KeyCode code) {
@@ -31,7 +31,7 @@ public class fcInputHook {
 
     public static boolean realIsTapped(KeyBind bind) {
         KeyCode code = Core.keybinds.get(bind).key;
-        return code != null ? realIsTapped(code) : false;
+        return code != null && realIsTapped(code);
     }
 
     public static boolean realIsTapped(KeyCode code) {
@@ -40,7 +40,7 @@ public class fcInputHook {
 
     public static boolean realIsReleased(KeyBind bind) {
         KeyCode code = Core.keybinds.get(bind).key;
-        return code != null ? realIsReleased(code) : false;
+        return code != null && realIsReleased(code);
     }
 
     public static boolean realIsReleased(KeyCode code) {

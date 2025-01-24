@@ -13,8 +13,6 @@ import mindustry.gen.*;
 import mindustry.world.*;
 
 public class rouletteFragment extends fragment {
-    final float radius = 50f;
-    final float innerRadius = 25f;
     private TextureRegion base;
     private TextureRegion focus;
     private boolean fourSlot;
