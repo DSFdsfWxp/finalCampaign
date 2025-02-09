@@ -29,7 +29,8 @@
         "fcWorld",
         "fcMapIO",
         "fcSdlApplication",
-        "fcMobileInput"
+        "fcMobileInput",
+        "fcHudFragment"
     ],
     "client": [
 	]

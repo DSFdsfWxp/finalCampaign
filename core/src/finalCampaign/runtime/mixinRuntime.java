@@ -125,7 +125,7 @@ public class mixinRuntime implements IRuntime {
                 String originalLauncherPath = "jre/finalCampaign/launcher/" + originalLauncherVersion + "/launcher.jar";
                 String nowLauncherPath = "jre/finalCampaign/launcher/" + modVersion.getVersionFull("launcher") + "/launcher.jar";
 
-                steamConfigJson = steamConfigJson.replace("mindustry.desktop.DesktopLauncher", "finalCampaign.launch.desktopLauncher");
+                steamConfigJson = steamConfigJson.replace("mindustry.desktop.DesktopLauncher", "finalCampaign.desktop.desktopLauncher");
                 steamConfigJson = steamConfigJson.replace("jre/desktop.jar", nowLauncherPath);
                 steamConfigJson = steamConfigJson.replace(originalLauncherPath, nowLauncherPath);
 

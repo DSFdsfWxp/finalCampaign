@@ -26,13 +26,13 @@ public class fCrosshair {
         return !Vars.headless;
     }
 
-    public static void init() {
+    public static void lateInit() {
         fragment = new crosshairFragment(Vars.ui.hudGroup);
         enabled = false;
         config = new config();
     }
 
-    public static void load() {
+    public static void lateLoad() {
         enabled = fTuner.add("centerCrosshair", false, config, v -> enabled = v);
         Vars.ui.hudGroup.addChild(fragment);
         fragment.added();

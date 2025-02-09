@@ -18,6 +18,6 @@ public class maxHpLessThanDamagePerShot extends baseFilter<NoneConfig> {
     }
 
     public NoneConfig defaultConfig() {
-        return new NoneConfig();
+        return NoneConfig.instance;
     }
 }

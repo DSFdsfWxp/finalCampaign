@@ -27,11 +27,11 @@ public class fEditMode {
         return OS.isAndroid;
     }
 
-    public static void init() {
+    public static void lateInit() {
         config = new tunerConfig();
     }
 
-    public static void load() {
+    public static void lateLoad() {
         enabled = fTuner.add("editMode", false, config, v -> enabled = v);
 
         Events.on(fcInputHandlePinchEvent.class, logic::pinch);

@@ -147,17 +147,22 @@ public class roulette extends Table {
     }
 
     public void showRoulette(Group parent) {
+        if (!removed)
+            return;
+
         mouse.set(Core.input.mouseX(), Core.input.mouseY());
         setScale(0f);
         parent.fill(t -> {
             t.bottom().left();
             t.add(this);
         });
-        removed = false;
 
         actions(
-                Actions.fadeIn(0.4f),
-                Actions.scaleTo(1f, 1f, 0.4f)
+                Actions.sequence(
+                        Actions.fadeIn(0.4f),
+                        Actions.scaleTo(1f, 1f, 0.4f),
+                        Actions.run(() -> removed = false)
+                )
         );
     }
 
@@ -180,7 +185,7 @@ public class roulette extends Table {
         );
     }
 
-    private void rouletteWarn() {
+    public void rouletteWarn() {
         if (removed)
             return;
 

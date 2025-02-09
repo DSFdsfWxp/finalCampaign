@@ -7,9 +7,9 @@ public class fBuildTargetingLimit {
         return true;
     }
     
-    public static void init() {}
+    public static void lateInit() {}
 
-    public static void load() {
+    public static void lateLoad() {
         fcFilter.register("maxHpLessThanDamagePerShot", maxHpLessThanDamagePerShot::new);
         fcFilter.register("maxHpLessThanDamagePerSec", maxHpLessThanDamagePerSec::new);
         fcFilter.register("hpLessThanTripleDamagePerShot", hpLessThanTripleDamagePerShot::new);

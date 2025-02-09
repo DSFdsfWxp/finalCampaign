@@ -23,12 +23,12 @@ public class fShortcut {
         return !Vars.headless;
     }
 
-    public static void init() {
+    public static void lateInit() {
         config = new config();
         enabled = false;
     }
 
-    public static void load() throws Exception {
+    public static void lateLoad() throws Exception {
         placement = ((Table) Reflect.get(Vars.ui.hudfrag.blockfrag, "toggler")).getChildren().get(0);
 
         Events.on(WorldLoadEvent.class, event -> {

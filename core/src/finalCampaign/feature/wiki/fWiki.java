@@ -12,9 +12,6 @@ public class fWiki {
         return !Vars.headless;
     }
 
-    public static void init() {}
-    public static void load() {}
-
     public static void setupWikiButton(String name, Button button) {
         button.addListener(new Tooltip(t -> t.background(Tex.button).add("[accent]" + bundle.get("wiki." + name + ".name", name) + "[]\n" + bundle.get("wiki." + name + ".short", bundle.get("wiki.noDetail")))));
         button.clicked(() -> {

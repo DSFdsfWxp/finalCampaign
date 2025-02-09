@@ -1,4 +1,4 @@
-package finalCampaign.feature.hudInfoUI;
+package finalCampaign.feature.hudUIInfo;
 
 import arc.*;
 import arc.func.*;
@@ -7,20 +7,15 @@ import arc.scene.ui.layout.*;
 import finalCampaign.event.*;
 import mindustry.*;
 
-public class fHudInfoUI {
+public class fHudUIInfo {
     private static boolean loaded = false;
 
     public static boolean supported() {
         return !Vars.headless;
     }
 
-    public static void init() {}
-
-    public static void load() {
-        Events.on(fcInputHandleBuildUIEvent.class, e -> {
-            logic.buildUI(e);
-            ui.init();
-        });
+    public static void earlyLoad() {
+        Events.on(fcInputHandleBuildUIEvent.class, logic::buildUI);
 
         loaded = true;
     }

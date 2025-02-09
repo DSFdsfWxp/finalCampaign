@@ -122,7 +122,9 @@ public class fcFilter {
         for (baseFilter<?> filter : filters) filter.beforeTargeting();
     }
 
-    public static class NoneConfig {}
+    public static class NoneConfig {
+        public static final NoneConfig instance = new NoneConfig();
+    }
 
     public abstract static class baseFilter<T> {
         public final String name;

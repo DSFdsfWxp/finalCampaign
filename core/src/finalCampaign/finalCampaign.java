@@ -25,8 +25,8 @@ public class finalCampaign extends Mod {
         dataDir = Vars.dataDirectory.child("finalCampaign");
         tmpDir = dataDir.child("tmp");
 
-        if (!dataDir.exists()) dataDir.mkdirs();
-        if (!tmpDir.exists()) tmpDir.mkdirs();
+        dataDir.mkdirs();
+        tmpDir.mkdirs();
     }
 
     @Override
@@ -39,32 +39,42 @@ public class finalCampaign extends Mod {
         Log.info(" # finalCampaign [prototypePhase]");
         Log.info(" # " + version.inPackage.getVersionFull("mod"));
 
+        bundle.init();
+        bundle.load();
+
+        features.init();
+
         if (!Vars.headless) {
+            if (runtime != null)
+                features.load(features.featureLoadPhase.early);
             Events.on(ClientLoadEvent.class, e -> {
                 modStartup();
+                System.gc();
             });
         } else {
             modStartup();
+            if (runtime != null)
+                Events.on(ServerLoadEvent.class, e -> {
+                    features.load(features.featureLoadPhase.late);
+                    System.gc();
+                });
         }
     }
 
     private void modStartup() {
-        bundle.init();
-        bundle.load();
-
         if (runtime == null) {
             install();
             return;
         }
 
-        if (!Vars.headless) atlas.init();
+        if (!Vars.headless)
+            atlas.init();
         fcMap.init();
-        features.init();
 
         fcNet.register();
         if (!Vars.headless)
             fcInput.load();
-        features.load();
+        features.load(Vars.headless ? features.featureLoadPhase.early : features.featureLoadPhase.late);
 
         if (!Vars.headless) {
             shaders.load();
@@ -73,8 +83,6 @@ public class finalCampaign extends Mod {
             outlineIcons.load();
             Events.on(ClientLoadEvent.class, e -> outlineIcons.generate());
         }
-
-        System.gc();
     }
 
     @Override

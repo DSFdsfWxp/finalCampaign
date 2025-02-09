@@ -212,7 +212,9 @@ public class fcSortf {
         return fcsortf;
     }
 
-    public static class NoneConfig {}
+    public static class NoneConfig {
+        public static final NoneConfig instance = new NoneConfig();
+    }
     
     public static abstract class baseSortf<T> {
         public final String name;

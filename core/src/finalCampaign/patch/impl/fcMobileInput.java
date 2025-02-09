@@ -3,6 +3,8 @@ package finalCampaign.patch.impl;
 import arc.*;
 import arc.input.*;
 import arc.math.geom.*;
+import arc.scene.Group;
+import arc.scene.ui.layout.*;
 import finalCampaign.event.*;
 import mindustry.gen.*;
 import mindustry.input.*;
@@ -24,6 +26,8 @@ public abstract class fcMobileInput {
     private final fcInputHandlePinchStopEvent pinchStopEvent = new fcInputHandlePinchStopEvent();
     private final fcInputHandlePanEvent panEvent = new fcInputHandlePanEvent();
     private final fcInputHandleLongPressEvent longPressEvent = new fcInputHandleLongPressEvent();
+    private final fcInputHandleBuildUIEvent buildUIEvent = new fcInputHandleBuildUIEvent();
+    private final fcInputHandleBuildPlacementUIEvent buildPlacementUIEvent = new fcInputHandleBuildPlacementUIEvent();
 
     @Inject(method = "drawTop", at = @At("RETURN"), remap = false)
     private void fcDrawTop(CallbackInfo ci) {
@@ -107,5 +111,17 @@ public abstract class fcMobileInput {
     private void fcLongPressReturn(float x, float y, CallbackInfoReturnable<Boolean> ci) {
         longPressEvent.form(x, y, false, ci::setReturnValue);
         Events.fire(longPressEvent);
+    }
+
+    @Inject(method = "buildUI", at = @At("RETURN"), remap = false)
+    private void fcBuildUI(Group group, CallbackInfo ci) {
+        buildUIEvent.group = group;
+        Events.fire(buildUIEvent);
+    }
+
+    @Inject(method = "buildPlacementUI", at = @At("RETURN"), remap = false)
+    private void fcBuildPlacementUI(Table table, CallbackInfo ci) {
+        buildPlacementUIEvent.table = table;
+        Events.fire(buildPlacementUIEvent);
     }
 }

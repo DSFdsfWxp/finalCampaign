@@ -29,7 +29,8 @@
         "fcWorld",
         "fcMapIO",
         "fcAndroidApplication",
-        "fcMobileInput"
+        "fcMobileInput",
+        "fcHudFragment"
     ],
     "client": [
 	]

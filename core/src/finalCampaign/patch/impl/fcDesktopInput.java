@@ -1,6 +1,7 @@
 package finalCampaign.patch.impl;
 
 import arc.scene.Group;
+import arc.scene.ui.layout.Table;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
@@ -21,6 +22,7 @@ public abstract class fcDesktopInput extends InputHandler {
     private final fcInputHandleUpdateEvent updateEvent = new fcInputHandleUpdateEvent();
     private final fcInputHandleUpdateMovementEvent updateMovementEvent = new fcInputHandleUpdateMovementEvent();
     private final fcInputHandleBuildUIEvent buildUIEvent = new fcInputHandleBuildUIEvent();
+    private final fcInputHandleBuildPlacementUIEvent buildPlacementUIEvent = new fcInputHandleBuildPlacementUIEvent();
 
 
     @Inject(method = "drawTop", at = @At("RETURN"), remap = false)
@@ -78,5 +80,11 @@ public abstract class fcDesktopInput extends InputHandler {
     private void fcBuildUI(Group group, CallbackInfo ci) {
         buildUIEvent.group = group;
         Events.fire(buildUIEvent);
+    }
+
+    @Inject(method = "buildPlacementUI", at = @At("RETURN"), remap = false)
+    private void fcBuildPlacementUI(Table table, CallbackInfo ci) {
+        buildPlacementUIEvent.table = table;
+        Events.fire(buildPlacementUIEvent);
     }
 }

@@ -11,9 +11,9 @@ public class fAbout {
         return true;
     }
 
-    public static void init() {}
+    public static void lateInit() {}
 
-    public static void load() {
+    public static void lateLoad() {
         LinkEntry[] src = Links.getLinks();
         LinkEntry[] links = new LinkEntry[src.length + 1];
         System.arraycopy(src, 0, links, 0, src.length);

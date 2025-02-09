@@ -26,7 +26,7 @@ public class fRoulette {
         return !Vars.headless && !Vars.mobile;
     }
 
-    public static void init() {
+    public static void lateInit() {
         on = false;
         enabled = false;
         config = new config();
@@ -36,7 +36,7 @@ public class fRoulette {
         return inited && on && enabled && !Vars.control.input.commandMode && !Vars.ui.minimapfrag.shown() && !fSetMode.isOn();
     }
 
-    public static void load() {
+    public static void lateLoad() {
         enabled = fTuner.add("roulette", false, config, v -> enabled = v);
         frag = new rouletteFragment();
 

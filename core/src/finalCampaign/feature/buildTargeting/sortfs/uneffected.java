@@ -16,7 +16,7 @@ public class uneffected extends baseSortf<NoneConfig> {
     }
 
     public NoneConfig defaultConfig() {
-        return new NoneConfig();
+        return NoneConfig.instance;
     }
 
     public boolean isValid() {

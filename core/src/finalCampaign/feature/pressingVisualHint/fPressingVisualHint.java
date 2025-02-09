@@ -23,11 +23,11 @@ public class fPressingVisualHint {
         return OS.isAndroid;
     }
 
-    public static void init() {
+    public static void lateInit() {
         config = new tunerConfig();
     }
 
-    public static void load() {
+    public static void lateLoad() {
         enabled = fTuner.add("pressingVisualHint", false, config, v -> enabled = v);
 
         Events.on(fcDrawWorldTopEvent.class, logic::drawTop);

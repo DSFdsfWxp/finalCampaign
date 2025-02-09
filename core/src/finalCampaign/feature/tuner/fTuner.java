@@ -21,16 +21,12 @@ public class fTuner {
         return !Vars.headless;
     }
 
-    public static void init() {
+    public static void lateInit() {
         map = new ObjectMap<>();
         configMap = new ObjectMap<>();
         Vars.ui.settings.addCategory(bundle.get("tuner.pane.title"), Icon.hammer, t -> {
             pane = new tunerPane(t);
         });
-    }
-
-    public static void load() {
-
     }
 
     public static boolean add(String name, boolean def, @Nullable Cons<Boolean> stateCons) {

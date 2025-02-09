@@ -5,6 +5,7 @@ import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.input.*;
+import arc.scene.ui.layout.Table;
 import arc.struct.*;
 import finalCampaign.event.*;
 import finalCampaign.feature.tuner.*;
@@ -52,7 +53,7 @@ public class fSetMode {
         return !Vars.headless;
     }
 
-    public static void init() {
+    public static void lateInit() {
         enabled = false;
         isOn = false;
         selecting = false;
@@ -72,7 +73,16 @@ public class fSetMode {
         tmp = new Seq<>();
     }
 
-    public static void load() {
+    public static void earlyLoad() {
+        Events.on(fcPlacementFragBuildEvent.class, e -> {
+            Table full = (Table) e.parent.getChildren().peek();
+            var originalVisible = full.visibility;
+
+            full.visible(() -> originalVisible.get() && !fSetMode.isOn());
+        });
+    }
+
+    public static void lateLoad() {
         frag = new setModeFragment();
         uiPatcher.load();
         enabled = fTuner.add("setMode", false, v -> enabled = v);
@@ -304,6 +314,7 @@ public class fSetMode {
         });
 
         Vars.ui.hudGroup.fill(full -> {
+            full.name = "fcSetModePane";
             full.bottom().right();
             full.add(frag).right().bottom().growY();
         });

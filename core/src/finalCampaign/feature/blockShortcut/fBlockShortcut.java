@@ -1,5 +1,7 @@
 package finalCampaign.feature.blockShortcut;
 
+import arc.scene.Element;
+import arc.scene.ui.layout.Table;
 import finalCampaign.*;
 import finalCampaign.event.*;
 import finalCampaign.feature.tuner.*;
@@ -30,7 +32,7 @@ public class fBlockShortcut {
         return !Vars.headless;
     }
 
-    public static void init() {
+    public static void lateInit() {
         blockLst = new Block[10];
         keyLst = new Seq<>();
 
@@ -58,7 +60,7 @@ public class fBlockShortcut {
         });
     }
 
-    public static void load() {
+    public static void lateLoad() {
         for (int i=0; i<10; i++) blockLst[i] = Vars.content.block(setting.getAndCast("blockShortcut.lst." + i, ""));
 
         fTuner.add("blockShortcut", config);
@@ -71,6 +73,29 @@ public class fBlockShortcut {
             if (e.to == State.playing) {
                 Events.fire(new stateChangeEvent("", false));
             }
+        });
+    }
+
+    public static void earlyLoad() {
+        Events.on(fcPlacementFragBuildEvent.class, e -> {
+            Table full = (Table) e.parent.getChildren().peek();
+            Table topTable = Reflect.get(e.instance, "topTable");
+            full.name = "fcPlacementFragment";
+
+            // remove shortcut keys' hint
+            Runnable originalUpdate = Reflect.get(Element.class, topTable.getChildren().first(), "update");
+            topTable.getChildren().first().update(() -> {
+                if (fBlockShortcut.disableGameBlockSelect()) {
+                    boolean isMobile = Vars.mobile;
+                    Vars.mobile = true;
+
+                    originalUpdate.run();
+
+                    Vars.mobile = isMobile;
+                } else {
+                    originalUpdate.run();
+                }
+            });
         });
     }
 

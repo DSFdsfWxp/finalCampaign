@@ -25,13 +25,13 @@ public class fFreeVision {
         return !Vars.headless;
     }
 
-    public static void init() throws Exception {
+    public static void lateInit() throws Exception {
         on = setting.getAndCast("feature.control.freeVision.on", false);
         enabled = false;
         config = new paneConfig();
     }
 
-    public static void load() throws Exception {
+    public static void lateLoad() throws Exception {
         Events.on(fcInputHandleUpdateEvent.class, e -> {
             if (e.atHead) {
                 logic.updateBefore();

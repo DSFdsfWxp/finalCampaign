@@ -8,11 +8,11 @@ public class fBuildTargeting {
         return true;
     }
 
-    public static void init() {
+    public static void lateInit() {
         buildTargetingPreset.load();
     }
 
-    public static void load() {
+    public static void lateLoad() {
         fcSortf.register("highestMaxHp", highestMaxHp::new);
         fcSortf.register("highestHp", highestHp::new);
         fcSortf.register("lowHp", lowHp::new);

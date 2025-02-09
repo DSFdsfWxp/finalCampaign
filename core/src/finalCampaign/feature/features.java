@@ -9,7 +9,9 @@ import finalCampaign.feature.buildTargeting.*;
 import finalCampaign.feature.buildTargetingLimit.*;
 import finalCampaign.feature.crosshair.*;
 import finalCampaign.feature.editMode.*;
+import finalCampaign.feature.featureBar.*;
 import finalCampaign.feature.freeVision.*;
+import finalCampaign.feature.lensMode.*;
 import finalCampaign.feature.pressingVisualHint.*;
 import finalCampaign.feature.roulette.*;
 import finalCampaign.feature.setMode.*;
@@ -17,6 +19,8 @@ import finalCampaign.feature.shortcut.*;
 import finalCampaign.feature.spritePacker.*;
 import finalCampaign.feature.tuner.*;
 import finalCampaign.feature.wiki.*;
+
+import java.lang.reflect.Method;
 
 public class features {
     private static Seq<Class<?>> features = new Seq<>();
@@ -42,28 +46,43 @@ public class features {
         register(fAbout.class);
         register(fPressingVisualHint.class);
         register(fEditMode.class);
+        register(fLensMode.class);
+        register(fFeatureBar.class);
     }
 
-    public static void load() {
-        Seq<Class<?>> featuresToLoad = new Seq<>();
+    public enum featureLoadPhase {
+        early,
+        late
+    }
+
+    public static void load(featureLoadPhase phase) {
+        Seq<Class<?>> featuresToLoad = new Seq<>(features);
 
         for (Class<?> feature : features) {
-            Log.debug("[finalCampaign][features] initing feature: " + feature.getName());
             try {
-                Reflect.invoke(feature, "init");
-                featuresToLoad.add(feature);
+                Method initMethod = feature.getDeclaredMethod(phase.name() + "Init");
+                Log.debug("[finalCampaign][features][@] initing feature: @", phase.name(), feature.getName());
+
+                initMethod.invoke(null);
             } catch (Throwable e) {
-                Log.err("[finalCampaign][features] fail to init feature: " + feature.getName());
+                if (e instanceof NoSuchMethodException)
+                    continue;
+                Log.err("[finalCampaign][features] fail to init feature: @", feature.getName());
                 Log.err(e);
+                featuresToLoad.remove(feature);
             }
         }
 
         for (Class<?> feature : featuresToLoad) {
-            Log.debug("[finalCampaign][features] loading feature: " + feature.getName());
             try {
-                Reflect.invoke(feature, "load");
+                Method loadMethod = feature.getDeclaredMethod(phase.name() + "Load");
+                Log.debug("[finalCampaign][features][@] loading feature: @", phase.name(), feature.getName());
+
+                loadMethod.invoke(null);
             } catch (Throwable e) {
-                Log.err("[finalCampaign][features] fail to load feature: " + feature.getName());
+                if (e instanceof NoSuchMethodException)
+                    continue;
+                Log.err("[finalCampaign][features] fail to load feature: @", feature.getName());
                 Log.err(e);
             }
         }

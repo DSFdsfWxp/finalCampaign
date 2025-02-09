@@ -13,11 +13,11 @@ public class fBarDetail {
         return true;
     }
 
-    public static void init() {
+    public static void lateInit() {
         enabled = false;
     }
 
-    public static void load() {
+    public static void lateLoad() {
         update(fTuner.add("barDetail", false, e -> {
             Vars.ui.loadAnd(bundle.get("reloading"), () -> {
                 update(e);

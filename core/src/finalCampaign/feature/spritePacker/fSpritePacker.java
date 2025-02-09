@@ -9,9 +9,7 @@ public class fSpritePacker {
         return !Vars.headless && !Vars.mobile && version.inPackage.isDebugVersion("mod");
     }
 
-    public static void init() {}
-
-    public static void load() {
+    public static void lateLoad() {
         Vars.ui.settings.addCategory("Sprite Packer", Icon.file, t -> {
             new spritePackerDialog(t);
         });
