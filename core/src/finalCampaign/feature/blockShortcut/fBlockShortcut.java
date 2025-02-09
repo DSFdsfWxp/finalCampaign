@@ -1,7 +1,5 @@
 package finalCampaign.feature.blockShortcut;
 
-import arc.scene.Element;
-import arc.scene.ui.layout.Table;
 import finalCampaign.*;
 import finalCampaign.event.*;
 import finalCampaign.feature.tuner.*;
@@ -13,6 +11,8 @@ import mindustry.game.EventType.*;
 import mindustry.world.*;
 import arc.*;
 import arc.KeyBinds.*;
+import arc.scene.*;
+import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 

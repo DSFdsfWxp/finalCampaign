@@ -11,6 +11,8 @@ import finalCampaign.feature.crosshair.*;
 import finalCampaign.feature.editMode.*;
 import finalCampaign.feature.featureBar.*;
 import finalCampaign.feature.freeVision.*;
+import finalCampaign.feature.hudUI.*;
+import finalCampaign.feature.hudUIInfo.*;
 import finalCampaign.feature.lensMode.*;
 import finalCampaign.feature.pressingVisualHint.*;
 import finalCampaign.feature.roulette.*;
@@ -48,6 +50,8 @@ public class features {
         register(fEditMode.class);
         register(fLensMode.class);
         register(fFeatureBar.class);
+        register(fHudUI.class);
+        register(fHudUIInfo.class);
     }
 
     public enum featureLoadPhase {
