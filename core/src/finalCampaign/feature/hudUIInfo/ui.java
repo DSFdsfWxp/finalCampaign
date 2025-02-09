@@ -2,7 +2,7 @@ package finalCampaign.feature.hudUIInfo;
 
 import arc.func.*;
 import arc.scene.ui.layout.*;
-import finalCampaign.feature.hudUI.fHudUI;
+import finalCampaign.feature.hudUI.*;
 import mindustry.ui.*;
 
 public class ui {

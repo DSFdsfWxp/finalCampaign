@@ -1,12 +1,12 @@
 package finalCampaign.patch.impl;
 
-import arc.scene.Group;
-import arc.scene.ui.layout.Table;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
 import arc.*;
 import arc.input.*;
+import arc.scene.Group;
+import arc.scene.ui.layout.*;
 import finalCampaign.event.*;
 import mindustry.gen.*;
 import mindustry.input.*;
