@@ -104,6 +104,9 @@ public class setModeFragment extends Table {
                     Table ft = cont.table().growX().get();
 
                     Runnable rebuiltFeatures = () -> {
+                        if (selected.get().length == 0)
+                            return;
+
                         ft.clear();
                         for (String cat : categories) {
                             bundleNS bundle = new bundleNS("setMode.feature." + cat);

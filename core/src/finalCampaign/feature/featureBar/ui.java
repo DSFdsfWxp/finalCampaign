@@ -9,7 +9,7 @@ public class ui {
 
     private static void initBar(Table parent) {
         bar = new Table(Tex.pane);
-        parent.add(bar).pad(4f).marginLeft(-4f).marginBottom(-4f);
+        parent.add(bar).pad(4f).marginLeft(-4f).marginBottom(-4f).row();
 
     }
 }

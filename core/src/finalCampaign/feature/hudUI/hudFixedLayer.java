@@ -37,6 +37,7 @@ public class hudFixedLayer {
         Events.on(fcPlacementFragBuildEvent.class, this::buildUI);
 
         layer = new Table();
+        layer.name = "fcHudUIFixedLayer";
 
         layer.table(u -> {
             topArea = u;
