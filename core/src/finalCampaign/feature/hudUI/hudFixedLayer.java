@@ -17,6 +17,8 @@ public class hudFixedLayer {
     public Table left;
     public Table centerBottom;
     public Table bottom, bottomLeft, bottomRight;
+    // mobile only
+    public @Nullable Table schematicControlArea, commandModeButtonArea, buildingCancelButtonArea;
 
     public final float topMinWidth = 600f;
     public final float bottomMinWidth = 300f;
@@ -184,32 +186,40 @@ public class hudFixedLayer {
     }
 
     private void buildUI(fcInputHandleBuildUIEvent event) {
-        if (Vars.control.input instanceof MobileInput) {
-            for (int i = 0; i < 3; i++)
-                event.group.getChildren().pop();
-        } else {
+        if (Vars.control.input instanceof DesktopInput) {
             var children = event.group.getChildren();
+
             for (int i = 1; i <= 2; i++) {
                 Table t = (Table) children.get(children.size - i);
                 Table pane = (Table) t.getChildren().pop();
 
                 Cell<Table> tphc = t.table();
-                Table tph = tphc.get();
                 t.row();
                 t.add(pane);
 
-                tph.update(() -> {
-                    float dst = 0f;
-                    for (Element e : centerBottom.getChildren())
-                        if (e.y + e.getHeight() > dst)
-                            dst = e.y + e.getHeight();
-                    dst = dst / Scl.scl() + 4f;
-                    if (tphc.minHeight() != dst) {
-                        tphc.minHeight(dst);
-                        t.invalidate();
-                    }
+                tphc.update(tph -> {
+                    float dst = centerBottom.getPrefHeight() / Scl.scl() + 4f;
+                    updateHeight(tphc, dst);
                 });
             }
+        } else {
+            schematicControlArea = (Table) event.group.getChildren().pop();
+            commandModeButtonArea = (Table) event.group.getChildren().pop();
+            buildingCancelButtonArea = (Table) event.group.getChildren().pop();
+
+            var cancelButton = buildingCancelButtonArea.getChildren().pop();
+            Cell<Table> phc = buildingCancelButtonArea.table();
+            buildingCancelButtonArea.row();
+            buildingCancelButtonArea.add(cancelButton);
+
+            phc.update(pht -> {
+                float dst = bottomLeft.getPrefHeight() / Scl.scl();
+                updateHeight(phc, dst);
+            });
+
+            event.group.getChildren().add(buildingCancelButtonArea);
+            event.group.getChildren().add(commandModeButtonArea);
+            event.group.getChildren().add(schematicControlArea);
         }
     }
 

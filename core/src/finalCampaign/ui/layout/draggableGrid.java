@@ -11,23 +11,26 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import mindustry.gen.*;
 
-public class dragableGrid extends WidgetGroup {
+public class draggableGrid extends WidgetGroup {
 
     private int columns;
     private float elementWidth, elementHeight;
     private float elementMargin;
-    private ObjectMap<dragableGrid, Func<Element, Element>> acceptTransformer;
-    private ObjectMap<dragableGrid, Boolf<Element>> acceptFilter;
+    private boolean draggable;
+    private ObjectMap<draggableGrid, Func<Element, Element>> acceptTransformer;
+    private ObjectMap<draggableGrid, Boolf<Element>> acceptFilter;
     private Seq<Element> order;
     private Seq<Runnable> modifiedListeners;
     private Element draggingElement;
+    private dragEventHandle activeDraggingHandle;
 
-    public dragableGrid(int columns, float elementWidth, float elementHeight, float elementMargin) {
+    public draggableGrid(int columns, float elementWidth, float elementHeight, float elementMargin) {
         this.columns = columns;
         this.elementWidth = Scl.scl(elementWidth);
         this.elementHeight = Scl.scl(elementHeight);
         this.elementMargin = Scl.scl(elementMargin);
 
+        draggable = true;
         touchable = Touchable.enabled;
 
         acceptTransformer = new ObjectMap<>();
@@ -36,15 +39,15 @@ public class dragableGrid extends WidgetGroup {
         modifiedListeners = new Seq<>();
     }
 
-    public void acceptFrom(dragableGrid src) {
+    public void acceptFrom(draggableGrid src) {
         acceptFrom(src, e -> true);
     }
 
-    public void acceptFrom(dragableGrid src, Boolf<Element> filter) {
+    public void acceptFrom(draggableGrid src, Boolf<Element> filter) {
         acceptFrom(src, filter, e -> e);
     }
 
-    public void acceptFrom(dragableGrid src, Boolf<Element> filter, Func<Element, Element> transformer) {
+    public void acceptFrom(draggableGrid src, Boolf<Element> filter, Func<Element, Element> transformer) {
         if (src == this)
             return;
 
@@ -52,7 +55,7 @@ public class dragableGrid extends WidgetGroup {
         acceptFilter.put(src, filter);
     }
 
-    protected boolean accept(dragableGrid src, Element e) {
+    protected boolean accept(draggableGrid src, Element e) {
         var filter = acceptFilter.get(src);
         var transformer = acceptTransformer.get(src);
 
@@ -70,9 +73,9 @@ public class dragableGrid extends WidgetGroup {
         if (handle == null)
             return false;
 
-        e.removeListener(handle);
         e = transformer.get(e);
-        e.addListener(handle);
+        e.addListener(handle.clone(this));
+        handle.cancel();
         addChild(e);
 
         draggingElement = e;
@@ -82,18 +85,14 @@ public class dragableGrid extends WidgetGroup {
     }
 
     protected void processNewChild(Element e) {
-        for (var h : e.getListeners())
-            if (h instanceof dragEventHandle)
-                return;
-
+        e.getListeners().remove((Boolf<EventListener>) h -> h instanceof dragEventHandle);
         e.addListener(new dragEventHandle(this, e));
     }
 
     @Override
     public void layout() {
-        float cx, cy;
+        float cx = elementMargin, cy = getPrefHeight() - elementMargin;
         int cols = 0;
-        cx = cy = elementMargin;
 
         float realX = draggingElement == null ? 0f : draggingElement.x + draggingElement.translation.x;
         float realY = draggingElement == null ? 0f : draggingElement.y + draggingElement.translation.y;
@@ -127,7 +126,7 @@ public class dragableGrid extends WidgetGroup {
             order.add(e);
 
             if ((++ cols) % columns == 0) {
-                cy += elementHeight + elementMargin;
+                cy -= elementHeight + elementMargin;
                 cx = elementMargin;
             } else {
                 cx += elementWidth + elementMargin;
@@ -180,6 +179,19 @@ public class dragableGrid extends WidgetGroup {
     }
 
     @Override
+    public boolean removeChild(Element actor, boolean unfocus) {
+        actor.getListeners().remove((Boolf<EventListener>) h -> h instanceof dragEventHandle);
+        return super.removeChild(actor, unfocus);
+    }
+
+    @Override
+    public void clearChildren() {
+        for (var e : children)
+            e.getListeners().remove((Boolf<EventListener>) h -> h instanceof dragEventHandle);
+        super.clearChildren();
+    }
+
+    @Override
     public float getPrefWidth() {
         return 2f * elementMargin + columns * elementWidth;
     }
@@ -189,8 +201,24 @@ public class dragableGrid extends WidgetGroup {
         return 2f * elementMargin + Math.max(1f, (float) Math.ceil(children.size / (float) columns)) * elementHeight;
     }
 
+    public boolean isDraggable() {
+        return draggable;
+    }
+
     public boolean isDragging() {
         return draggingElement != null;
+    }
+
+    public void setDraggable(boolean draggable) {
+        this.draggable = draggable;
+        if (!draggable && activeDraggingHandle != null)
+            activeDraggingHandle.cancel();
+    }
+
+    public void cancelDrag() {
+        if (activeDraggingHandle == null)
+            return;
+        activeDraggingHandle.cancel();
     }
 
     public void modified(Runnable listener) {
@@ -200,27 +228,30 @@ public class dragableGrid extends WidgetGroup {
 
     public static class dragEventHandle extends InputListener {
 
-        private dragableGrid grid;
+        private draggableGrid grid;
         private Element e;
         private int dragPointer = -1;
         private KeyCode dragButton;
         private Vec2 tmp = new Vec2();
+        private InputEvent lastEvent;
         private Element lastTarget;
-        private dragableGrid lastPassTarget;
+        private draggableGrid lastPassTarget;
 
-        public dragEventHandle(dragableGrid parent, Element e) {
+        public dragEventHandle(draggableGrid parent, Element e) {
             grid = parent;
             this.e = e;
         }
 
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button) {
-            if (dragPointer != -1)
+            if (dragPointer != -1 || !grid.draggable)
                 return false;
 
             grid.draggingElement = e;
+            grid.activeDraggingHandle = this;
             dragPointer = pointer;
             dragButton = button;
+            lastEvent = event;
 
             e.toFront();
 
@@ -235,10 +266,11 @@ public class dragableGrid extends WidgetGroup {
 
             Element target = Core.scene.hit(x, y, true);
             if (lastTarget != target) {
-                for (dragableGrid e : grid.acceptFilter.keys()) {
+                for (draggableGrid e : grid.acceptFilter.keys()) {
                     if (target == e || target.isDescendantOf(e)) {
                         if (lastPassTarget != e && e.accept(grid, grid.draggingElement)) {
                             grid.draggingElement = null;
+                            grid.activeDraggingHandle = null;
                             grid.invalidate();
                             grid = e;
                             lastPassTarget = e;
@@ -260,13 +292,32 @@ public class dragableGrid extends WidgetGroup {
             if (pointer != dragPointer || button != dragButton)
                 return;
 
+            cancel();
+            for (var listener : grid.modifiedListeners)
+                listener.run();
+        }
+
+        public void cancel() {
+            if (dragPointer == -1)
+                return;
+
             dragPointer = -1;
             e.translation.setZero();
 
             grid.children.set(grid.order);
             grid.draggingElement = null;
-            for (var listener : grid.modifiedListeners)
-                listener.run();
+            grid.activeDraggingHandle = null;
+        }
+
+        public dragEventHandle clone(draggableGrid target) {
+            dragEventHandle res = new dragEventHandle(target, e);
+            if (dragPointer != -1) {
+                res.dragPointer = dragPointer;
+                res.dragButton = dragButton;
+                res.lastEvent = lastEvent;
+                Core.scene.addTouchFocus(res, e, lastEvent.targetActor, dragPointer, dragButton);
+            }
+            return res;
         }
     }
 }

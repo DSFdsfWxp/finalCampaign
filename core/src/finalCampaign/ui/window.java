@@ -27,6 +27,7 @@ public class window extends Table {
     private Label titleLabel;
     private Table titleButtons;
 
+    private boolean isShown;
     private Seq<Runnable> shownListeners, closedListeners;
     private Seq<Runnable> focusedListeners, bluredListeners;
 
@@ -43,6 +44,7 @@ public class window extends Table {
         this.icon = icon;
         this.title = title;
         movable = true;
+        isShown = false;
 
         setBackground(Tex.pane);
         color.a(0f);
@@ -132,6 +134,8 @@ public class window extends Table {
                         })
                 )
         );
+
+        isShown = true;
     }
 
     public void close() {
@@ -149,6 +153,8 @@ public class window extends Table {
                         Actions.run(() -> fire(closedListeners))
                 )
         );
+
+        isShown = false;
     }
 
     public void focus() {
@@ -187,27 +193,35 @@ public class window extends Table {
         );
     }
 
+    public boolean isShown() {
+        return isShown;
+    }
+
     private void fire(Seq<Runnable> listeners) {
         for (var r : listeners)
             r.run();
     }
 
-    public void addTitleBarButton(Drawable icon, Runnable handle) {
+    public void addTitleBarButton(Drawable icon, Boolf<Boolean> handle) {
         addTitleBarButton(icon, "", handle);
     }
 
-    public void addTitleBarButton(Drawable icon, Prov<Boolean> enabled, Runnable handle) {
+    public void addTitleBarButton(Drawable icon, Prov<Boolean> enabled, Boolf<Boolean> handle) {
         addTitleBarButton(icon, null, enabled, handle);
     }
 
-    public void addTitleBarButton(Drawable icon, String toolTip, Runnable handle) {
+    public void addTitleBarButton(Drawable icon, String toolTip, Boolf<Boolean> handle) {
         addTitleBarButton(icon, toolTip, () -> true, handle);
     }
 
-    public void addTitleBarButton(Drawable icon, String toolTip, Prov<Boolean> enabled, Runnable handle) {
-        var cell = titleButtons.button(icon, Styles.clearNoneTogglei, 48f, () -> {
+    public void addTitleBarButton(Drawable icon, String toolTip, Prov<Boolean> enabled, Boolf<Boolean> handle) {
+        ImageButton button = new ImageButton(icon, Styles.clearNoneTogglei);
+        var cell = titleButtons.add(button);
+
+        button.resizeImage(48f);
+        button.clicked(() -> {
             if (enabled.get())
-                handle.run();
+                button.setChecked(handle.get(button.isChecked()));
         });
 
         if (toolTip != null && !toolTip.isEmpty())

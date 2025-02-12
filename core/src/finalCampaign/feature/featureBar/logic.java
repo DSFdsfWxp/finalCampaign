@@ -1,9 +1,13 @@
 package finalCampaign.feature.featureBar;
 
+import arc.scene.*;
+import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import finalCampaign.event.*;
+import finalCampaign.feature.hudUI.*;
 import mindustry.*;
 import mindustry.core.*;
+import mindustry.game.*;
 import mindustry.input.*;
 
 public class logic {
@@ -28,10 +32,26 @@ public class logic {
         event.table.remove();
     }
 
-    public static void buildUI(fcInputHandleBuildUIEvent event) {
-        if (Vars.control.input instanceof MobileInput) {
-            for (int i = 0; i < 3; i++)
-                event.group.getChildren().pop();
-        }
+    public static void patchUI() {
+        var originalVisibility = fHudUI.fixedLayer.commandModeButtonArea.visibility;
+        fHudUI.fixedLayer.commandModeButtonArea.visibility = () -> !ui.bar.visible && Vars.control.input.commandMode && originalVisibility.get();
+    }
+
+    public static void stateChanged(EventType.StateChangeEvent event) {
+        if (event.from == GameState.State.menu && event.to != GameState.State.menu)
+            ui.setup();
+    }
+
+    public static void hudBuild(fcHudFragBuildEvent event) {
+        Table overlaymarker = event.parent.find("overlaymarker");
+        if (overlaymarker == null)
+            return;
+
+        Table buttons = overlaymarker.find("mobile buttons");
+        if (buttons == null)
+            return;
+
+        ImageButton schematics = buttons.find("schematics");
+
     }
 }
