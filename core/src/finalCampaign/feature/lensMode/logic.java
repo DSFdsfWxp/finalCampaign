@@ -1,4 +1,4 @@
-package finalCampaign.feature.freeVision;
+package finalCampaign.feature.lensMode;
 
 import arc.*;
 import arc.graphics.g2d.*;
@@ -17,7 +17,6 @@ import mindustry.input.*;
 import mindustry.type.*;
 import mindustry.world.blocks.*;
 
-
 public class logic {
     public static Teamc target;
     public static Teamc lastTarget;
@@ -29,6 +28,8 @@ public class logic {
     public static void updateState() {
         if (Vars.control.input instanceof DesktopInput di)
             input = di;
+        else
+            input = null;
 
         if (Vars.state.isMenu()) {
             target = lastTarget = null;
@@ -38,7 +39,7 @@ public class logic {
     }
 
     public static void drawOverSelect() {
-        if (!fFreeVision.isOn())
+        if (input == null || !fLensMode.autoTargeting)
             return;
 
         if(target != null && !Vars.state.isEditor()){
@@ -77,7 +78,7 @@ public class logic {
 
         float worldx = Core.input.mouseWorld(x, y).x, worldy = Core.input.mouseWorld(x, y).y;
 
-        if (fFreeVision.isOn()) {
+        if (input == null || !fLensMode.autoTargeting) {
             if(!Vars.player.dead()) {
                 checkTargets(worldx, worldy);
             }
@@ -89,6 +90,9 @@ public class logic {
     }
 
     public static void updateAfter() {
+        if (input == null)
+            return;
+
         boolean locked = input.locked();
         Unit spectating = null;
 
@@ -96,15 +100,15 @@ public class logic {
             spectating = Reflect.get(InputHandler.class, input, "spectating");
         } catch (Throwable ignore) {}
 
-        if (!locked && fFreeVision.isOn() && !input.panning) {
+        if (!locked && fLensMode.mode != fLensMode.lensMode.defaultCamera && !input.panning) {
             if (!Vars.player.dead() && spectating == null && !Vars.state.isPaused() && !Vars.ui.chatfrag.shown() && !Core.scene.hasField() && !Core.scene.hasDialog() && !Vars.ui.consolefrag.shown()) {
                 Core.camera.position.set(lastCameraPos);
 
                 // pan camera
                 float camSpeed = (
                         !Core.input.keyDown(fcBindings.boostCamera) ?
-                        (Core.input.keyDown(fcBindings.slowCamera) ? input.panSpeed * 2f - input.panBoostSpeed : input.panSpeed) :
-                        input.panBoostSpeed
+                                (Core.input.keyDown(fcBindings.slowCamera) ? input.panSpeed * 2f - input.panBoostSpeed : input.panSpeed) :
+                                input.panBoostSpeed
                 ) * Time.delta;
                 Core.camera.position.add(Tmp.v1.setZero().add(Core.input.axis(Binding.move_x), Core.input.axis(Binding.move_y)).nor().scl(camSpeed));
             }
@@ -119,7 +123,7 @@ public class logic {
 
     // code from MobileInputHandle, modified.
     public static void updateMovement(Unit unit) {
-        if (!fFreeVision.isOn())
+        if (input == null)
             return;
 
         UnitType type = unit.type;
@@ -172,9 +176,9 @@ public class logic {
         if(!Vars.player.unit().activelyBuilding() && Vars.player.unit().mineTile == null){
 
             //autofire targeting
-            if (target == null) {
+            if (fLensMode.autoTargeting && target == null) {
                 //Vars.player.shooting = shouldShoot;
-                if (!(Vars.player.unit() instanceof BlockUnitUnit u && u.tile() instanceof ControlBlock c && !c.shouldAutoTarget()) && fFreeVision.autoTargetingEnabled()) {
+                if (!(Vars.player.unit() instanceof BlockUnitUnit u && u.tile() instanceof ControlBlock c && !c.shouldAutoTarget())) {
                     if (Vars.player.unit().type.canAttack) {
                         target = Units.closestTarget(unit.team, unit.x, unit.y, range, (u) -> u.checkTarget(type.targetAir, type.targetGround), (u) -> type.targetGround);
                     }

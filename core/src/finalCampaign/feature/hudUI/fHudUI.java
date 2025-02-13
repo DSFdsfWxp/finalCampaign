@@ -1,5 +1,7 @@
 package finalCampaign.feature.hudUI;
 
+import arc.func.*;
+import finalCampaign.feature.featureBar.*;
 import mindustry.*;
 
 public class fHudUI {
@@ -24,5 +26,17 @@ public class fHudUI {
     public static void lateLoad() {
         fixedLayer.setup(Vars.ui.hudGroup);
         windowLayer.setup(Vars.ui.hudGroup);
+
+        rebuildFixedLayer();
+    }
+
+    public static void rebuildFixedLayer() {
+        // bottom left
+        {
+            fixedLayer.bottomLeft.clear();
+
+            fFeatureBar.buildUI();
+            fixedLayer.bottomLeft.row();
+        }
     }
 }

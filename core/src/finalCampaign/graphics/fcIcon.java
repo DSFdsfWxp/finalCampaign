@@ -3,7 +3,7 @@ package finalCampaign.graphics;
 import arc.scene.style.*;
 import finalCampaign.atlas;
 
-public class icons {
+public class fcIcon {
     public static TextureRegionDrawable health;
     public static TextureRegionDrawable ammoReload;
     public static TextureRegionDrawable battery;
@@ -17,6 +17,10 @@ public class icons {
     public static TextureRegionDrawable power;
     public static TextureRegionDrawable shields;
     public static TextureRegionDrawable totalItem;
+    public static TextureRegionDrawable defaultCamera;
+    public static TextureRegionDrawable followCamera;
+    public static TextureRegionDrawable freeCamera;
+    public static TextureRegionDrawable target;
 
     public static void load() {
         health = new TextureRegionDrawable(atlas.find("icon-health"));
@@ -32,5 +36,9 @@ public class icons {
         power = new TextureRegionDrawable(atlas.find("icon-power"));
         shields = new TextureRegionDrawable(atlas.find("icon-shields"));
         totalItem = new TextureRegionDrawable(atlas.find("icon-totalItem"));
+        defaultCamera = new TextureRegionDrawable(atlas.find("icon-defaultCamera"));
+        followCamera = new TextureRegionDrawable(atlas.find("icon-followCamera"));
+        freeCamera = new TextureRegionDrawable(atlas.find("icon-freeCamera"));
+        target = new TextureRegionDrawable(atlas.find("icon-target"));
     }
 }

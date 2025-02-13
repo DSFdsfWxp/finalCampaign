@@ -101,4 +101,12 @@ public class hudWindowLayer {
         if (window == focusedWindow)
             focusWindow(children.size > 0 ? (window) children.peek() : null);
     }
+
+    public void resetWindowPosition(window window) {
+        if (window.isShown())
+            window.close();
+
+        setting.remove("hudUI.windowLayer." + window.name + ".position.x");
+        setting.remove("hudUI.windowLayer." + window.name + ".position.y");
+    }
 }

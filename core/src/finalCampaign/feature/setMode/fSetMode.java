@@ -92,6 +92,8 @@ public class fSetMode {
         fcInputHook.installHook(inputHookPoint.tapped, fSetMode::keyHook);
         fcInputHook.installHook(inputHookPoint.released, fSetMode::keyHook);
 
+        featureBarButton.register();
+
         Events.on(StateChangeEvent.class, e -> {
             if (e.to == State.menu) {
                 selected.clear();
@@ -109,8 +111,7 @@ public class fSetMode {
             if (Core.scene.hasDialog() || Core.scene.hasField()) return;
 
             if (Core.input.keyTap(fcBindings.setMode)) {
-                isOn = !isOn;
-                if (isOn) frag.rebuild();
+                toggle();
             }
 
             if (Vars.control.input.commandMode || Vars.ui.minimapfrag.shown()) isOn = false;
@@ -322,6 +323,19 @@ public class fSetMode {
 
     public static boolean isOn() {
         return isOn && enabled;
+    }
+
+    public static boolean isEnabled() {
+        return enabled;
+    }
+
+    public static void toggle() {
+        if (!enabled)
+            return;
+
+        isOn = !isOn;
+        if (isOn) frag.rebuild();
+        featureBarButton.button.setChecked(isOn);
     }
 
     private static boolean keyHook(KeyCode code, boolean v) {

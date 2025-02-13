@@ -90,6 +90,12 @@ public class tunerPane extends Table {
                 if (type.equals(fTuner.contentChooser.class)) contentSetting(fieldName);
             }
 
+            for (Method method : config.getClass().getDeclaredMethods()) {
+                if (!Modifier.isPublic(method.getModifiers()) || method.getParameterCount() > 0)
+                    continue;
+                action(method.getName());
+            }
+
             content.button(bundle.get("reset"), () -> {
                 load(true);
                 rebuild();
@@ -330,6 +336,11 @@ public class tunerPane extends Table {
                     save();
                 });
             }).width(600f).padTop(8f).row();
+        }
+
+        public void action(String name) {
+            content.button(bundle.get("tuner." + superName + "." + name + ".name"), () -> Reflect.invoke(config, name))
+                    .padTop(8f).width(200f).row();
         }
     }
 }

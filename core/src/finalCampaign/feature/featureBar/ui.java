@@ -1,5 +1,6 @@
 package finalCampaign.feature.featureBar;
 
+import arc.func.*;
 import arc.input.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
@@ -26,7 +27,7 @@ public class ui {
 
     public static void init() {
         bar = new Table(Tex.pane);
-        fHudUI.fixedLayer.bottomLeft.add(bar).pad(4f).padRight(0f).marginLeft(-4f).marginBottom(-4f).row();
+        bar.visible(() -> fFeatureBar.enabled);
         bar.update(ui::updateBar);
 
         moreWindow = new window(Icon.menu, bundle.get("featureBar.more.title.normal"));
@@ -47,9 +48,15 @@ public class ui {
         moreWindowEditing = false;
     }
 
+    public static void buildBarUI() {
+        fHudUI.fixedLayer.bottomLeft.add(bar).pad(4f).padRight(0f).marginLeft(-4f).marginBottom(-4f);
+    }
+
     public static void setup() {
         updateButtonValid();
         rebuildBar();
+        if (moreWindow.isShown())
+            rebuildWindow();
     }
 
     public static Cell<ImageButton> buildMoreWindowToggleButton(Table parent, ImageButton.ImageButtonStyle style, float size) {
@@ -59,7 +66,8 @@ public class ui {
             }
             else {
                 rebuildWindow();
-                fHudUI.windowLayer.showWindow(moreWindow, true);
+                moreWindow.setPosition(Scl.scl(4f), bar.getHeight() + Scl.scl(4f));
+                fHudUI.windowLayer.showWindow(moreWindow, fFeatureBar.config.rememberMoreWindowPosition);
             }
         }).update(ib -> ib.setChecked(moreWindow.isShown()));
     }
@@ -111,6 +119,10 @@ public class ui {
                 }
             }
 
+            for (var child : otherButtons.getChildren())
+                if (child instanceof fFeatureBar.featureImageButton fib)
+                    fib.getFeatureButton().setShowIndexOnBar(-1);
+
             rebuildBar();
         };
 
@@ -121,7 +133,7 @@ public class ui {
         onBarButtons.modified(updateOnBarButtonOrder);
         otherButtons.modified(updateOnBarButtonOrder);
 
-        for (var button : buttons) {
+        Cons2<draggableGrid, fFeatureBar.featureButton> processButton = (grid, button) -> {
             if (button.isValid() || moreWindowEditing) {
                 ImageButton ib = button.buildButton();
                 ib.resizeImage(48f);
@@ -138,11 +150,18 @@ public class ui {
                     updateOnBarButtonOrder.run();
                 });
 
-                if (button.isShownOnBar())
-                    onBarButtons.addChild(ib);
-                else
-                    otherButtons.addChild(ib);
+                grid.addChild(ib);
             }
+        };
+
+        for (var button : shownOnBarButtonOrder) {
+            if (button != null)
+                processButton.get(onBarButtons, button);
+        }
+
+        for (var button : buttons) {
+            if (!button.isShownOnBar())
+                processButton.get(otherButtons, button);
         }
 
         if (Vars.mobile) {
@@ -180,19 +199,23 @@ public class ui {
     }
 
     private static void updateWindow() {
-        if (moreWindowEditing)
+        if (!fFeatureBar.enabled && moreWindow.isShown()) {
+            moreWindow.close();
             return;
-
-        boolean needRebuild = false;
-
-        for (var button : buttons) {
-            if (button.isValid() != lastValidButtonMap.get(button)) {
-                needRebuild = true;
-                break;
-            }
         }
 
-        if (needRebuild)
-            rebuildWindow();
+        if (!moreWindowEditing) {
+            boolean needRebuild = false;
+
+            for (var button : buttons) {
+                if (button.isValid() != lastValidButtonMap.get(button)) {
+                    needRebuild = true;
+                    break;
+                }
+            }
+
+            if (needRebuild)
+                rebuildWindow();
+        }
     }
 }

@@ -77,11 +77,11 @@ public class finalCampaign extends Mod {
         features.load(Vars.headless ? features.featureLoadPhase.early : features.featureLoadPhase.late);
 
         if (!Vars.headless) {
-            shaders.load();
+            fcShaders.load();
             atlas.load();
-            icons.load();
-            outlineIcons.load();
-            Events.on(ClientLoadEvent.class, e -> outlineIcons.generate());
+            fcIcon.load();
+            fcOutlineIcon.load();
+            Events.on(ClientLoadEvent.class, e -> fcOutlineIcon.generate());
         }
     }
 

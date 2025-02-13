@@ -14,8 +14,8 @@ public class fcDrawf {
         if (buffToUse == null)
             buffToUse = Buffers.newByteBuffer(crossWidth * crossHeight * 4);
 
-        shaders.crosshair.a = colorAlpha;
-        Draw.shader(shaders.crosshair);
+        fcShaders.crosshair.a = colorAlpha;
+        Draw.shader(fcShaders.crosshair);
 
         int tx = (int)(cx - crossHeight / 2f);
         int ty = (int)(cy - crossWidth / 2f);

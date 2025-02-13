@@ -202,16 +202,44 @@ public class window extends Table {
             r.run();
     }
 
+    public void addTitleBarButton(Drawable icon, Runnable handle) {
+        addTitleBarButton(icon, "", v -> {
+            handle.run();
+            return false;
+        });
+    }
+
     public void addTitleBarButton(Drawable icon, Boolf<Boolean> handle) {
         addTitleBarButton(icon, "", handle);
+    }
+
+    public void addTitleBarButton(Drawable icon, Prov<Boolean> enabled, Runnable handle) {
+        addTitleBarButton(icon, null, enabled, v -> {
+            handle.run();
+            return false;
+        });
     }
 
     public void addTitleBarButton(Drawable icon, Prov<Boolean> enabled, Boolf<Boolean> handle) {
         addTitleBarButton(icon, null, enabled, handle);
     }
 
+    public void addTitleBarButton(Drawable icon, String toolTip, Runnable handle) {
+        addTitleBarButton(icon, toolTip, () -> true, v -> {
+            handle.run();
+            return false;
+        });
+    }
+
     public void addTitleBarButton(Drawable icon, String toolTip, Boolf<Boolean> handle) {
         addTitleBarButton(icon, toolTip, () -> true, handle);
+    }
+
+    public void addTitleBarButton(Drawable icon, String toolTip, Prov<Boolean> enabled, Runnable handle) {
+        addTitleBarButton(icon, toolTip, enabled, v -> {
+            handle.run();
+            return false;
+        });
     }
 
     public void addTitleBarButton(Drawable icon, String toolTip, Prov<Boolean> enabled, Boolf<Boolean> handle) {

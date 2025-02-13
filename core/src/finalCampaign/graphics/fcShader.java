@@ -5,9 +5,9 @@ import arc.graphics.gl.*;
 import finalCampaign.*;
 import mindustry.graphics.*;
 
-public class shader extends Shader {
+public class fcShader extends Shader {
 
-    public shader(String vertexShaderName, String fragmentShaderName) {
+    public fcShader(String vertexShaderName, String fragmentShaderName) {
         super(getShaderFi(vertexShaderName + ".vert"), getShaderFi(fragmentShaderName + ".frag"));
     }
 

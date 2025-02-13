@@ -11,7 +11,7 @@ import mindustry.ctype.*;
 import mindustry.graphics.*;
 import mindustry.graphics.MultiPacker.*;
 
-public class outlineIcons {
+public class fcOutlineIcon {
     public static TextureRegionDrawable health;
     public static TextureRegionDrawable ammoReload;
     public static TextureRegionDrawable battery;
@@ -25,6 +25,10 @@ public class outlineIcons {
     public static TextureRegionDrawable power;
     public static TextureRegionDrawable shields;
     public static TextureRegionDrawable totalItem;
+    public static TextureRegionDrawable defaultCamera;
+    public static TextureRegionDrawable followCamera;
+    public static TextureRegionDrawable freeCamera;
+    public static TextureRegionDrawable target;
 
     public static void load() {
         health = new TextureRegionDrawable(atlas.find("icon-health-outline"));
@@ -40,6 +44,10 @@ public class outlineIcons {
         power = new TextureRegionDrawable(atlas.find("icon-power-outline"));
         shields = new TextureRegionDrawable(atlas.find("icon-shields-outline"));
         totalItem = new TextureRegionDrawable(atlas.find("icon-totalItem-outline"));
+        defaultCamera = new TextureRegionDrawable(atlas.find("icon-defaultCamera-outline"));
+        followCamera = new TextureRegionDrawable(atlas.find("icon-followCamera-outline"));
+        freeCamera = new TextureRegionDrawable(atlas.find("icon-freeCamera-outline"));
+        target = new TextureRegionDrawable(atlas.find("icon-target-outline"));
     }
 
     public static void generate() {

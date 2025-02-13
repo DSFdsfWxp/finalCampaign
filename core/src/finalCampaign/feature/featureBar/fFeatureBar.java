@@ -8,23 +8,53 @@ import arc.scene.ui.*;
 import arc.struct.*;
 import finalCampaign.*;
 import finalCampaign.event.*;
+import finalCampaign.feature.featureBar.shortcut.*;
+import finalCampaign.feature.hudUI.*;
+import finalCampaign.feature.tuner.*;
 import finalCampaign.ui.*;
 import mindustry.*;
+import mindustry.core.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.input.*;
 import mindustry.ui.*;
 
 public class fFeatureBar {
+
+    protected static tunerConfig config;
+    protected static boolean enabled;
 
     public static boolean supported() {
         return !Vars.headless;
     }
 
+    public static void earlyInit() {
+        config = new tunerConfig();
+    }
+
     public static void lateLoad() {
         Events.on(EventType.StateChangeEvent.class, logic::stateChanged);
-        logic.patchUI();
         ui.init();
+
+        enabled = fTuner.add("featureBar", false, config, v -> {
+            if (enabled == v)
+                return;
+
+            fHudUI.rebuildFixedLayer();
+            if (v)
+                logic.patchHudUI();
+            else
+                logic.restoreHudUI();
+
+            enabled = v;
+        });
+
+        if (!enabled)
+            logic.restoreHudUI();
+
+        registerShortcuts();
+        setDefaultOnBarButtons();
     }
 
     public static void earlyLoad() {
@@ -33,8 +63,58 @@ public class fFeatureBar {
 
     public static void registerFetureButton(featureButton button) {
         ui.buttons.add(button);
+
+        if (Vars.state != null && Vars.state.getState() != GameState.State.menu)
+            ui.setup();
     }
 
+    public static boolean isEnabled() {
+        return enabled;
+    }
+
+    public static void buildUI() {
+        Vars.control.setInput(Core.settings.getBool("keyboard", false) || !Vars.mobile ? new DesktopInput() : new MobileInput());
+
+        if (enabled)
+            ui.buildBarUI();
+    }
+
+    private static void registerShortcuts() {
+        commandMode.register();
+        coreDatabase.register();
+        schematics.register();
+        techTree.register();
+    }
+
+    private static void setDefaultOnBarButtons() {
+        if (setting.getAndCast("featureBar.defaultOnBarButtons", false))
+            return;
+
+        Cons2<String, Integer> setShowIndexOnBar = (name, index) -> {
+            setting.put("featureBar." + name + ".showOnBar", index);
+        };
+
+        if (Vars.mobile) {
+            commandMode.button.setShowIndexOnBar(0);
+            setShowIndexOnBar.get("setMode", 1);
+            schematics.button.setShowIndexOnBar(2);
+        } else {
+            schematics.button.setShowIndexOnBar(0);
+            coreDatabase.button.setShowIndexOnBar(1);
+            setShowIndexOnBar.get("setMode", 2);
+        }
+
+        setting.put("featureBar.defaultOnBarButtons", true);
+    }
+
+
+    public static class tunerConfig {
+        boolean rememberMoreWindowPosition = true;
+
+        public void resetMoreWindowPosition() {
+            fHudUI.windowLayer.resetWindowPosition(ui.moreWindow);
+        }
+    }
 
     public static class actionFeatureButton extends featureButton {
 
@@ -54,7 +134,7 @@ public class fFeatureBar {
         }
 
         @Override
-        public void actionHandle(ImageButton button) {
+        protected void actionHandle(ImageButton button) {
             handle.run();
         }
     }
@@ -77,7 +157,7 @@ public class fFeatureBar {
         }
 
         @Override
-        public void actionHandle(ImageButton button) {
+        protected void actionHandle(ImageButton button) {
             if (toggleHandle.get())
                 toggleChecked(false);
         }
@@ -121,7 +201,7 @@ public class fFeatureBar {
         }
 
         @Override
-        public void actionHandle(ImageButton button) {
+        protected void actionHandle(ImageButton button) {
             if (button == null)
                 return;
 
@@ -241,16 +321,15 @@ public class fFeatureBar {
                 t.left();
                 t.background(Tex.button);
                 t.add(bundle.get("featureBar." + this.getName() + ".name")).update(l -> {
-                    // process hidden here
                     l.setColor(isValid() ? Pal.accent : Color.red);
                 }).row();
-                t.label(() -> toolTipDesc).color(Color.lightGray);
+                t.label(() -> valid.get() ? toolTipDesc : bundle.get("featureBar." + this.getName() + ".invalid", "featureBar.invalid")).color(Color.lightGray);
             }));
 
             return button;
         }
 
-        public abstract void actionHandle(ImageButton button);
+        protected abstract void actionHandle(ImageButton button);
     }
 
     public static class featureImageButton extends ImageButton {

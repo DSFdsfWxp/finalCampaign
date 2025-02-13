@@ -1,13 +1,13 @@
 package finalCampaign.graphics;
 
-public class shaders {
+public class fcShaders {
     public static crosshairShader crosshair;
 
     public static void load() {
         crosshair = new crosshairShader();
     }
 
-    public static class crosshairShader extends shader {
+    public static class crosshairShader extends fcShader {
         public float a = 1f;
 
         public crosshairShader() {

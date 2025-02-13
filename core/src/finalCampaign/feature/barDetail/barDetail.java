@@ -24,20 +24,20 @@ public class barDetail {
         if (name.equals("health")) {
             return b -> new fakeBar(new detailBar(b.maxHealth, 
                                                   () -> b.health, 
-                                                  outlineIcons.health, 
+                                                  fcOutlineIcon.health,
                                                   Core.bundle.get("stat.health"), 
                                                   Pal.health)).blink(Color.white);
         } else if (name.startsWith("liquid-")) {
             Liquid liquid = Vars.content.liquid(name.substring(7));
             return b -> new fakeBar(new detailBar(b.block.liquidCapacity, 
                                                   () -> b.liquids.get(liquid), 
-                                                  outlineIcons.findDrawable(liquid), 
+                                                  fcOutlineIcon.findDrawable(liquid),
                                                   liquid.localizedName, 
                                                   liquid.color));
         } else if (name.equals("items")) {
             return b -> new fakeBar(new detailBar(b.block.itemCapacity, 
                                                   () -> (float)b.items.total(), 
-                                                  outlineIcons.totalItem, 
+                                                  fcOutlineIcon.totalItem,
                                                   bundle.get("bar.totalItem"), 
                                                   Pal.items));
         } else if (name.equals("drillspeed")) {
@@ -48,7 +48,7 @@ public class barDetail {
                     var target = db.fcDrillTarget();
                     return new fakeBar(new detailBar(Float.NaN, 
                                                      () -> b.status() == BlockStatus.active ? db.fcCalcDrillSpeed(target, output.get(target, 0)) / 60f : 0f,
-                                                     outlineIcons.findDrawable(target),
+                                                     fcOutlineIcon.findDrawable(target),
                                                      bundle.get("bar.drillspeed"),
                                                      target.color));
                 };
@@ -57,7 +57,7 @@ public class barDetail {
             if (block instanceof CoreBlock) {
                 return b -> new fakeBar(new detailBar(((float)((CoreBuild) b).storageCapacity * Vars.content.items().count(UnlockableContent::unlockedNow)),
                                                       () -> b.items.total(),
-                                                      outlineIcons.totalItem,
+                                                      fcOutlineIcon.totalItem,
                                                       bundle.get("bar.capacity"),
                                                       Pal.items));
             }

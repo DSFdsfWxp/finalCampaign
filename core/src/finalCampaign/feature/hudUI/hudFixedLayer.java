@@ -1,6 +1,7 @@
 package finalCampaign.feature.hudUI;
 
 import arc.*;
+import arc.func.*;
 import arc.math.*;
 import arc.scene.*;
 import arc.scene.ui.layout.*;
@@ -40,6 +41,7 @@ public class hudFixedLayer {
 
         layer = new Table();
         layer.name = "fcHudUIFixedLayer";
+        layer.visible(() -> Vars.ui.hudfrag.shown);
 
         layer.table(u -> {
             topArea = u;
@@ -176,6 +178,11 @@ public class hudFixedLayer {
         parent.addChild(layer);
     }
 
+    public void appendVisibility(Table target, Boolp v) {
+        var original = target.visibility;
+        target.visibility = () -> original.get() && v.get();
+    }
+
     private void buildPlacementUI(fcInputHandleBuildPlacementUIEvent event) {
         if (!(Vars.control.input instanceof DesktopInput))
             return;
@@ -207,15 +214,29 @@ public class hudFixedLayer {
             commandModeButtonArea = (Table) event.group.getChildren().pop();
             buildingCancelButtonArea = (Table) event.group.getChildren().pop();
 
-            var cancelButton = buildingCancelButtonArea.getChildren().pop();
-            Cell<Table> phc = buildingCancelButtonArea.table();
-            buildingCancelButtonArea.row();
-            buildingCancelButtonArea.add(cancelButton);
 
-            phc.update(pht -> {
-                float dst = bottomLeft.getPrefHeight() / Scl.scl();
-                updateHeight(phc, dst);
-            });
+            {
+                var cancelButton = buildingCancelButtonArea.getChildren().pop();
+                Cell<Table> phc = buildingCancelButtonArea.table();
+                buildingCancelButtonArea.row();
+                buildingCancelButtonArea.add(cancelButton);
+
+                phc.update(pht -> {
+                    float dst = bottomLeft.getPrefHeight() / Scl.scl();
+                    updateHeight(phc, dst);
+                });
+            }
+
+            {
+                var originalVisibility = commandModeButtonArea.visibility;
+                commandModeButtonArea.visibility = () -> Vars.control.input.commandMode && originalVisibility.get();
+                appendVisibility(bottomLeft, commandModeButtonArea.visibility);
+            }
+
+            {
+                appendVisibility(bottomLeft, schematicControlArea.visibility);
+            }
+
 
             event.group.getChildren().add(buildingCancelButtonArea);
             event.group.getChildren().add(commandModeButtonArea);

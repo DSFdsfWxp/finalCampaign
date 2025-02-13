@@ -51,8 +51,8 @@ public class crosshairFragment extends fragment {
         final float cX = (layout.getSceneWidth() - this.x) / 2f;
         
         if (fCrosshair.isInvertColor()) {
-            shaders.crosshair.a = color.a;
-            Draw.shader(shaders.crosshair);
+            fcShaders.crosshair.a = color.a;
+            Draw.shader(fcShaders.crosshair);
         } else {
             Color customColor = fCrosshair.color();
             Draw.color(customColor.cpy().a(customColor.a * color.a));
