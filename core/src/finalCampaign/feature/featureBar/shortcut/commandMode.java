@@ -17,7 +17,7 @@ public class commandMode {
         });
 
         Events.on(fcInputHandleUpdateEvent.class, event -> {
-            if (!event.atHead)
+            if (!event.beforeUpdate)
                 button.setChecked(Vars.control.input.commandMode);
         });
 

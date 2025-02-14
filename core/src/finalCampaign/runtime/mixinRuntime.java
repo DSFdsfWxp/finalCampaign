@@ -138,7 +138,7 @@ public class mixinRuntime implements IRuntime {
     }
 
     @Override
-    public void startupInstall() throws Exception {
+    public void startupInstall() {
         Fi modPlaceholder = Vars.modDirectory.child("finalCampaign.jar");
         if (!modPlaceholder.exists())
             modPlaceholder.writeString("NOTICE: This file is a placeholder for finalCampaign mod. ");

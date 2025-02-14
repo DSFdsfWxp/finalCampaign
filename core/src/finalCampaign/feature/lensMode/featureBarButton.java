@@ -14,9 +14,10 @@ public class featureBarButton {
         button.setValid(() -> fLensMode.enabled);
 
         button.addSelection(fcIcon.defaultCamera, "defaultCamera", () -> switchMode(fLensMode.lensMode.defaultCamera));
-        button.addSelection(fcIcon.followCamera, "defaultCamera", () -> switchMode(fLensMode.lensMode.followCamera));
-        button.addSelection(fcIcon.freeCamera, "defaultCamera", () -> switchMode(fLensMode.lensMode.freeCamera));
+        button.addSelection(fcIcon.followCamera, "followCamera", () -> switchMode(fLensMode.lensMode.followCamera));
+        button.addSelection(fcIcon.freeCamera, "freeCamera", () -> switchMode(fLensMode.lensMode.freeCamera));
 
+        button.setCurrentSelection(fLensMode.mode.name());
         fFeatureBar.registerFetureButton(button);
     }
 

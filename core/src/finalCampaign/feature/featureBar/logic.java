@@ -35,7 +35,7 @@ public class logic {
         blocksCell.get().invalidate();
         parent.invalidate();
 
-        event.table.remove();
+        event.table.clear();
     }
 
     public static void stateChanged(EventType.StateChangeEvent event) {

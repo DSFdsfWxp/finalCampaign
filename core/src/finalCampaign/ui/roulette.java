@@ -12,6 +12,7 @@ import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
+import arc.util.*;
 import finalCampaign.*;
 
 public class roulette extends Table {
@@ -35,6 +36,8 @@ public class roulette extends Table {
         mouse = new Vec2();
         touchable = Touchable.enabled;
         setSize(Scl.scl(Mathf.round(Math.min(Core.graphics.getHeight(), Core.graphics.getWidth()) * 0.1778f)));
+        setTransform(true);
+        setOrigin(Align.center);
     }
 
     public void setUsingFourSlot(boolean v) {
@@ -81,13 +84,6 @@ public class roulette extends Table {
         }
 
         needToLayout = false;
-    }
-
-    @Override
-    public void act(float delta) {
-        super.act(delta);
-        x = mouse.x - width / 2f;
-        y = mouse.y - width / 2f;
     }
 
     @Override

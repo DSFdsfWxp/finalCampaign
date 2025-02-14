@@ -47,13 +47,16 @@ public class fcInputHook {
         return hooker.fcRealIsReleased(code);
     }
 
-    public static float getRealAxis(KeyBind bind) {
-        KeyCode code = Core.keybinds.get(bind).key;
-        return code != null ? getRealAxis(code) : 0f;
-    }
-
     public static float getRealAxis(KeyCode code) {
         return hooker.fcGetRealAxis(code);
+    }
+
+    public static float getRealAxis(KeyBind bind) {
+        Axis axis = Core.keybinds.get(bind);
+        return axis.key != null ? getRealAxis(axis.key) :
+                realIsPressed(axis.max) && realIsPressed(axis.min) ? 0f :
+                        realIsPressed(axis.max) ? 1f :
+                                realIsPressed(axis.min) ? -1f : 0f;
     }
 
     public static enum inputHookPoint {

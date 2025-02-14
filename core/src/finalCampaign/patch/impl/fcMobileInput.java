@@ -63,19 +63,27 @@ public abstract class fcMobileInput {
 
     @Inject(method = "update", at = @At("HEAD"), remap = false)
     private void fcUpdateHead(CallbackInfo ci) {
-        updateEvent.atHead = true;
+        updateEvent.beforeUpdate = true;
         Events.fire(updateEvent);
     }
 
     @Inject(method = "update", at = @At("RETURN"), remap = false)
     private void fcUpdateReturn(CallbackInfo ci) {
-        updateEvent.atHead = false;
+        updateEvent.beforeUpdate = false;
         Events.fire(updateEvent);
     }
 
-    @Inject(method = "updateMovement", at = @At("RETURN"), remap = false)
-    private void fcUpdateMovement(Unit unit, CallbackInfo ci) {
+    @Inject(method = "updateMovement", at = @At("HEAD"), remap = false)
+    private void fcUpdateMovementBefore(Unit unit, CallbackInfo ci) {
         updateMovementEvent.unit = unit;
+        updateMovementEvent.beforeUpdate = true;
+        Events.fire(updateMovementEvent);
+    }
+
+    @Inject(method = "updateMovement", at = @At("RETURN"), remap = false)
+    private void fcUpdateMovementReturn(Unit unit, CallbackInfo ci) {
+        updateMovementEvent.unit = unit;
+        updateMovementEvent.beforeUpdate = false;
         Events.fire(updateMovementEvent);
     }
 

@@ -59,12 +59,12 @@ public class standAloneRuntime implements IRuntime {
     }
 
     @Override
-    public void install(Fi mod) throws Exception {
+    public void install(Fi mod) throws RuntimeException {
         throw new RuntimeException(bundle.get("installer.androidUpdateNotice"));
     }
 
     @Override
-    public void startupInstall() throws Exception {
+    public void startupInstall() {
         ZipFi gameJarZip = new ZipFi(gameJar);
         Fi modFile = Vars.modDirectory.child("finalCampaign.jar");
         Fi modAssetsFile = gameJarZip.child("fcStandAloneMod.jar");

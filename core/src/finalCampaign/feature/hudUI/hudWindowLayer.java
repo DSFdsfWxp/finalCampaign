@@ -21,7 +21,7 @@ public class hudWindowLayer {
         parent.addChild(layer);
 
         Events.on(fcInputHandleUpdateEvent.class, e -> {
-            if (e.atHead)
+            if (e.beforeUpdate)
                 return;
 
             if (Core.input.keyDown(KeyCode.mouseLeft)) {

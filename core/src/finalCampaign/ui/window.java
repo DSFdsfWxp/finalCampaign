@@ -9,6 +9,7 @@ import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
+import arc.util.*;
 import finalCampaign.*;
 import finalCampaign.ui.action.*;
 import finalCampaign.ui.event.*;
@@ -47,6 +48,8 @@ public class window extends Table {
         isShown = false;
 
         setBackground(Tex.pane);
+        setTransform(true);
+        setOrigin(Align.center);
         color.a(0f);
 
         table(titleBar -> {
@@ -125,8 +128,7 @@ public class window extends Table {
                 Actions.sequence(
                         Actions.parallel(
                                 Actions.scaleTo(1f, 1f, 0.4f),
-                                Actions.fadeIn(0.4f),
-                                fcActions.keepCenter(0.4f)
+                                Actions.fadeIn(0.4f)
                         ),
                         Actions.run(() -> {
                             touchable = Touchable.enabled;
@@ -147,8 +149,7 @@ public class window extends Table {
                         Actions.run(() -> touchable = Touchable.disabled),
                         Actions.parallel(
                                 Actions.scaleTo(0.8f, 0.8f, 0.4f),
-                                Actions.fadeOut(0.4f),
-                                fcActions.keepCenter(0.4f)
+                                Actions.fadeOut(0.4f)
                         ),
                         Actions.run(() -> fire(closedListeners))
                 )

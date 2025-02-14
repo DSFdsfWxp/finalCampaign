@@ -33,7 +33,7 @@ public class fFreeVision {
 
     public static void lateLoad() throws Exception {
         Events.on(fcInputHandleUpdateEvent.class, e -> {
-            if (e.atHead) {
+            if (e.beforeUpdate) {
                 logic.updateBefore();
             } else {
                 checkOnOff();
