@@ -93,6 +93,7 @@ public class fSetMode {
         fcInputHook.installHook(inputHookPoint.released, fSetMode::keyHook);
 
         featureBarButton.register();
+        switchButton.setup();
 
         Events.on(StateChangeEvent.class, e -> {
             if (e.to == State.menu) {
@@ -120,6 +121,8 @@ public class fSetMode {
             if (isOn) {
                 Vars.control.input.block = null;
                 Vars.control.input.selectPlans.clear();
+                if (Vars.control.input instanceof MobileInput mi)
+                    mi.mode = PlaceMode.none;
             }
 
             if (fcInputHook.realIsPressed(KeyCode.mouseLeft) && isOn) {

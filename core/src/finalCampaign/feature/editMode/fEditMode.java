@@ -1,7 +1,6 @@
 package finalCampaign.feature.editMode;
 
 import arc.*;
-import arc.util.*;
 import finalCampaign.event.*;
 import finalCampaign.feature.tuner.*;
 import mindustry.*;
@@ -24,7 +23,7 @@ public class fEditMode {
     }
 
     public static boolean supported() {
-        return OS.isAndroid;
+        return Vars.mobile;
     }
 
     public static void lateInit() {

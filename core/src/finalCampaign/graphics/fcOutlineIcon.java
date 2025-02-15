@@ -29,6 +29,7 @@ public class fcOutlineIcon {
     public static TextureRegionDrawable followCamera;
     public static TextureRegionDrawable freeCamera;
     public static TextureRegionDrawable target;
+    public static TextureRegionDrawable roamingBuild;
 
     public static void load() {
         health = new TextureRegionDrawable(atlas.find("icon-health-outline"));
@@ -48,6 +49,7 @@ public class fcOutlineIcon {
         followCamera = new TextureRegionDrawable(atlas.find("icon-followCamera-outline"));
         freeCamera = new TextureRegionDrawable(atlas.find("icon-freeCamera-outline"));
         target = new TextureRegionDrawable(atlas.find("icon-target-outline"));
+        roamingBuild = new TextureRegionDrawable(atlas.find("icon-roamingBuild-outline"));
     }
 
     public static void generate() {

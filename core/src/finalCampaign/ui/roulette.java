@@ -1,6 +1,7 @@
 package finalCampaign.ui;
 
 import arc.*;
+import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.input.*;
@@ -12,32 +13,45 @@ import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
-import arc.util.*;
 import finalCampaign.*;
+import mindustry.ui.*;
 
 public class roulette extends Table {
     private TextureRegion base;
     private TextureRegion focus;
-    private ObjectMap<Image, Object> map;
+    private ObjectMap<Image, rouletteChoicePair> map;
     private boolean needToLayout = false;
     private boolean removed = true;
     private Vec2 mouse;
+    private Stack stack;
+    private Label label;
 
     public boolean usingFourSlot = false;
     public int currentPage;
     public int totalPage;
 
-    public Image selectedChild;
-    public Object selectedObject;
+    public rouletteChoicePair selected;
 
     public roulette() {
         currentPage = totalPage = 0;
         map = new ObjectMap<>();
         mouse = new Vec2();
         touchable = Touchable.enabled;
-        setSize(Scl.scl(Mathf.round(Math.min(Core.graphics.getHeight(), Core.graphics.getWidth()) * 0.1778f)));
         setTransform(true);
-        setOrigin(Align.center);
+
+        stack = stack().grow().get();
+        row();
+        table(t -> {
+            t.background(Styles.black6);
+            label = t.add("null").get();
+        }).marginTop(4f);
+
+        stack.setFillParent(true);
+        stack.setTransform(true);
+
+        float size = Scl.scl(Mathf.round(Math.min(Core.graphics.getHeight(), Core.graphics.getWidth()) * 0.1778f));
+        setSize(size, size + Scl.scl(4f) + label.getPrefHeight());
+        setOrigin(width / 2f, height - width / 2f);
     }
 
     public void setUsingFourSlot(boolean v) {
@@ -47,25 +61,52 @@ public class roulette extends Table {
         }
     }
 
-    public void addRouletteChild(Image child, Object objToStandFor) {
+    public void addRouletteChoice(Image icon, Object obj, String displayName) {
+        addRouletteChoice(icon, obj, displayName, () -> {});
+    }
+
+    public void addRouletteChoice(Image icon, Object obj, String displayName, Runnable handle) {
+        addRouletteChoice(icon, obj, displayName, () -> true, handle);
+    }
+
+    public void addRouletteChoice(Image icon, Object obj, String displayName, Boolp valid, Runnable handle) {
+        addRouletteChoice(icon, obj, () -> displayName, valid, handle);
+    }
+
+    public void addRouletteChoice(Image icon, Object obj, Prov<String> displayName) {
+        addRouletteChoice(icon, obj, displayName, () -> true, () -> {});
+    }
+
+    public void addRouletteChoice(Image icon, Object obj, Prov<String> displayName, Runnable handle) {
+        addRouletteChoice(icon, obj, displayName, () -> true, handle);
+    }
+
+    public void addRouletteChoice(Image icon, Object obj, Prov<String> displayName, Boolp valid, Runnable handle) {
         int page = totalPage;
+        Table t = new Table();
 
-        fill(t -> {
-            t.add(child);
-            t.visible(() -> currentPage == page);
-        });
+        t.setFillParent(true);
+        t.add(icon);
+        t.visible(() -> currentPage == page);
+        stack.add(t);
 
-        if (objToStandFor != null)
-            map.put(child, objToStandFor);
+        rouletteChoicePair pair = new rouletteChoicePair();
+        pair.icon = icon;
+        pair.obj = obj;
+        pair.displayName = displayName;
+        pair.valid = valid;
+        pair.handle = handle;
+        map.put(icon, pair);
+
         totalPage = Mathf.ceil((float) children.size / (usingFourSlot ? 4f : 8f));
         needToLayout = true;
     }
 
     public void clearRoulette() {
         currentPage = totalPage = 0;
-        selectedChild = null;
-        selectedObject = null;
+        selected = null;
         needToLayout = false;
+        map.clear();
         clear();
     }
 
@@ -76,7 +117,7 @@ public class roulette extends Table {
         Vec2 iPos = new Vec2();
 
         for (int i = currentPage * len, j = 0; j < len; i++, j++) {
-            Image e = (Image) ((Table) children.get(i)).getChildren().get(0);
+            Image e = (Image) ((Table) stack.getChildren().get(i)).getChildren().get(0);
             e.setSize(width / 272f * 36f);
             iPos.set(0f, width * 0.3456f);
             iPos.rotate(90 + (len - 0.5f) * unitDeg);
@@ -126,11 +167,27 @@ public class roulette extends Table {
         if (pos.len() >= width * 0.1949f && r >= 0) {
             int index = r / rStep;
 
-            selectedChild = (Image) ((Table) children.get(currentPage * len + index)).getChildren().get(0);
-            selectedObject = map.get(selectedChild);
+            Image selectedChild = (Image) ((Table) children.get(currentPage * len + index)).getChildren().get(0);
+            rouletteChoicePair selected = map.get(selectedChild);
+            String selectedName = selected.displayName.get();
 
-            Draw.rect(focus, cx, cy, width, width, (index + len / 4f) * rStep);
+            if (!selectedName.isEmpty()) {
+                label.parent.visible = true;
+                label.setText(selected.displayName.get());
+            } else {
+                label.parent.visible = false;
+            }
+
+            if (selected.valid.get()) {
+                this.selected = selected;
+                Draw.rect(focus, cx, cy, width, width, (index + len / 4f) * rStep);
+            } else {
+                this.selected = null;
+                Draw.rect(base, cx, cy, width, width);
+            }
         } else {
+            label.parent.visible = false;
+            this.selected = null;
             Draw.rect(base, cx, cy, width, width);
         }
     }
@@ -146,18 +203,24 @@ public class roulette extends Table {
         if (!removed)
             return;
 
+        selected = null;
+        removed = false;
         mouse.set(Core.input.mouseX(), Core.input.mouseY());
         setScale(0f);
         parent.fill(t -> {
+            t.touchable = Touchable.enabled;
             t.bottom().left();
             t.add(this);
+            t.getListeners().set(getListeners());
+            getListeners().clear();
         });
+        setPosition(mouse.x - width / 2f, mouse.y - height + width / 2f);
+        parent.requestScroll();
 
         actions(
                 Actions.sequence(
                         Actions.fadeIn(0.4f),
-                        Actions.scaleTo(1f, 1f, 0.4f),
-                        Actions.run(() -> removed = false)
+                        Actions.scaleTo(1f, 1f, 0.4f)
                 )
         );
     }
@@ -174,11 +237,22 @@ public class roulette extends Table {
                                 Actions.scaleTo(0f, 0f, 0.4f)
                         ),
                         Actions.run(() -> {
+                            Core.scene.setScrollFocus(null);
                             parent.remove();
                             remove();
                         })
                 )
         );
+
+        getListeners().set(parent.getListeners());
+        parent.getListeners().clear();
+
+        if (selected != null)
+            selected.handle.run();
+    }
+
+    public boolean isShown() {
+        return !removed;
     }
 
     public void rouletteWarn() {
@@ -211,8 +285,22 @@ public class roulette extends Table {
         }
     }
 
-    public void addRoulettePageSwitchingHandle() {
+    public void addRouletteScrollPageSwitchingHandle() {
+        scrolled(v -> {
+            rouletteChangeToPage(currentPage + (int) v);
+        });
+    }
+
+    public void addRouletteClickPageSwitchingHandle() {
         clicked(KeyCode.mouseLeft, () -> rouletteChangeToPage(currentPage + 1));
         clicked(KeyCode.mouseRight, () -> rouletteChangeToPage(currentPage - 1));
+    }
+
+    public static class rouletteChoicePair {
+        public Image icon;
+        public Object obj;
+        public Prov<String> displayName;
+        public Boolp valid;
+        public Runnable handle;
     }
 }

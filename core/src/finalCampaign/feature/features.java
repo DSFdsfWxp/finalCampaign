@@ -10,7 +10,6 @@ import finalCampaign.feature.buildTargetingLimit.*;
 import finalCampaign.feature.crosshair.*;
 import finalCampaign.feature.editMode.*;
 import finalCampaign.feature.featureBar.*;
-import finalCampaign.feature.freeVision.*;
 import finalCampaign.feature.hudUI.*;
 import finalCampaign.feature.lensMode.*;
 import finalCampaign.feature.pressingVisualHint.*;
@@ -20,8 +19,8 @@ import finalCampaign.feature.shortcut.*;
 import finalCampaign.feature.spritePacker.*;
 import finalCampaign.feature.tuner.*;
 import finalCampaign.feature.wiki.*;
+import java.lang.reflect.*;
 
-import java.lang.reflect.Method;
 
 public class features {
     private static Seq<Class<?>> features = new Seq<>();
@@ -32,7 +31,6 @@ public class features {
     }
 
     public static void init() {
-        register(fFreeVision.class);
         register(fTuner.class);
         register(fCrosshair.class);
         register(fSpritePacker.class);

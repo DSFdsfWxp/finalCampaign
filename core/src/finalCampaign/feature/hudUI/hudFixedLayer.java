@@ -183,6 +183,10 @@ public class hudFixedLayer {
         target.visibility = () -> original.get() && v.get();
     }
 
+    public void appendVisibility(Boolp v) {
+        appendVisibility(layer, v);
+    }
+
     private void buildPlacementUI(fcInputHandleBuildPlacementUIEvent event) {
         if (!(Vars.control.input instanceof DesktopInput))
             return;
@@ -223,18 +227,18 @@ public class hudFixedLayer {
 
                 phc.update(pht -> {
                     float dst = bottomLeft.getPrefHeight() / Scl.scl();
-                    updateHeight(phc, dst);
+                    updateHeight(phc, commandModeButtonArea.visibility.get() ? dst : 0f);
                 });
             }
 
             {
                 var originalVisibility = commandModeButtonArea.visibility;
                 commandModeButtonArea.visibility = () -> Vars.control.input.commandMode && originalVisibility.get();
-                appendVisibility(bottomLeft, commandModeButtonArea.visibility);
+                appendVisibility(bottomLeft, () -> !commandModeButtonArea.visibility.get() || Vars.control.input instanceof DesktopInput);
             }
 
             {
-                appendVisibility(bottomLeft, schematicControlArea.visibility);
+                appendVisibility(bottomLeft, () -> !schematicControlArea.visibility.get() || Vars.control.input instanceof DesktopInput);
             }
 
 

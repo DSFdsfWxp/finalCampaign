@@ -68,10 +68,18 @@ public class fcActionDetector implements InputProcessor {
         return false;
     }
 
+    public static boolean isLongPressing(KeyBinds.KeyBind bind, int combo) {
+        return isLongPressing(Core.keybinds.get(bind).key, combo);
+    }
+
     public static boolean isLongPressing(KeyCode keycode, int combo) {
         return Core.input.keyDown(keycode) && keyTimers[keycode.ordinal()].marked()
                 && keyTimers[keycode.ordinal()].msTime() > longPressTime
                 && keyComboCnts[keycode.ordinal()] == combo;
+    }
+
+    public static boolean isLongPressing(KeyBinds.KeyBind bind) {
+        return isLongPressing(Core.keybinds.get(bind).key);
     }
 
     public static boolean isLongPressing(KeyCode keycode) {

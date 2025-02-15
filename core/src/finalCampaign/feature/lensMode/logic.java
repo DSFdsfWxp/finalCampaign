@@ -10,6 +10,7 @@ import finalCampaign.feature.setMode.*;
 import finalCampaign.input.*;
 import mindustry.*;
 import mindustry.entities.*;
+import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -26,6 +27,7 @@ public class logic {
     private static boolean keyHookBanScroll = false;
     private static DesktopInput input;
     private static Vec2 lastCameraPos = new Vec2();
+    private static BuildPlan roamingBuildTarget = null;
 
     public static void updateState() {
         if (Vars.control.input instanceof DesktopInput di)
@@ -104,6 +106,17 @@ public class logic {
                     ui.closeSpeedSetToast();
                 }
             }
+
+            if (Core.input.keyTap(fcBindings.switchLensMode)) {
+                int target = (fLensMode.mode.ordinal() + 1) % fLensMode.lensMode.values().length;
+                fLensMode.setMode(fLensMode.lensMode.values()[target]);
+            }
+
+            if (fcActionDetector.isLongPressing(fcBindings.switchLensMode))
+                ui.makeSureRouletteShown();
+
+            if (Core.input.keyRelease(fcBindings.switchLensMode))
+                ui.closeRoulette();
         }
     }
 
@@ -140,6 +153,7 @@ public class logic {
         keyHookEnabled = false;
     }
 
+    // apply patch
     public static void updateMovementBefore(Unit unit) {
         if (!fLensMode.enabled)
             return;
@@ -153,17 +167,23 @@ public class logic {
             }
         }
 
-        if (fLensMode.mode == fLensMode.lensMode.followCamera)
-            if (input != null)
+        if (fLensMode.mode == fLensMode.lensMode.followCamera) {
+            if (input != null) {
                 keyHookEnabled = true;
+            } else if (fLensMode.roamingBuild && !unit.plans.isEmpty() && !Vars.state.rules.infiniteResources) {
+                lastCameraPos.set(Core.camera.position);
+                Core.camera.position.set(unit);
+            }
+        }
+
     }
 
     public static void updateMovementAfter(Unit unit) {
         if (!fLensMode.enabled)
             return;
 
-        // special mode on desktop
-        if (input != null && fLensMode.mode != fLensMode.lensMode.defaultCamera) {
+        // desktop
+        if (input != null) {
             UnitType type = unit.type;
             if (type == null)
                 return;
@@ -181,22 +201,21 @@ public class logic {
             float mouseAngle = unit.angleTo(unit.aimX(), unit.aimY());
             boolean aimCursor = omni && Vars.player.shooting && type.hasWeapons() && !boosted && type.faceTarget && !fSetMode.isOn() && target == null;
 
-            if ((Units.invalidateTarget(target, unit, type.range) && !validHealTarget) || Vars.state.isEditor()) {
-                if (target != null) Vars.player.shooting = false;
-                target = null;
-            }
+            if (fLensMode.mode != fLensMode.lensMode.defaultCamera) {
+                if ((Units.invalidateTarget(target, unit, type.range) && !validHealTarget) || Vars.state.isEditor()) {
+                    if (target != null) Vars.player.shooting = false;
+                    target = null;
+                }
 
-            if (aimCursor) {
-                unit.lookAt(mouseAngle);
-            } else {
-                unit.lookAt(unit.prefRotation());
+                if (aimCursor) {
+                    unit.lookAt(mouseAngle);
+                } else {
+                    unit.lookAt(unit.prefRotation());
+                }
             }
-
-            // we don't care payload here
-            // we're on desktop
 
             // unit follow camera
-            if (fLensMode.mode == fLensMode.lensMode.followCamera) {
+            if (fLensMode.mode == fLensMode.lensMode.followCamera && (!fLensMode.roamingBuild || (unit.plans.isEmpty() || !input.isBuilding || Vars.state.rules.infiniteResources))) {
                 input.movement.set(Core.camera.position).sub(Vars.player).limit(unit.speed());
                 input.movement.setAngle(Mathf.slerp(input.movement.angle(), unit.vel.angle(), 0.05f));
 
@@ -251,17 +270,80 @@ public class logic {
             unit.controlWeapons(true, Vars.player.shooting && !boosted);
         }
 
-        if (fLensMode.mode == fLensMode.lensMode.freeCamera) {
-            if (input == null) {
-                Core.camera.position.set(lastCameraPos);
-            } else {
-                keyHookEnabled = false;
+        // restore patch
+        {
+            if (fLensMode.mode == fLensMode.lensMode.freeCamera) {
+                if (input == null) {
+                    Core.camera.position.set(lastCameraPos);
+                } else {
+                    keyHookEnabled = false;
+                }
+            }
+
+            if (fLensMode.mode == fLensMode.lensMode.followCamera) {
+                if (input != null)
+                    keyHookEnabled = false;
+                else if (fLensMode.roamingBuild && !unit.plans.isEmpty() && !Vars.state.rules.infiniteResources)
+                    Core.camera.position.set(lastCameraPos);
             }
         }
 
-        if (fLensMode.mode == fLensMode.lensMode.followCamera)
-            if (input != null)
-                keyHookEnabled = false;
+        // roaming build
+        if (fLensMode.roamingBuild && fLensMode.mode != fLensMode.lensMode.defaultCamera && !unit.dead() && !unit.plans.isEmpty() && (input == null || input.isBuilding) && !Vars.state.rules.infiniteResources) {
+            boolean canBuild = false;
+
+            for (var plan : unit.plans) {
+                if (unit.within(plan.x, plan.y, unit.type.buildRange)) {
+                    canBuild = true;
+                    roamingBuildTarget = null;
+                    break;
+                }
+            }
+
+            if (!canBuild) {
+                if (roamingBuildTarget == null) {
+                    float nearestDst = Float.POSITIVE_INFINITY;
+                    BuildPlan nearestPlan = null;
+
+                    for (var plan : unit.plans) {
+                        float dst = unit.dst(plan.x, plan.y);
+                        if (dst < nearestDst) {
+                            nearestPlan = plan;
+                            nearestDst = dst;
+                        }
+                    }
+
+                    if (nearestPlan != null)
+                        roamingBuildTarget = nearestPlan;
+                } else if (unit.plans.contains(roamingBuildTarget)) {
+                    Vec2 movement = Tmp.v6;
+                    Rect rect = Tmp.r3;
+                    final float attractDst = 15f;
+
+                    movement.set(roamingBuildTarget.x, roamingBuildTarget.y);
+                    Tmp.v5.set(fLensMode.mode == fLensMode.lensMode.freeCamera ? unit : Core.camera.position).sub(movement).setLength(unit.type.buildRange);
+                    movement.add(Tmp.v5);
+                    Vec2 targetPoint = Tmp.v5.set(movement);
+
+                    movement.sub(unit).limit(unit.speed());
+                    movement.setAngle(Mathf.slerp(movement.angle(), unit.vel.angle(), 0.05f));
+
+                    if (Vars.player.within(targetPoint, attractDst)) {
+                        input.movement.setZero();
+                        unit.vel.approachDelta(Vec2.ZERO, unit.speed() * unit.type.accel / 2f);
+                    }
+
+                    unit.hitbox(rect);
+                    rect.grow(4f);
+
+                    Vars.player.boosting = Vars.collisions.overlapsTile(rect, EntityCollisions::solid) || !unit.within(Core.camera.position, 85f);
+
+                    unit.movePref(input.movement);
+                } else {
+                    roamingBuildTarget = null;
+                }
+            }
+        }
     }
 
     protected static float keyHook(KeyCode code, float v) {

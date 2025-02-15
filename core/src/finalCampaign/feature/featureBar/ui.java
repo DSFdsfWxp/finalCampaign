@@ -17,6 +17,7 @@ import mindustry.ui.*;
 public class ui {
 
     protected static Table bar;
+    protected static Cell<Table> barCell;
     protected static window moreWindow;
     protected static Seq<fFeatureBar.featureButton> buttons;
 
@@ -49,7 +50,12 @@ public class ui {
     }
 
     public static void buildBarUI() {
-        fHudUI.fixedLayer.bottomLeft.add(bar).pad(4f).padRight(0f).marginLeft(-4f).marginBottom(-4f);
+        barCell = fHudUI.fixedLayer.bottomLeft.add(bar).pad(4f).padRight(0f).marginLeft(-4f).marginBottom(-4f);
+    }
+
+    public static void updateBarUIVisible() {
+        if (barCell != null)
+            barCell.setElement(fFeatureBar.enabled ? bar : null);
     }
 
     public static void setup() {

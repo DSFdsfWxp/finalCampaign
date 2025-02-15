@@ -7,7 +7,7 @@ public class fcInputHandleTapEvent {
     public float x, y;
     public int count;
     public KeyCode button;
-    public boolean atHead;
+    public boolean beforeTap;
     public Cons<Boolean> cancel;
 
     public void form(float x, float y, int count, KeyCode button, boolean atHead, Cons<Boolean> cancel) {
@@ -15,7 +15,7 @@ public class fcInputHandleTapEvent {
         this.y = y;
         this.count = count;
         this.button = button;
-        this.atHead = atHead;
+        this.beforeTap = atHead;
         this.cancel = cancel;
     }
 }

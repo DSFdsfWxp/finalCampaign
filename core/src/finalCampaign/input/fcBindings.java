@@ -12,7 +12,7 @@ import arc.input.*;
 
 public enum fcBindings implements KeyBind {
 
-    freeVision(KeyCode.f4, "finalCampaign"),
+    switchLensMode(KeyCode.f4, "finalCampaign"),
     boostCamera(KeyCode.shiftLeft),
     slowCamera(KeyCode.controlLeft),
     roulette(KeyCode.tab),

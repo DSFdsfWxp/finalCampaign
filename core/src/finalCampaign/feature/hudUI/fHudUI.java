@@ -11,8 +11,13 @@ import mindustry.ui.*;
 
 public class fHudUI {
 
+    public static WidgetGroup layer;
+
+    public static WidgetGroup freeLayer;
     public static hudFixedLayer fixedLayer;
+    public static WidgetGroup bottomPopupLayer;
     public static hudWindowLayer windowLayer;
+    public static WidgetGroup topPopupLayer;
 
 
     public static boolean supported() {
@@ -20,8 +25,12 @@ public class fHudUI {
     }
 
     public static void earlyInit() {
+        layer = new WidgetGroup();
+        freeLayer = new WidgetGroup();
         fixedLayer = new hudFixedLayer();
+        bottomPopupLayer = new WidgetGroup();
         windowLayer = new hudWindowLayer();
+        topPopupLayer = new WidgetGroup();
     }
 
     public static void earlyLoad() {
@@ -29,8 +38,23 @@ public class fHudUI {
     }
 
     public static void lateLoad() {
-        fixedLayer.setup(Vars.ui.hudGroup);
-        windowLayer.setup(Vars.ui.hudGroup);
+        layer.setFillParent(true);
+        freeLayer.setFillParent(true);
+        bottomPopupLayer.setFillParent(true);
+        topPopupLayer.setFillParent(true);
+
+        layer.name = "fcHudUILayers";
+        freeLayer.name = "fcHudUIFreeLayer";
+        bottomPopupLayer.name = "fcHudUIBottomPopupLayer";
+        topPopupLayer.name = "fcHudUITopPopupLayer";
+
+        layer.addChild(freeLayer);
+        fixedLayer.setup(layer);
+        layer.addChild(bottomPopupLayer);
+        windowLayer.setup(layer);
+        layer.addChild(topPopupLayer);
+
+        Vars.ui.hudGroup.addChild(layer);
 
         rebuildFixedLayer();
     }

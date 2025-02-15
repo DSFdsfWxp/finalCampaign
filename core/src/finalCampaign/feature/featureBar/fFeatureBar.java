@@ -41,7 +41,7 @@ public class fFeatureBar {
             if (enabled == v)
                 return;
 
-            fHudUI.rebuildFixedLayer();
+            ui.updateBarUIVisible();
             if (v)
                 logic.patchHudUI();
             else
