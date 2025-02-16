@@ -4,6 +4,7 @@ import arc.func.*;
 import arc.scene.actions.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
+import finalCampaign.feature.blockShortcut.*;
 import finalCampaign.feature.featureBar.*;
 import finalCampaign.ui.action.*;
 import mindustry.*;
@@ -47,6 +48,8 @@ public class fHudUI {
         freeLayer.name = "fcHudUIFreeLayer";
         bottomPopupLayer.name = "fcHudUIBottomPopupLayer";
         topPopupLayer.name = "fcHudUITopPopupLayer";
+
+        layer.visible(() -> Vars.ui.hudfrag.shown && !Vars.ui.minimapfrag.shown());
 
         layer.addChild(freeLayer);
         fixedLayer.setup(layer);
@@ -113,6 +116,14 @@ public class fHudUI {
 
             fFeatureBar.buildUI();
             fixedLayer.bottomLeft.row();
+        }
+
+        // bottom right
+        {
+            fixedLayer.bottomRight.clear();
+
+            fBlockShortcut.buildUI();
+            fixedLayer.bottomRight.row();
         }
     }
 }

@@ -56,7 +56,7 @@ public class logic {
             return;
 
         ImageButton schematics = buttons.find("schematics");
-        moreWindowToggler = ui.buildMoreWindowToggleButton(buttons, Styles.clearTogglei, 65f).get();
+        moreWindowToggler = ui.buildMoreWindowToggleButton(buttons, Styles.clearTogglei, 65f, 48f).get();
 
         if (schematics != null) {
             moreWindowToggler.remove();

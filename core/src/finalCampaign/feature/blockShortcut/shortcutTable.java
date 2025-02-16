@@ -1,4 +1,4 @@
-package finalCampaign.feature.shortcut;
+package finalCampaign.feature.blockShortcut;
 
 import java.lang.reflect.*;
 import arc.*;
@@ -9,7 +9,6 @@ import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
-import finalCampaign.feature.blockShortcut.*;
 import finalCampaign.feature.blockShortcut.fBlockShortcut.*;
 import mindustry.*;
 import mindustry.gen.*;
@@ -21,17 +20,12 @@ public class shortcutTable extends Table {
     private Block[] blocks;
     private TextureRegion blank;
     private Field hoverBlock;
-    
+
     public shortcutTable() {
-        this.name = "fcShortcut";
-        super.visibility = () -> Vars.ui.hudfrag.shown && fShortcut.isOn() && !Vars.control.input.commandMode && !Vars.ui.minimapfrag.shown();
+        this.name = "fcBlockShortcut";
         setBackground(Tex.pane);
         setSize(Scl.scl(248f), Scl.scl(110f));
         blank = Core.atlas.find("clear-effect");
-        super.update(() -> {
-            super.x = fShortcut.getX() - width;
-            super.y = fShortcut.getY();
-        });
 
         try {
             hoverBlock = Vars.ui.hudfrag.blockfrag.getClass().getDeclaredField("menuHoverBlock");

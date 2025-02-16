@@ -19,7 +19,8 @@ import mindustry.ui.*;
 public class roulette extends Table {
     private TextureRegion base;
     private TextureRegion focus;
-    private ObjectMap<Image, rouletteChoicePair> map;
+    private ObjectMap<Image, rouletteChoicePair> pairMap;
+    private ObjectMap<Image, Color> colorMap;
     private boolean needToLayout = false;
     private boolean removed = true;
     private Vec2 mouse;
@@ -34,7 +35,8 @@ public class roulette extends Table {
 
     public roulette() {
         currentPage = totalPage = 0;
-        map = new ObjectMap<>();
+        pairMap = new ObjectMap<>();
+        colorMap = new ObjectMap<>();
         mouse = new Vec2();
         touchable = Touchable.enabled;
         setTransform(true);
@@ -96,7 +98,7 @@ public class roulette extends Table {
         pair.displayName = displayName;
         pair.valid = valid;
         pair.handle = handle;
-        map.put(icon, pair);
+        pairMap.put(icon, pair);
 
         totalPage = Mathf.ceil((float) children.size / (usingFourSlot ? 4f : 8f));
         needToLayout = true;
@@ -106,8 +108,9 @@ public class roulette extends Table {
         currentPage = totalPage = 0;
         selected = null;
         needToLayout = false;
-        map.clear();
-        clear();
+        pairMap.clear();
+        colorMap.clear();
+        stack.clear();
     }
 
     private void rouletteLayout() {
@@ -116,12 +119,14 @@ public class roulette extends Table {
 
         Vec2 iPos = new Vec2();
 
-        for (int i = currentPage * len, j = 0; j < len; i++, j++) {
-            Image e = (Image) ((Table) stack.getChildren().get(i)).getChildren().get(0);
-            e.setSize(width / 272f * 36f);
-            iPos.set(0f, width * 0.3456f);
-            iPos.rotate(90 + (len - 0.5f) * unitDeg);
-            e.setTranslation(iPos.x, iPos.y);
+        for (int k = 0; k < totalPage; k++) {
+            for (int i = k * len, j = 0; j < len; i++, j++) {
+                Image e = (Image) ((Table) stack.getChildren().get(i)).getChildren().get(0);
+                e.setSize(width / 272f * 36f);
+                iPos.set(0f, width * 0.3456f);
+                iPos.rotate(90 + (len - 0.5f) * unitDeg * j);
+                e.setTranslation(iPos.x, iPos.y);
+            }
         }
 
         needToLayout = false;
@@ -164,11 +169,11 @@ public class roulette extends Table {
 
         Draw.color(color.r, color.g, color.b, color.a * parentAlpha);
 
-        if (pos.len() >= width * 0.1949f && r >= 0) {
-            int index = r / rStep;
+        int index = r / rStep;
 
+        if (pos.len() >= width * 0.1949f && r >= 0 && currentPage * len + index < children.size) {
             Image selectedChild = (Image) ((Table) children.get(currentPage * len + index)).getChildren().get(0);
-            rouletteChoicePair selected = map.get(selectedChild);
+            rouletteChoicePair selected = pairMap.get(selectedChild);
             String selectedName = selected.displayName.get();
 
             if (!selectedName.isEmpty()) {
@@ -196,7 +201,20 @@ public class roulette extends Table {
     public void draw() {
         if (needToLayout)
             rouletteLayout();
+
+        for (int i = 0; i < children.size; i++) {
+            Image e = (Image) ((Table) stack.getChildren().get(i)).getChildren().get(0);
+            rouletteChoicePair pair = pairMap.get(e);
+
+            colorMap.put(e, e.color);
+            if (!pair.valid.get())
+                e.color.mul(Color.darkGray);
+        }
+
         super.draw();
+
+        for (var entry : colorMap)
+            entry.key.color.set(entry.value);
     }
 
     public void showRoulette(Group parent) {
@@ -217,6 +235,7 @@ public class roulette extends Table {
         setPosition(mouse.x - width / 2f, mouse.y - height + width / 2f);
         parent.requestScroll();
 
+        clearActions();
         actions(
                 Actions.sequence(
                         Actions.fadeIn(0.4f),
@@ -230,6 +249,7 @@ public class roulette extends Table {
             return;
 
         removed = true;
+        clearActions();
         actions(
                 Actions.sequence(
                         Actions.parallel(

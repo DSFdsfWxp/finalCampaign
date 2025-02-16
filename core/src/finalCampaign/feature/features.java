@@ -13,9 +13,7 @@ import finalCampaign.feature.featureBar.*;
 import finalCampaign.feature.hudUI.*;
 import finalCampaign.feature.lensMode.*;
 import finalCampaign.feature.pressingVisualHint.*;
-import finalCampaign.feature.roulette.*;
 import finalCampaign.feature.setMode.*;
-import finalCampaign.feature.shortcut.*;
 import finalCampaign.feature.spritePacker.*;
 import finalCampaign.feature.tuner.*;
 import finalCampaign.feature.wiki.*;
@@ -35,8 +33,6 @@ public class features {
         register(fCrosshair.class);
         register(fSpritePacker.class);
         register(fBlockShortcut.class);
-        register(fRoulette.class);
-        register(fShortcut.class);
         register(fSetMode.class);
         register(fWiki.class);
         register(fBuildTargeting.class);

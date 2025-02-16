@@ -7,6 +7,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import finalCampaign.*;
 import finalCampaign.feature.hudUI.*;
+import finalCampaign.graphics.*;
 import finalCampaign.ui.*;
 import finalCampaign.ui.layout.*;
 import mindustry.*;
@@ -31,7 +32,7 @@ public class ui {
         bar.visible(() -> fFeatureBar.enabled);
         bar.update(ui::updateBar);
 
-        moreWindow = new window(Icon.menu, bundle.get("featureBar.more.title.normal"));
+        moreWindow = new window(fcIcon.tools, bundle.get("featureBar.more.title.normal"));
         moreWindow.name = "featureBar.moreWindow";
         moreWindow.addCloseButton();
         moreWindow.addTitleBarButton(Icon.pencil, bundle.get("edit"), editing -> {
@@ -49,7 +50,7 @@ public class ui {
         moreWindowEditing = false;
     }
 
-    public static void buildBarUI() {
+    public static void setupBarUI() {
         barCell = fHudUI.fixedLayer.bottomLeft.add(bar).pad(4f).padRight(0f).marginLeft(-4f).marginBottom(-4f);
     }
 
@@ -65,17 +66,16 @@ public class ui {
             rebuildWindow();
     }
 
-    public static Cell<ImageButton> buildMoreWindowToggleButton(Table parent, ImageButton.ImageButtonStyle style, float size) {
-        return parent.button(Icon.settings, style, size, () -> {
+    public static Cell<ImageButton> buildMoreWindowToggleButton(Table parent, ImageButton.ImageButtonStyle style, float size, float iconSize) {
+        return parent.button(fcIcon.tools, style, iconSize, () -> {
             if (moreWindow.isShown()) {
                 moreWindow.close();
-            }
-            else {
+            } else {
                 rebuildWindow();
                 moreWindow.setPosition(Scl.scl(4f), bar.getHeight() + Scl.scl(4f));
                 fHudUI.windowLayer.showWindow(moreWindow, fFeatureBar.config.rememberMoreWindowPosition);
             }
-        }).update(ib -> ib.setChecked(moreWindow.isShown()));
+        }).update(ib -> ib.setChecked(moreWindow.isShown())).size(size);
     }
 
     private static void rebuildBar() {
@@ -97,7 +97,7 @@ public class ui {
         for (var button : shownOnBarButtonOrder) {
             if (button != null) {
                 if (button.isValid()) {
-                    bar.add(button.buildButton()).marginRight(4f).get().resizeImage(48f);
+                    bar.add(button.buildButton()).marginRight(4f).size(48f).get().resizeImage(32f);
                     if (Vars.mobile && ++cnt % 5 == 0)
                         bar.row();
                 }
@@ -105,7 +105,7 @@ public class ui {
         }
 
         if (!Vars.mobile)
-            buildMoreWindowToggleButton(bar, Styles.clearTogglei, 48f);
+            buildMoreWindowToggleButton(bar, Styles.clearTogglei, 48f, 32f);
     }
 
     private static void rebuildWindow() {

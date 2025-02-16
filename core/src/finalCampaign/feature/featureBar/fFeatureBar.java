@@ -74,9 +74,7 @@ public class fFeatureBar {
 
     public static void buildUI() {
         Vars.control.setInput(Core.settings.getBool("keyboard", false) || !Vars.mobile ? new DesktopInput() : new MobileInput());
-
-        if (enabled)
-            ui.buildBarUI();
+        ui.setupBarUI();
     }
 
     private static void registerShortcuts() {

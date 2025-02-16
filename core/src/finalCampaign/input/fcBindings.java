@@ -15,7 +15,7 @@ public enum fcBindings implements KeyBind {
     switchLensMode(KeyCode.f4, "finalCampaign"),
     boostCamera(KeyCode.shiftLeft),
     slowCamera(KeyCode.controlLeft),
-    roulette(KeyCode.tab),
+    blockShortcutRoulette(KeyCode.unset),
 
     blockShortcut_1(KeyCode.num1),
     blockShortcut_2(KeyCode.num2),
@@ -28,7 +28,8 @@ public enum fcBindings implements KeyBind {
     blockShortcut_9(KeyCode.num9),
     blockShortcut_10(KeyCode.num0),
 
-    setMode(KeyCode.controlLeft)
+    setMode(KeyCode.controlLeft),
+    smartChoiceRoulette(KeyCode.tab)
     ;
     
     private final KeybindValue defaultValue;
@@ -55,8 +56,8 @@ public enum fcBindings implements KeyBind {
 
     public static void load() {
         Seq<KeyBind> tmp = new Seq<>();
-        for (Object o : Binding.values()) tmp.add((KeyBind) o);
-        for (Object o : values()) tmp.add((KeyBind) o);
+        for (KeyBind o : Binding.values()) tmp.add(o);
+        for (KeyBind o : values()) tmp.add(o);
         KeyBinds newKeyBinds = new KeyBinds();
         newKeyBinds.setDefaults(tmp.toArray(KeyBind.class));
 

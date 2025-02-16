@@ -107,16 +107,18 @@ public class logic {
                 }
             }
 
-            if (Core.input.keyTap(fcBindings.switchLensMode)) {
-                int target = (fLensMode.mode.ordinal() + 1) % fLensMode.lensMode.values().length;
-                fLensMode.setMode(fLensMode.lensMode.values()[target]);
+            if (!Core.scene.hasDialog() && !Core.scene.hasKeyboard()) {
+                if (Core.input.keyTap(fcBindings.switchLensMode)) {
+                    int target = (fLensMode.mode.ordinal() + 1) % fLensMode.lensMode.values().length;
+                    fLensMode.setMode(fLensMode.lensMode.values()[target]);
+                }
+
+                if (fcActionDetector.isLongPressing(fcBindings.switchLensMode))
+                    ui.makeSureRouletteShown();
+
+                if (Core.input.keyRelease(fcBindings.switchLensMode))
+                    ui.closeRoulette();
             }
-
-            if (fcActionDetector.isLongPressing(fcBindings.switchLensMode))
-                ui.makeSureRouletteShown();
-
-            if (Core.input.keyRelease(fcBindings.switchLensMode))
-                ui.closeRoulette();
         }
     }
 
@@ -139,7 +141,7 @@ public class logic {
                         !fcInputHook.realIsPressed(fcBindings.boostCamera) ?
                                 (fcInputHook.realIsPressed(fcBindings.slowCamera) ? input.panSpeed * 0.4f : input.panBoostSpeed) :
                                 input.panSpeed * fLensMode.panSpeedPercent
-                ) * Time.delta;
+                ) * Time.delta / Vars.renderer.getDisplayScale();
                 Core.camera.position.add(Tmp.v1.setZero().add(fcInputHook.getRealAxis(Binding.move_x), fcInputHook.getRealAxis(Binding.move_y)).nor().scl(camSpeed));
             }
         }

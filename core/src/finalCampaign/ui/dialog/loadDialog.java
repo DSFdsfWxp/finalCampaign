@@ -117,10 +117,10 @@ public class loadDialog extends BaseDialog implements PlanetInterfaceRenderer {
             t.fillParent = false;
             t.setWidth(layout.getSceneWidth());
 
-            zoomLabel = t.add("zoom: " + Float.toString(state.zoom)).left().padLeft(15f).growX().get();
+            zoomLabel = t.add("zoom: " + state.zoom).left().padLeft(15f).growX().get();
             t.row();
-            posLabel = t.add("pos: \nx:" + Float.toString(state.camPos.x) + "\ny:" + Float.toString(state.camPos.y) + "\nz:" + Float.toString(state.camPos.z) + 
-                "\nserpulo pos: \nx:" + Float.toString(Planets.serpulo.position.x) + "\ny:" + Float.toString(Planets.serpulo.position.y) + "\nz:" + Float.toString(Planets.serpulo.position.z)).left().padLeft(15f).growX().get();
+            posLabel = t.add("pos: \nx:" + state.camPos.x + "\ny:" + state.camPos.y + "\nz:" + state.camPos.z +
+                "\nserpulo pos: \nx:" + Planets.serpulo.position.x + "\ny:" + Planets.serpulo.position.y + "\nz:" + Planets.serpulo.position.z).left().padLeft(15f).growX().get();
 
             t.setHeight(zoomLabel.getHeight() * 9);
             t.setPosition(loadDialog.this.x, layout.getSceneHeight() - zoomLabel.getHeight() * 9);
@@ -190,9 +190,7 @@ public class loadDialog extends BaseDialog implements PlanetInterfaceRenderer {
                         planets.cam.fov = Mathf.clamp(planets.cam.fov + deltaFov, targetFov, 67f);
 
                         if (planets.cam.fov - targetFov < 5f) {
-                            Time.run(30f, () -> {
-                                loadDialog.this.hide();
-                            });
+                            Time.run(30f, loadDialog.this::hide);
                         }
                     }
                 }
@@ -203,9 +201,9 @@ public class loadDialog extends BaseDialog implements PlanetInterfaceRenderer {
                 planets.render(state);
 
                 if (version.isDebuging) {
-                    posLabel.setText("pos: \nx:" + Float.toString(state.camPos.x) + "\ny:" + Float.toString(state.camPos.y) + "\nz:" + Float.toString(state.camPos.z) + 
-                        "\nserpulo pos: \nx:" + Float.toString(Planets.serpulo.position.x) + "\ny:" + Float.toString(Planets.serpulo.position.y) + "\nz:" + Float.toString(Planets.serpulo.position.z));
-                    zoomLabel.setText("zoom: " + Float.toString(state.zoom));
+                    posLabel.setText("pos: \nx:" + state.camPos.x + "\ny:" + state.camPos.y + "\nz:" + state.camPos.z +
+                        "\nserpulo pos: \nx:" + Planets.serpulo.position.x + "\ny:" + Planets.serpulo.position.y + "\nz:" + Planets.serpulo.position.z);
+                    zoomLabel.setText("zoom: " + state.zoom);
                     testData.draw();
                 }
 
@@ -223,7 +221,7 @@ public class loadDialog extends BaseDialog implements PlanetInterfaceRenderer {
                     fake.update();
                     try {
                         Thread.sleep(16);
-                    } catch(Exception e) {}
+                    } catch(Exception ignored) {}
                 }
                 Log.debug("fake universe: update thread stopped.");
             });
@@ -263,15 +261,13 @@ public class loadDialog extends BaseDialog implements PlanetInterfaceRenderer {
         // avoid thread null pointer problem
         try {
             super.draw();
-        } catch (Exception e) {}
+        } catch (Exception ignored) {}
     }
 
     public void renderSectors(Planet planet) {
-        return;
     }
 
     public void renderProjections(Planet planet) {
-        return;
     }
 
     public void setStepName(String name) {

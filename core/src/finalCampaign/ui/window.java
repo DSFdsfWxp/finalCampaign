@@ -11,9 +11,9 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import finalCampaign.*;
-import finalCampaign.ui.action.*;
 import finalCampaign.ui.event.*;
 import mindustry.gen.*;
+import mindustry.graphics.*;
 import mindustry.ui.*;
 
 public class window extends Table {
@@ -24,9 +24,9 @@ public class window extends Table {
     private Prov<CharSequence> title;
     private boolean movable;
 
-    private Image iconImage;
-    private Label titleLabel;
-    private Table titleButtons;
+    public Image iconImage;
+    public Label titleLabel;
+    public Table titleButtons;
 
     private boolean isShown;
     private Seq<Runnable> shownListeners, closedListeners;
@@ -53,9 +53,9 @@ public class window extends Table {
         color.a(0f);
 
         table(titleBar -> {
-            iconImage = titleBar.image(icon).size(48f).pad(2f).get();
-            titleLabel = titleBar.label(title).expandX().get();
-            titleButtons = titleBar.table().pad(2f).get();
+            iconImage = titleBar.image(icon).size(48f).pad(2f).touchable(Touchable.enabled).get();
+            titleLabel = titleBar.label(title).expandX().left().get();
+            titleButtons = titleBar.table().pad(2f).touchable(Touchable.enabled).get();
 
             titleBar.addListener(new fcDragListener() {
                 @Override
@@ -65,6 +65,7 @@ public class window extends Table {
                 }
             });
         }).growX().row();
+        image().color(Pal.gray).height(4f).growX().row();
         cont = table().grow().get();
 
         shownListeners = new Seq<>();
@@ -245,9 +246,9 @@ public class window extends Table {
 
     public void addTitleBarButton(Drawable icon, String toolTip, Prov<Boolean> enabled, Boolf<Boolean> handle) {
         ImageButton button = new ImageButton(icon, Styles.clearNoneTogglei);
-        var cell = titleButtons.add(button);
+        var cell = titleButtons.add(button).size(48f);
 
-        button.resizeImage(48f);
+        button.resizeImage(32f);
         button.clicked(() -> {
             if (enabled.get())
                 button.setChecked(handle.get(button.isChecked()));

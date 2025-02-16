@@ -22,6 +22,7 @@ public class fcIcon {
     public static TextureRegionDrawable freeCamera;
     public static TextureRegionDrawable target;
     public static TextureRegionDrawable roamingBuild;
+    public static TextureRegionDrawable tools;
 
     public static void load() {
         health = new TextureRegionDrawable(atlas.find("icon-health"));
@@ -42,5 +43,6 @@ public class fcIcon {
         freeCamera = new TextureRegionDrawable(atlas.find("icon-freeCamera"));
         target = new TextureRegionDrawable(atlas.find("icon-target"));
         roamingBuild = new TextureRegionDrawable(atlas.find("icon-roamingBuild"));
+        tools = new TextureRegionDrawable(atlas.find("icon-tools"));
     }
 }
