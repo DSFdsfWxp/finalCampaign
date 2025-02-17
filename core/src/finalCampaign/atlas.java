@@ -97,6 +97,7 @@ public class atlas {
         Fi spriteDir = version.inPackage.isDebugVersion("mod") && cacheInfo != null ? new Fi(cacheInfo.outputDir) : finalCampaign.thisModZip.child("fcSprite");
         for (Fi dir : spriteDir.list()) load(dir);
 
+        /* useless now, we have no contents
         for (Seq<Content> arr : Vars.content.getContentMap()) {
             arr.each(c -> {
                 if (c instanceof UnlockableContent u) {
@@ -105,6 +106,7 @@ public class atlas {
                 }
             });
         }
+        */
 
         if (cacheInfo == null) return;
         if (!cacheInfo.done && version.inPackage.isDebugVersion("mod")) {

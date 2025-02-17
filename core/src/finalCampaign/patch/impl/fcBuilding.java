@@ -1,5 +1,8 @@
 package finalCampaign.patch.impl;
 
+import arc.*;
+import arc.scene.ui.layout.*;
+import finalCampaign.event.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
@@ -13,11 +16,14 @@ import mindustry.world.modules.*;
 
 @Mixin(Building.class)
 public abstract class fcBuilding implements IFcBuilding {
+
     private boolean fcSetModeSelected = false;
     private boolean fcForceDisable = false;
     private boolean fcForceEnable = false;
     private String fcStatus = "reqMissing";
     private boolean fcInfinityPower = false;
+
+    private final fcEntityDisplayInfoEvent displayInfoEvent = new fcEntityDisplayInfoEvent();
 
     @Shadow(remap = false)
     public boolean enabled;
@@ -101,5 +107,18 @@ public abstract class fcBuilding implements IFcBuilding {
             if (health == Float.POSITIVE_INFINITY) health = maxHealth;
             Time.run(120f, this::kill);
         }
+    }
+
+    @Inject(method = "display", at = @At("HEAD"), remap = false)
+    private void fcDisplayBefore(Table table, CallbackInfo ci) {
+        displayInfoEvent.form((Building) (Object) this, table, true);
+        Events.fire(displayInfoEvent);
+
+    }
+
+    @Inject(method = "display", at = @At("RETURN"), remap = false)
+    private void fcDisplayAfter(Table table, CallbackInfo ci) {
+        displayInfoEvent.form((Building) (Object) this, table, false);
+        Events.fire(displayInfoEvent);
     }
 }

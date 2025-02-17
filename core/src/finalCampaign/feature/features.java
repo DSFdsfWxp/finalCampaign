@@ -3,6 +3,7 @@ package finalCampaign.feature;
 import arc.struct.*;
 import arc.util.*;
 import finalCampaign.feature.about.*;
+import finalCampaign.feature.auxDisplay.*;
 import finalCampaign.feature.barDetail.*;
 import finalCampaign.feature.blockShortcut.*;
 import finalCampaign.feature.buildTargeting.*;
@@ -14,6 +15,7 @@ import finalCampaign.feature.hudUI.*;
 import finalCampaign.feature.lensMode.*;
 import finalCampaign.feature.pressingVisualHint.*;
 import finalCampaign.feature.setMode.*;
+import finalCampaign.feature.smartChoice.*;
 import finalCampaign.feature.spritePacker.*;
 import finalCampaign.feature.tuner.*;
 import finalCampaign.feature.wiki.*;
@@ -44,6 +46,8 @@ public class features {
         register(fLensMode.class);
         register(fFeatureBar.class);
         register(fHudUI.class);
+        register(fSmartChoice.class);
+        register(fAuxDisplay.class);
     }
 
     public enum featureLoadPhase {

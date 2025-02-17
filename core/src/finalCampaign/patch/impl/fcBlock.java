@@ -37,7 +37,7 @@ public abstract class fcBlock implements IFcBlock, IFcAttractiveEntityType {
     }
 
     @Inject(method = "addBar", at = @At("HEAD"), cancellable = true, remap = false)
-    public <T extends Building> void fcAddBar(String name, Func<T, Bar> sup, CallbackInfo ci) {
+    private <T extends Building> void fcAddBar(String name, Func<T, Bar> sup, CallbackInfo ci) {
         if (!fBarDetail.isOn()) return;
 
         var res = barDetail.transformBlock(name, (Block)(Object) this);

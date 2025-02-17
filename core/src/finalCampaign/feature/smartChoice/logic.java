@@ -17,6 +17,7 @@ import mindustry.world.blocks.liquid.*;
 import mindustry.world.blocks.power.*;
 import mindustry.world.blocks.production.*;
 import mindustry.world.blocks.sandbox.*;
+import mindustry.world.blocks.units.*;
 
 import static mindustry.Vars.player;
 
@@ -149,7 +150,7 @@ public class logic {
                 if (b instanceof PowerNode)
                     return block.consumesPower;
 
-                if (b instanceof Conveyor || b instanceof DirectionalUnloader)
+                if (b instanceof Conveyor || b instanceof Duct || b instanceof DirectionalUnloader)
                     return finalConsumeItem;
 
                 if (b instanceof Conduit || b instanceof SolidPump)
@@ -174,7 +175,7 @@ public class logic {
                 if (b instanceof ArmoredConduit)
                     return finalAcceptLiquid ? 0f : -1f;
 
-                if (b instanceof Conveyor || b instanceof DirectionalUnloader)
+                if (b instanceof Conveyor || b instanceof Duct || b instanceof DirectionalUnloader)
                     return finalAcceptItem ? 1f : -1f;
 
                 if (b instanceof Conduit || b instanceof SolidPump)
@@ -194,7 +195,110 @@ public class logic {
             tmp.clear();
         }
 
+        if (block instanceof Conveyor) {
+            res.add(Vars.content.blocks().select(b -> {
+                if (invalidBlock(b))
+                    return false;
 
+                if (b instanceof ArmoredConveyor)
+                    return true;
+
+                if (b instanceof OverflowGate)
+                    return true;
+
+                if (b instanceof ItemBridge)
+                    return true;
+
+                if (b instanceof Junction)
+                    return true;
+
+                if (b instanceof Router)
+                    return true;
+
+                if (b instanceof Sorter)
+                    return true;
+
+                if (b instanceof StackConveyor)
+                    return true;
+
+                return false;
+            }));
+        }
+
+        if (block instanceof Duct) {
+            res.add(Vars.content.blocks().select(b -> {
+                if (invalidBlock(b))
+                    return false;
+
+                if (b instanceof DirectionBridge)
+                    return true;
+
+                if (b instanceof DuctRouter)
+                    return true;
+
+                if (b instanceof OverflowDuct)
+                    return true;
+
+                return false;
+            }));
+        }
+
+        if (block instanceof Conduit) {
+            res.add(Vars.content.blocks().select(b -> {
+                if (invalidBlock(b))
+                    return false;
+
+                if (b instanceof ArmoredConduit)
+                    return true;
+
+                if (b instanceof LiquidBridge)
+                    return true;
+
+                if (b instanceof LiquidJunction)
+                    return true;
+
+                if (b instanceof LiquidRouter)
+                    return true;
+
+                if (b instanceof DirectionLiquidBridge)
+                    return true;
+
+                return false;
+            }));
+        }
+
+        if (unit != null) {
+            res.add(Vars.content.blocks().select(b -> {
+                if (invalidBlock(b))
+                    return false;
+
+                if (b instanceof RepairTurret)
+                    return true;
+
+                if (b instanceof RepairTower)
+                    return true;
+
+                return false;
+            }));
+        }
+
+        if (block == null && building == null && Vars.indexer.findTile(player.team(), worldX, worldY, 5f * Vars.tilesize, b -> true) == null) {
+            res.add(Vars.content.blocks().select(b -> {
+                if (invalidBlock(b))
+                    return false;
+
+                if (b instanceof PowerNode pnb)
+                    return pnb.laserRange > 10f;
+
+                if (b instanceof BeamNode bnb)
+                    return bnb.range > 10;
+
+                if (b instanceof MassDriver)
+                    return true;
+
+                return false;
+            }));
+        }
 
         return res;
     }

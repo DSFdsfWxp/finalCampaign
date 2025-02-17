@@ -6,7 +6,6 @@ import arc.input.InputDevice.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.Vars;
-import mindustry.input.*;
 import mindustry.ui.dialogs.*;
 import arc.input.*;
 
@@ -56,8 +55,13 @@ public enum fcBindings implements KeyBind {
 
     public static void load() {
         Seq<KeyBind> tmp = new Seq<>();
-        for (KeyBind o : Binding.values()) tmp.add(o);
-        for (KeyBind o : values()) tmp.add(o);
+        ObjectMap<?, ?> defaultCache = Reflect.get(Core.keybinds, "defaultCache");
+
+        for (Object o : defaultCache.keys())
+            tmp.add((KeyBind) o);
+        for (KeyBind o : values())
+            tmp.add(o);
+        
         KeyBinds newKeyBinds = new KeyBinds();
         newKeyBinds.setDefaults(tmp.toArray(KeyBind.class));
 

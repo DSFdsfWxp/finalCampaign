@@ -1,5 +1,6 @@
 package finalCampaign.patch.impl;
 
+import mindustry.ui.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
@@ -13,7 +14,8 @@ import mindustry.ui.fragments.*;
 @Mixin(PlacementFragment.class)
 public abstract class fcPlacementFragment {
 
-    private static final fcPlacementFragBuildEvent buildEvent = new fcPlacementFragBuildEvent();
+    private final fcPlacementFragBuildEvent buildEvent = new fcPlacementFragBuildEvent();
+    private final fcPlacementFragHoveredUpdateEvent hoveredUpdateEvent = new fcPlacementFragHoveredUpdateEvent();
 
     private boolean rebuildCategoryNeeded = false;
 
@@ -38,6 +40,13 @@ public abstract class fcPlacementFragment {
         buildEvent.parent = parent;
         buildEvent.instance = (PlacementFragment)(Object) this;
         Events.fire(buildEvent);
+    }
+
+    @Inject(method = "hovered", at = @At("RETURN"), cancellable = true, remap = false)
+    private void fcHovered(CallbackInfoReturnable<Displayable> ci) {
+        hoveredUpdateEvent.current = ci.getReturnValue();
+        hoveredUpdateEvent.replace = ci::setReturnValue;
+        Events.fire(hoveredUpdateEvent);
     }
 
 }
