@@ -1,6 +1,7 @@
 package finalCampaign.util.io;
 
 import arc.util.io.*;
+import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.io.*;
 import mindustry.type.*;
@@ -42,5 +43,25 @@ public class typeIO {
         } else {
             throw new RuntimeException("Not supported Teamc: " + teamc.toString());
         }
+    }
+
+    public static BuildPlan readBuildPlan(Reads reads) {
+        BuildPlan plan = new BuildPlan();
+
+        plan.x = reads.i();
+        plan.y = reads.i();
+        plan.rotation = reads.i();
+        plan.block = TypeIO.readBlock(reads);
+        plan.breaking = reads.bool();
+
+        return plan;
+    }
+
+    public static void writeBuildPlan(Writes writes, BuildPlan plan) {
+        writes.i(plan.x);
+        writes.i(plan.y);
+        writes.i(plan.rotation);
+        TypeIO.writeBlock(writes, plan.block);
+        writes.bool(plan.breaking);
     }
 }

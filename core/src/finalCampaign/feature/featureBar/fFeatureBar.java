@@ -33,9 +33,12 @@ public class fFeatureBar {
         config = new tunerConfig();
     }
 
+    public static void lateInit() {
+        ui.init();
+    }
+
     public static void lateLoad() {
         Events.on(EventType.StateChangeEvent.class, logic::stateChanged);
-        ui.init();
 
         enabled = fTuner.add("featureBar", false, config, v -> {
             if (enabled == v)

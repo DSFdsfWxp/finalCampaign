@@ -3,12 +3,14 @@ package finalCampaign.net;
 import java.lang.reflect.*;
 import arc.util.*;
 import finalCampaign.annotation.net.*;
+import finalCampaign.feature.auxDisplay.*;
 import finalCampaign.feature.buildTargeting.*;
 import finalCampaign.map.*;
 import finalCampaign.patch.*;
 import finalCampaign.util.*;
 import mindustry.*;
 import mindustry.entities.bullet.*;
+import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.type.*;
@@ -382,6 +384,18 @@ public class fcAction {
         b.fcPreferItem(v);
 
         building.lastAccessed = player.name;
+        return true;
+    }
+
+    @netCall(src = packetSource.both)
+    public static boolean boardcastPlayerPlanAdd(Player player, BuildPlan plan) {
+        fAuxDisplay.addPlan(player, plan);
+        return true;
+    }
+
+    @netCall(src = packetSource.both)
+    public static boolean boardcastPlayerPlanRemove(Player player, int x, int y) {
+        fAuxDisplay.removePlan(player, x, y);
         return true;
     }
 }

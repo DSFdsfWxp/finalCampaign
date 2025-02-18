@@ -67,7 +67,7 @@ public class features {
             } catch (Throwable e) {
                 if (e instanceof NoSuchMethodException)
                     continue;
-                Log.err("[finalCampaign][features] fail to init feature: @", feature.getName());
+                Log.err("[finalCampaign][features][@] fail to init feature: @", phase.name(), feature.getName());
                 Log.err(e);
                 featuresToLoad.remove(feature);
             }
@@ -82,7 +82,7 @@ public class features {
             } catch (Throwable e) {
                 if (e instanceof NoSuchMethodException)
                     continue;
-                Log.err("[finalCampaign][features] fail to load feature: @", feature.getName());
+                Log.err("[finalCampaign][features][@] fail to load feature: @", phase.name(), feature.getName());
                 Log.err(e);
             }
         }

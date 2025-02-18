@@ -180,7 +180,7 @@ public class hudFixedLayer {
 
     public void appendVisibility(Table target, Boolp v) {
         var original = target.visibility;
-        target.visibility = () -> original.get() && v.get();
+        target.visibility = () -> (original == null || original.get()) && v.get();
     }
 
     public void appendVisibility(Boolp v) {
