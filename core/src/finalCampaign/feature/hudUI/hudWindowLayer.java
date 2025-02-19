@@ -25,6 +25,7 @@ public class hudWindowLayer {
         flowIconMap = new ObjectMap<>();
 
         layer.setFillParent(true);
+        layer.touchable = Touchable.childrenOnly;
         layer.name = "fcHudUIWindowLayer";
 
         parent.addChild(layer);

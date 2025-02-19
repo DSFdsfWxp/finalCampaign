@@ -1,5 +1,6 @@
 package finalCampaign.feature.featureBar;
 
+import arc.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import finalCampaign.event.*;
@@ -28,14 +29,16 @@ public class logic {
                 if (Vars.state.isEditor())
                     return;
 
-        Table parent = (Table) event.table.parent;
-        Cell<?> blocksCell = parent.getCell(parent.getChildren().get(0));
+        Core.app.post(() -> {
+            Table parent = (Table) event.table.parent;
+            Cell<?> blocksCell = parent.getCell(parent.getChildren().get(0));
 
-        blocksCell.height(242f);
-        blocksCell.get().invalidate();
-        parent.invalidate();
+            blocksCell.height(242f);
+            blocksCell.get().invalidate();
+            parent.invalidate();
 
-        event.table.clear();
+            event.table.clear();
+        });
     }
 
     public static void stateChanged(EventType.StateChangeEvent event) {

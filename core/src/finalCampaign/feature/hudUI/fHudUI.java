@@ -2,6 +2,7 @@ package finalCampaign.feature.hudUI;
 
 import arc.func.*;
 import arc.scene.actions.*;
+import arc.scene.event.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import finalCampaign.feature.blockShortcut.*;
@@ -49,6 +50,12 @@ public class fHudUI {
         bottomPopupLayer.name = "fcHudUIBottomPopupLayer";
         topPopupLayer.name = "fcHudUITopPopupLayer";
 
+        layer.touchable = Touchable.childrenOnly;
+        freeLayer.touchable = Touchable.childrenOnly;
+        bottomPopupLayer.touchable = Touchable.childrenOnly;
+        topPopupLayer.touchable = Touchable.childrenOnly;
+
+
         layer.visible(() -> Vars.ui.hudfrag.shown && !Vars.ui.minimapfrag.shown());
 
         layer.addChild(freeLayer);
@@ -80,6 +87,7 @@ public class fHudUI {
             handle.get(t, close);
             t.setTransform(true);
             t.setOrigin(Align.center);
+            t.color.a(0f);
             t.actions(
                     Actions.fadeIn(0.4f)
             );

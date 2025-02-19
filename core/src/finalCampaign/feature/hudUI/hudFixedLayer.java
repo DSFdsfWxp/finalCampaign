@@ -34,7 +34,6 @@ public class hudFixedLayer {
     private Cell<Table> bottomLeftBlockPlaceholdCell, bottomLeftCell;
 
     public void init() {
-        Events.on(fcInputHandleBuildPlacementUIEvent.class, this::buildPlacementUI);
         Events.on(fcInputHandleBuildUIEvent.class, this::buildUI);
         Events.on(fcHudFragBuildEvent.class, this::buildUI);
         Events.on(fcPlacementFragBuildEvent.class, this::buildUI);
@@ -87,7 +86,7 @@ public class hudFixedLayer {
 
             placementCell = d.table().growY();
             placement = placementCell.get();
-        }).grow();
+        }).grow().row();
 
         top.top();
         topRight.top().right();
@@ -185,15 +184,6 @@ public class hudFixedLayer {
 
     public void appendVisibility(Boolp v) {
         appendVisibility(layer, v);
-    }
-
-    private void buildPlacementUI(fcInputHandleBuildPlacementUIEvent event) {
-        if (!(Vars.control.input instanceof DesktopInput))
-            return;
-
-        Table parent = (Table) event.table.parent;
-        parent.setHeight(parent.getHeight() + event.table.getHeight());
-        event.table.remove();
     }
 
     private void buildUI(fcInputHandleBuildUIEvent event) {

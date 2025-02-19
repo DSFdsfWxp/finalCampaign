@@ -33,10 +33,14 @@ public class fAuxDisplay {
     }
 
     public static void addPlan(Player player, BuildPlan plan) {
+        if (player == Vars.player)
+            return;
         logic.plans.addPlan(player, plan);
     }
 
     public static void removePlan(Player player, int x, int y) {
+        if (player == Vars.player)
+            return;
         logic.plans.removePlan(player, x, y);
     }
 

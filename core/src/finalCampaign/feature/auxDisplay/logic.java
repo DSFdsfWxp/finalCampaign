@@ -21,7 +21,7 @@ public class logic {
 
     private static Team lastTeam;
     private static Seq<BuildPlan> lastPlans = new Seq<>();
-    protected static playerBuildPlans plans;
+    protected static playerBuildPlans plans = new playerBuildPlans();
 
     public static void updateHovered(fcPlacementFragHoveredUpdateEvent e) {
         if (!fAuxDisplay.enabled)
