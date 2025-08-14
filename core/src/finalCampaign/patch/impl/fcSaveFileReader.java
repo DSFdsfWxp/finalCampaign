@@ -5,6 +5,7 @@ import org.spongepowered.asm.mixin.*;
 import arc.struct.*;
 import arc.struct.ObjectMap.*;
 import arc.util.*;
+import finalCampaign.map.fcMap;
 import mindustry.io.*;
 
 @Mixin(SaveFileReader.class)
@@ -16,18 +17,24 @@ public class fcSaveFileReader {
             String name = stream.readUTF();
             String value = stream.readUTF();
             map.put(name, value);
-            if (name.equals("finalCampaign.mapVersion") && Strings.canParsePositiveInt(value)) finalCampaign.map.fcMap.currentVersion = Integer.parseInt(value);
+            if (name.equals("finalCampaign.mapVersion") && Strings.canParsePositiveInt(value)) fcMap.currentVersion = Integer.parseInt(value);
         }
         return map;
     }
 
     public void writeStringMap(DataOutput stream, ObjectMap<String, String> map) throws IOException {
-        stream.writeShort(map.size + 1);
+        stream.writeShort(fcMap.exportingPlainSave ? map.size : map.size + 1);
         for(Entry<String, String> entry : map.entries()){
+            if (entry.key.equals("finalCampaign.appliedGamemode") && fcMap.exportingPlainSave)
+                continue;
+
             stream.writeUTF(entry.key);
             stream.writeUTF(entry.value);
         }
-        stream.writeUTF("finalCampaign.mapVersion");
-        stream.writeUTF(Integer.toString(finalCampaign.map.fcMap.version));
+
+        if (!fcMap.exportingPlainSave) {
+            stream.writeUTF("finalCampaign.mapVersion");
+            stream.writeUTF(Integer.toString(fcMap.version));
+        }
     }
 }

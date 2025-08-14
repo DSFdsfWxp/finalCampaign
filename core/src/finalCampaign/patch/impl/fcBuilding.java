@@ -3,6 +3,8 @@ package finalCampaign.patch.impl;
 import arc.*;
 import arc.scene.ui.layout.*;
 import finalCampaign.event.*;
+import finalCampaign.map.*;
+import finalCampaign.map.fcMap;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
@@ -77,6 +79,7 @@ public abstract class fcBuilding implements IFcBuilding {
 
     @Inject(method = "writeBase", at = @At("RETURN"), remap = false)
     public void fcWriteBase(Writes write, CallbackInfo ci) {
+        if (fcMap.exportingPlainSave) return;
         write.bool(fcForceDisable);
         write.bool(fcForceEnable);
         write.bool(fcInfinityPower);
@@ -85,7 +88,7 @@ public abstract class fcBuilding implements IFcBuilding {
 
     @Inject(method = "readBase", at = @At("RETURN"), remap = false)
     public void fcReadBase(Reads read, CallbackInfo ci) {
-        if (finalCampaign.map.fcMap.currentVersion < 1) return;
+        if (fcMap.currentVersion < 1) return;
         fcForceDisable = read.bool();
         fcForceEnable = read.bool();
         fcInfinityPower = read.bool();

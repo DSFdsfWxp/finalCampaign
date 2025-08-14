@@ -7,6 +7,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
+import finalCampaign.map.fcMap;
 import finalCampaign.patch.*;
 import mindustry.*;
 import mindustry.game.*;
@@ -90,12 +91,13 @@ public abstract class fcBeamDrillBuild extends Building implements IFcDrillBuild
 
     @Inject(method = "read", at = @At("RETURN"), remap = false)
     public void fcRead(Reads read, byte revision, CallbackInfo ci) {
-        if (finalCampaign.map.fcMap.currentVersion < 1) return;
+        if (fcMap.currentVersion < 1) return;
         fcPreferItem = TypeIO.readItem(read);
     }
 
     @Inject(method = "write", at = @At("RETURN"), remap = false)
     public void fcWrite(Writes write, CallbackInfo ci) {
+        if (fcMap.exportingPlainSave) return;
         TypeIO.writeItem(write, fcPreferItem);
     }
 }

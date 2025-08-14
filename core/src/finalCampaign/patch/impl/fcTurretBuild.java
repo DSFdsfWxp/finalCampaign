@@ -9,6 +9,7 @@ import arc.util.*;
 import arc.util.io.*;
 import finalCampaign.feature.buildTargeting.*;
 import finalCampaign.feature.buildTargetingLimit.*;
+import finalCampaign.map.fcMap;
 import finalCampaign.net.*;
 import finalCampaign.patch.*;
 import finalCampaign.util.*;
@@ -113,7 +114,7 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
 
     @Inject(method = "read", at = @At("RETURN"), remap = false)
     public void fcRead(Reads read, byte revision, CallbackInfo ci) {
-        if (finalCampaign.map.fcMap.currentVersion < 1) return;
+        if (fcMap.currentVersion < 1) return;
         fcForceDisablePredictTarget = read.bool();
         fcPreferBuildingTarget = read.bool();
         fcSortf.read(read);
@@ -122,6 +123,7 @@ public abstract class fcTurretBuild extends Building implements ControlBlock, IF
 
     @Inject(method = "write", at = @At("RETURN"), remap = false)
     public void fcWrite(Writes write, CallbackInfo ci) {
+        if (fcMap.exportingPlainSave) return;
         write.bool(fcForceDisablePredictTarget);
         write.bool(fcPreferBuildingTarget);
         fcSortf.write(write);

@@ -4,6 +4,7 @@ import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
 import arc.util.io.*;
+import finalCampaign.map.fcMap;
 import finalCampaign.net.*;
 import finalCampaign.patch.*;
 import mindustry.entities.bullet.*;
@@ -63,13 +64,14 @@ public abstract class fcLiquidTurretBuild extends Building implements IFcLiquidT
     @Override
     public void read(Reads read, byte revision) {
         super.read(read, revision);
-        if (finalCampaign.map.fcMap.currentVersion < 2) return;
+        if (fcMap.currentVersion < 2) return;
         fcPreferExtinguish = read.bool();
     }
 
     @Override
     public void write(Writes write) {
         super.write(write);
+        if (fcMap.exportingPlainSave) return;
         write.bool(fcPreferExtinguish);
     }
 }

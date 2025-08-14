@@ -22,7 +22,7 @@ allprojects {
         isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
         sdkRoot = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
 
-        androidPlatformRoot = new File("$sdkRoot/platforms/").listFiles().sort().reverse().find{ f -> new File(f, "android.jar").exists()}
+        androidPlatformRoot = new File("$sdkRoot/platforms/").listFiles().sort().find{ f -> new File(f, "android.jar").exists()}
 
         check = {
             if(!sdkRoot || !new File(sdkRoot).exists())

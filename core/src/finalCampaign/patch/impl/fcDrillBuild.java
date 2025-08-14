@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.injection.callback.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.io.*;
+import finalCampaign.map.fcMap;
 import finalCampaign.patch.*;
 import finalCampaign.util.*;
 import mindustry.game.*;
@@ -83,12 +84,13 @@ public abstract class fcDrillBuild extends Building implements IFcDrillBuild {
 
     @Inject(method = "read", at = @At("RETURN"), remap = false)
     private void fcRead(Reads read, byte revision, CallbackInfo ci) {
-        if (finalCampaign.map.fcMap.currentVersion < 1) return;
+        if (fcMap.currentVersion < 1) return;
         fcPreferItem = TypeIO.readItem(read);
     }
 
     @Inject(method = "write", at = @At("RETURN"), remap = false)
     private void fcWrite(Writes write, CallbackInfo ci) {
+        if (fcMap.exportingPlainSave) return;
         TypeIO.writeItem(write, fcPreferItem);
     }
 }

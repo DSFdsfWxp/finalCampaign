@@ -26,8 +26,12 @@ public class features {
     private static Seq<Class<?>> features = new Seq<>();
 
     public static void register(Class<?> feature) {
-        boolean supported = Reflect.invoke(feature, "supported");
-        if (supported) features.add(feature);
+        try {
+            boolean supported = Reflect.invoke(feature, "supported");
+            if (supported) features.add(feature);
+        } catch (Throwable e) {
+            Log.err(e);
+        }
     }
 
     public static void init() {

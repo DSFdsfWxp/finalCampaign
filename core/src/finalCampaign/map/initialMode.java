@@ -15,4 +15,9 @@ public class initialMode implements CustomChunk {
         int ordinal = stream.readInt();
         fcMap.initialMode = ordinal == -1 ? null : Gamemode.all[ordinal];
     }
+
+    @Override
+    public boolean shouldWrite() {
+        return !fcMap.exportingPlainSave;
+    }
 }

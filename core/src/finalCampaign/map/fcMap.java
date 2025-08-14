@@ -10,6 +10,9 @@ import mindustry.io.*;
 
 public class fcMap {
     public static int currentVersion;
+    public static boolean exportingPlainSave = false;
+    // during mindustry.maps.Maps.saveMap()
+    public static boolean savingMap = false;
     public static final int version = 2;
     public static @Nullable Gamemode initialMode;
 

@@ -42,11 +42,7 @@ public class finalCampaign extends Mod {
         bundle.init();
         bundle.load();
 
-        features.init();
-
         if (!Vars.headless) {
-            if (runtime != null)
-                features.load(features.featureLoadPhase.early);
             Events.on(ClientLoadEvent.class, e -> {
                 modStartup();
                 System.gc();
@@ -83,6 +79,13 @@ public class finalCampaign extends Mod {
             fcOutlineIcon.load();
             Events.on(ClientLoadEvent.class, e -> fcOutlineIcon.generate());
         }
+    }
+
+    public static void beforeUiInit() {
+        features.init();
+
+        if (!Vars.headless && runtime != null)
+            features.load(features.featureLoadPhase.early);
     }
 
     @Override

@@ -28,9 +28,12 @@
         "fcMap",
         "fcWorld",
         "fcMapIO",
+        "fcMaps",
+        "fcSaveSlot",
         "fcSdlApplication",
         "fcMobileInput",
-        "fcHudFragment"
+        "fcHudFragment",
+        "fcUI"
     ],
     "client": [
 	]
